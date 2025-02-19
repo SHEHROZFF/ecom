@@ -1,7 +1,7 @@
 // src/pages/Dashboard.jsx
 
 import React, { useEffect, useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux'; // Redux hooks
+import { useDispatch, useSelector } from 'react-redux';
 import {
   fetchUsers,
 } from '../redux/slices/usersSlice';
@@ -14,6 +14,8 @@ import {
 import {
   fetchAllReviews,
 } from '../redux/slices/reviewsSlice';
+import { fetchCourses } from '../redux/slices/coursesSlice';
+import { fetchAds } from '../redux/slices/adsSlice';
 import {
   BarChart,
   Bar,
@@ -28,7 +30,15 @@ import {
   LineChart,
   Line,
 } from 'recharts';
-import { FaUsers, FaBoxOpen, FaClipboardList, FaStar, FaDollarSign } from 'react-icons/fa';
+import {
+  FaUsers,
+  FaBoxOpen,
+  FaClipboardList,
+  FaStar,
+  FaDollarSign,
+  FaBook,
+  FaBullhorn,
+} from 'react-icons/fa';
 
 const Dashboard = () => {
   const dispatch = useDispatch();
@@ -38,39 +48,48 @@ const Dashboard = () => {
   const { products, loading: productsLoading, error: productsError } = useSelector((state) => state.products);
   const { orders, loading: ordersLoading, error: ordersError } = useSelector((state) => state.orders);
   const { reviews, loading: reviewsLoading, error: reviewsError } = useSelector((state) => state.reviews);
-  
+  const { courses, loading: coursesLoading, error: coursesError } = useSelector((state) => state.courses);
+  const { ads, loading: adsLoading, error: adsError } = useSelector((state) => state.ads);
+
   // Aggregate loading and error states
-  const loading = usersLoading || productsLoading || ordersLoading || reviewsLoading;
-  const error = usersError || productsError || ordersError || reviewsError;
+  const loading =
+    usersLoading ||
+    productsLoading ||
+    ordersLoading ||
+    reviewsLoading ||
+    coursesLoading ||
+    adsLoading;
+  const error =
+    usersError ||
+    productsError ||
+    ordersError ||
+    reviewsError ||
+    coursesError ||
+    adsError;
 
   // Summary Counts
   const usersCount = users.length;
   const productsCount = products.length;
   const ordersCount = orders.length;
   const reviewsCount = reviews.length;
+  const coursesCount = courses.length;
+  const adsCount = ads.length;
 
   // Orders Per Month Bar Chart Data
   const orderData = useMemo(() => {
-    // Initialize an array with months
     const months = [
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
     ];
-    
-    // Initialize an object to hold counts per month
     const counts = {};
     months.forEach((month) => {
       counts[month] = 0;
     });
-    
-    // Iterate over orders and count per month
     orders.forEach((order) => {
       const date = new Date(order.createdAt);
       const month = months[date.getMonth()];
       counts[month] += 1;
     });
-    
-    // Transform into array format for recharts
     return months.map((month) => ({
       month,
       orders: counts[month],
@@ -82,7 +101,6 @@ const Dashboard = () => {
     const positive = reviews.filter(review => review.rating >= 4).length;
     const neutral = reviews.filter(review => review.rating === 3).length;
     const negative = reviews.filter(review => review.rating <= 2).length;
-    
     return [
       { name: 'Positive', value: positive },
       { name: 'Neutral', value: neutral },
@@ -98,18 +116,15 @@ const Dashboard = () => {
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
     ];
-    
     const revenue = {};
     months.forEach((month) => {
       revenue[month] = 0;
     });
-    
     orders.forEach((order) => {
       const date = new Date(order.createdAt);
       const month = months[date.getMonth()];
       revenue[month] += order.totalPrice;
     });
-    
     return months.map((month) => ({
       month,
       revenue: revenue[month],
@@ -118,25 +133,35 @@ const Dashboard = () => {
 
   // Recent Orders (Latest 5)
   const recentOrders = useMemo(() => {
-    // Sort orders by createdAt descending
     const sortedOrders = [...orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    // Return the latest 5 orders
     return sortedOrders.slice(0, 5);
   }, [orders]);
 
   // Recent Reviews (Latest 5)
   const recentReviews = useMemo(() => {
-    // Sort reviews by createdAt descending
     const sortedReviews = [...reviews].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    // Return the latest 5 reviews
     return sortedReviews.slice(0, 5);
   }, [reviews]);
+
+  // Recent Courses (Latest 5)
+  const recentCourses = useMemo(() => {
+    const sortedCourses = [...courses].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    return sortedCourses.slice(0, 5);
+  }, [courses]);
+
+  // Recent Ads (Latest 5)
+  const recentAds = useMemo(() => {
+    const sortedAds = [...ads].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    return sortedAds.slice(0, 5);
+  }, [ads]);
 
   useEffect(() => {
     dispatch(fetchUsers());
     dispatch(fetchProducts());
     dispatch(fetchOrders());
     dispatch(fetchAllReviews());
+    dispatch(fetchCourses());
+    dispatch(fetchAds());
   }, [dispatch]);
 
   return (
@@ -163,7 +188,7 @@ const Dashboard = () => {
       )}
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8">
         {/* Users Card */}
         <div className="flex items-center bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
           <FaUsers className="h-12 w-12 text-blue-500" />
@@ -197,6 +222,24 @@ const Dashboard = () => {
           <div className="ml-4">
             <p className="text-sm font-medium text-gray-500 dark:text-gray-300">Total Reviews</p>
             <p className="text-2xl font-semibold text-gray-800 dark:text-white">{reviewsCount}</p>
+          </div>
+        </div>
+
+        {/* Courses Card */}
+        <div className="flex items-center bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+          <FaBook className="h-12 w-12 text-indigo-500" />
+          <div className="ml-4">
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-300">Total Courses</p>
+            <p className="text-2xl font-semibold text-gray-800 dark:text-white">{coursesCount}</p>
+          </div>
+        </div>
+
+        {/* Ads Card */}
+        <div className="flex items-center bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+          <FaBullhorn className="h-12 w-12 text-red-500" />
+          <div className="ml-4">
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-300">Total Ads</p>
+            <p className="text-2xl font-semibold text-gray-800 dark:text-white">{adsCount}</p>
           </div>
         </div>
       </div>
@@ -277,28 +320,16 @@ const Dashboard = () => {
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                  >
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Order ID
                   </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                  >
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Customer
                   </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                  >
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Total
                   </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                  >
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Status
                   </th>
                 </tr>
@@ -331,35 +362,23 @@ const Dashboard = () => {
       </div>
 
       {/* Recent Reviews Table */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8">
         <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Recent Reviews</h3>
         {recentReviews && recentReviews.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                  >
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Review ID
                   </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                  >
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Product
                   </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                  >
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Rating
                   </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                  >
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Sentiment
                   </th>
                 </tr>
@@ -368,7 +387,6 @@ const Dashboard = () => {
                 {recentReviews.map((review) => {
                   let sentiment = '';
                   let sentimentColor = '';
-
                   if (review.rating >= 4) {
                     sentiment = 'Positive';
                     sentimentColor = 'bg-green-100 text-green-800';
@@ -379,16 +397,13 @@ const Dashboard = () => {
                     sentiment = 'Negative';
                     sentimentColor = 'bg-red-100 text-red-800';
                   }
-
                   return (
                     <tr key={review._id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{review._id}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{review.product.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{review.reviewable.name}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{review.rating} ⭐</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${sentimentColor}`}
-                        >
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${sentimentColor}`}>
                           {sentiment}
                         </span>
                       </td>
@@ -400,6 +415,86 @@ const Dashboard = () => {
           </div>
         ) : (
           <p className="text-gray-500 dark:text-gray-300">No recent reviews available.</p>
+        )}
+      </div>
+
+      {/* Recent Courses Table */}
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8">
+        <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Recent Courses</h3>
+        {recentCourses && recentCourses.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Course ID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Title
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Instructor
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Price
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {recentCourses.map((course) => (
+                  <tr key={course._id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{course._id}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{course.title}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{course.instructor}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${course.price.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-gray-500 dark:text-gray-300">No recent courses available.</p>
+        )}
+      </div>
+
+      {/* Recent Ads Table */}
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+        <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Recent Ads</h3>
+        {recentAds && recentAds.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Ad ID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Title
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Subtitle
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Image
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {recentAds.map((ad) => (
+                  <tr key={ad._id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{ad._id}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{ad.title}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{ad.subtitle}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <img src={ad.image} alt={ad.title} className="w-16 h-auto rounded" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-gray-500 dark:text-gray-300">No recent ads available.</p>
         )}
       </div>
     </div>

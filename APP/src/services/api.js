@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Replace with your actual API URL
 // const API_URL = 'http://10.0.0.2:5000/api';
-const API_URL = 'https://ecom-app-eta-three.vercel.app/api';
+const API_URL = 'https://ecom-mauve-three.vercel.app/api';
 // ----------------------- Helper Functions ----------------------- //
 
 /**shehr

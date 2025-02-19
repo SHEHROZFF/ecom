@@ -62,7 +62,10 @@ import Orders from './pages/Orders';
 import Reviews from './pages/Reviews';
 import LandingPage from './pages/LandingPage';
 import ThemeSettings from './pages/ThemeSettings';
+import Courses from './pages/Courses';
+import Ads from './pages/Ads';
 import { useSelector } from 'react-redux';
+
 
 const App = () => {
   const { isAuthenticated } = useSelector((state) => state.auth);
@@ -100,6 +103,8 @@ const App = () => {
           <Route path="orders" element={<Orders />} />
           <Route path="reviews" element={<Reviews />} />
           <Route path="/theme" element={<ThemeSettings />} />
+          <Route path="/courses" element={<Courses />} />
+          <Route path="/ads" element={<Ads />} />
         </Route>
 
         {/* Fallback Route */}
