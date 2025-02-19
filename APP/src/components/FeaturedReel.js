@@ -1,4 +1,3 @@
-// src/components/FeaturedReel.js
 import React, { useState, useEffect } from 'react';
 import { 
   Modal, 
@@ -32,6 +31,7 @@ const FeaturedReel = ({
   const effectiveReels = reelsData && reelsData.length > 0 ? reelsData : [course];
 
   useEffect(() => {
+    // Debug logs (feel free to remove in production)
     console.log('Effective Reels Data:', effectiveReels);
     console.log('Effective Reels Count:', effectiveReels.length);
     console.log('Initial Course ID:', course.id);
@@ -39,7 +39,6 @@ const FeaturedReel = ({
 
   const handlePress = () => {
     const index = effectiveReels.findIndex(item => item.id === course.id);
-    console.log('Found index:', index);
     setCurrentIndex(index !== -1 ? index : 0);
     setModalVisible(true);
     if (onPress) onPress();
@@ -53,8 +52,6 @@ const FeaturedReel = ({
   const renderCarouselItem = ({ item, index }) => {
     // Only play the video when it's the current reel
     const shouldPlay = index === currentIndex;
-    console.log(`Rendering reel ${index}: shouldPlay=${shouldPlay}`);
-
     return (
       <View style={styles.fullReelContainer}>
         {item.videoUrl ? (
@@ -63,7 +60,7 @@ const FeaturedReel = ({
             rate={1.0}
             volume={1.0}
             isMuted={false}
-            resizeMode="contain" // Use "contain" to display full video without cropping
+            resizeMode="contain"
             shouldPlay={shouldPlay}
             useNativeControls={false}
             style={styles.fullScreenMedia}
@@ -117,6 +114,7 @@ const FeaturedReel = ({
             style={styles.reelOverlay}
           />
         </View>
+        {/* Title and play icon */}
         <View style={styles.titleContainer}>
           <Text style={styles.reelTitle}>{course.title}</Text>
           {course.videoUrl && (
@@ -127,6 +125,14 @@ const FeaturedReel = ({
               style={styles.playIcon} 
             />
           )}
+        </View>
+        {/* New: Course image overlay at top-right */}
+        <View style={styles.topRightImageContainer}>
+          <Image 
+            source={{ uri: course.image }}
+            style={styles.topRightImage}
+            resizeMode="cover"
+          />
         </View>
       </TouchableOpacity>
 
@@ -140,12 +146,11 @@ const FeaturedReel = ({
             width={viewportWidth}
             height={viewportHeight}
             onSnapToItem={(index) => {
-              console.log('Snapped to index:', index);
               setCurrentIndex(index);
             }}
             autoPlay={false}
             loop={false}
-            mode="default" // Using default mode for vertical carousel
+            mode="default"
           />
           <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
             <Ionicons name="close-circle" size={36} color="#fff" />
@@ -196,6 +201,22 @@ const styles = StyleSheet.create({
   },
   playIcon: {
     marginLeft: 8,
+  },
+  // New style for the top-right course image
+  topRightImageContainer: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  topRightImage: {
+    width: '100%',
+    height: '100%',
   },
   modalContainer: {
     flex: 1,

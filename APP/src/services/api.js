@@ -475,6 +475,95 @@ console.log("config",config);
   }
 };
 
+
+
+// ----------------------- Courses & Ads ----------------------- //
+
+// Updated fetchCourses with pagination & selective projection
+export const fetchCourses = async (page = 1, limit = 10) => {
+  try {
+    const token = await getAuthToken();
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const response = await axios.get(`${API_URL}/courses?page=${page}&limit=${limit}`, config);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Fetch Courses error:', error.response?.data?.message || error.message);
+    return { success: false, message: error.response?.data?.message || 'Failed to fetch courses.' };
+  }
+};
+
+// New API for fetching featured reels (lightweight data)
+export const fetchFeaturedReels = async () => {
+  try {
+    const token = await getAuthToken();
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const response = await axios.get(`${API_URL}/courses/featuredreels`, config);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Fetch Featured Reels error:', error.response?.data?.message || error.message);
+    return { success: false, message: error.response?.data?.message || 'Failed to fetch featured reels.' };
+  }
+};
+
+// Fetch Ads remains unchanged
+export const fetchAds = async () => {
+  try {
+    const token = await getAuthToken();
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const response = await axios.get(`${API_URL}/ads`, config);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Fetch Ads error:', error.response?.data?.message || error.message);
+    return { success: false, message: error.response?.data?.message || 'Failed to fetch ads.' };
+  }
+};
+
+// // Add this near the other exported functions in src/services/api.js
+// export const fetchCourses = async () => {
+//   try {
+//     const token = await getAuthToken();
+//     const config = {
+//       headers: {
+//         Authorization: `Bearer ${token}`,
+//       },
+//     };
+//     const response = await axios.get(`${API_URL}/courses`, config);
+//     return { success: true, data: response.data };
+//   } catch (error) {
+//     console.error(
+//       'Fetch Courses error:',
+//       error.response?.data?.message || error.message
+//     );
+//     return {
+//       success: false,
+//       message:
+//         error.response?.data?.message || 'Failed to fetch courses.',
+//     };
+//   }
+// };
+
+
+// // Fetch Ads
+// export const fetchAds = async () => {
+//   try {
+//     const token = await getAuthToken();
+//     const config = {
+//       headers: {
+//         Authorization: `Bearer ${token}`,
+//       },
+//     };
+//     const response = await axios.get(`${API_URL}/ads`, config);
+//     return { success: true, data: response.data };
+//   } catch (error) {
+//     console.error(
+//       'Fetch Ads error:',
+//       error.response?.data?.message || error.message
+//     );
+//     return { success: false, message: error.response?.data?.message || 'Failed to fetch ads.' };
+//   }
+// };
+
+
 // ----------------------- Export All Functions ----------------------- //
 
 export default {
@@ -509,454 +598,17 @@ export default {
   verifyAuthToken,
 
   // Change Password
-  changeUserPassword
+  changeUserPassword,
+
+  // // Fetch Courses
+  // fetchCourses,
+
+  // // Fetch Ads
+  // fetchAds
+
+    // Courses & Ads
+    fetchCourses,
+    fetchFeaturedReels,
+    fetchAds,
+
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// // src/services/api.js
-
-// import axios from 'axios';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
-
-// // Replace with your actual API URL
-// const API_URL = 'http://localhost:5000/api';
-
-// // ----------------------- Helper Functions ----------------------- //
-
-// /**
-//  * Retrieve the authentication token from AsyncStorage.
-//  * @returns {Promise<string|null>} The JWT token or null if not found.
-//  */
-// const getAuthToken = async () => {
-//   try {
-//     const token = await AsyncStorage.getItem('token');
-//     return token;
-//   } catch (error) {
-//     console.error('Error retrieving auth token:', error);
-//     return null;
-//   }
-// };
-
-// /**
-//  * Store the authentication token in AsyncStorage.
-//  * @param {string} token - The JWT token to store.
-//  * @returns {Promise<void>}
-//  */
-// const storeAuthToken = async (token) => {
-//   try {
-//     console.log(token);
-    
-//     await AsyncStorage.setItem('token', token);
-//   } catch (error) {
-//     console.error('Error storing auth token:', error);
-//   }
-// };
-
-// /**
-//  * Remove the authentication token from AsyncStorage (Logout).
-//  * @returns {Promise<void>}
-//  */
-// export const logoutUser = async () => {
-//   try {
-//     await AsyncStorage.removeItem('token');
-//   } catch (error) {
-//     console.error('Logout error:', error);
-//   }
-// };
-
-// // ----------------------- Authentication Functions ----------------------- //
-
-// /**
-//  * Login User
-//  * @param {string} email - User's email.
-//  * @param {string} password - User's password.
-//  * @returns {Promise<object>} Response data or error object.
-//  */
-// export const loginUser = async (email, password) => {
-//   try {
-//     const response = await axios.post(`${API_URL}/auth/login`, { email, password, role: 'user' });
-    
-//     if (response.data && response.data.token) {
-//       await storeAuthToken(response.data.token);
-//     }
-    
-//     return { success: true, data: response.data };
-//   } catch (error) {
-//     console.error('Login error:', error.response?.data?.message || error.message);
-//     return { success: false, message: error.response?.data?.message || 'Login failed.' };
-//   }
-// };
-
-// /**
-//  * Register User
-//  * @param {object} userData - User registration data.
-//  * @returns {Promise<object>} Response data or error object.
-//  */
-// export const registerUser = async (userData) => {
-//   try {
-//     const response = await axios.post(`${API_URL}/auth/register`, userData);
-    
-//     if (response.data && response.data.token) {
-//       await storeAuthToken(response.data.token);
-//     }
-    
-//     return { success: true, data: response.data };
-//   } catch (error) {
-//     console.error('Registration error:', error.response?.data?.message || error.message);
-//     return { success: false, message: error.response?.data?.message || 'Registration failed.' };
-//   }
-// };
-
-// /**
-//  * Forgot Password
-//  * @param {string} email - User's email.
-//  * @returns {Promise<object>} Response data or error object.
-//  */
-// export const forgotPassword = async (email) => {
-//   try {
-//     const response = await axios.post(`${API_URL}/auth/forgotpassword`, { email, role: 'user' });
-//     return  response.data 
-//   } catch (error) {
-//     console.error('Forgot Password error:', error.response?.data?.message || error.message);
-//     return { success: false, message: error.response?.data?.message || 'Failed to send reset link.' };
-//   }
-// };
-
-// /**
-//  * Verify OTP
-//  * @param {string} email - User's email.
-//  * @param {string} otp - One-Time Password received via email.
-//  * @returns {Promise<object>} Response data or error object.
-//  */
-// export const verifyOtp = async (email, otp) => {
-//   try {
-//     const response = await axios.post(`${API_URL}/auth/verify-otp`, { email, otp, role: 'user' });
-//     return { success: true, data: response.data };
-//   } catch (error) {
-//     console.error('Verify OTP error:', error.response?.data?.message || error.message);
-//     return { success: false, message: error.response?.data?.message || 'OTP verification failed.' };
-//   }
-// };
-
-// /**
-//  * Reset Password
-//  * @param {string} email - User's email.
-//  * @param {string} otp - One-Time Password.
-//  * @param {string} newPassword - New password to set.
-//  * @returns {Promise<object>} Response data or error object.
-//  */
-// export const resetPassword = async (email,newPassword) => {
-//   try {
-//     const response = await axios.post(`${API_URL}/auth/reset-password`, { email, newPassword, role: 'user' });
-//     return { success: true, data: response.data };
-//   } catch (error) {
-//     console.error('Reset Password error:', error.response?.data?.message || error.message);
-//     return { success: false, message: error.response?.data?.message || 'Password reset failed.' };
-//   }
-// };
-
-// /**
-//  * Get User Profile
-//  * @returns {Promise<object>} User profile data or error object.
-//  */
-// export const getUserProfile = async () => {
-//   try {
-//     const token = await getAuthToken();
-//     if (!token) {
-//       throw new Error('No authentication token found.');
-//     }
-
-//     const config = {
-//       headers: {
-//         'Content-Type': 'application/json',
-//         Authorization: `Bearer ${token}`,
-//       },
-//     };
-
-//     const response = await axios.get(`${API_URL}/auth/profile`, config);
-//     return { success: true, data: response.data };
-//   } catch (error) {
-//     console.error('Get User Profile error:', error.response?.data?.message || error.message);
-//     return { success: false, message: error.response?.data?.message || 'Failed to fetch user profile.' };
-//   }
-// };
-
-// // ----------------------- Product Functions ----------------------- //
-
-// /**
-//  * Fetch All Products
-//  * @returns {Promise<object>} Products data or error object.
-//  */
-// export const fetchProducts = async () => {
-//   try {
-//     const response = await axios.get(`${API_URL}/products`);
-//     return { success: true, data: response.data };
-//   } catch (error) {
-//     console.error('Fetch Products error:', error.response?.data?.message || error.message);
-//     return { success: false, message: error.response?.data?.message || 'Failed to fetch products.' };
-//   }
-// };
-
-// // /**
-// //  * Add New Product (Admin Only)
-// //  * @param {object} productData - Data of the product to add.
-// //  * @returns {Promise<object>} Created product data or error object.
-// //  */
-// // export const addProduct = async (productData) => {
-// //   try {
-// //     const token = await getAuthToken();
-// //     if (!token) {
-// //       throw new Error('No authentication token found.');
-// //     }
-
-// //     const config = {
-// //       headers: {
-// //         'Content-Type': 'application/json',
-// //         Authorization: `Bearer ${token}`,
-// //       },
-// //     };
-
-// //     const response = await axios.post(`${API_URL}/products`, productData, config);
-// //     return { success: true, data: response.data };
-// //   } catch (error) {
-// //     console.error('Add Product error:', error.response?.data?.message || error.message);
-// //     return { success: false, message: error.response?.data?.message || 'Failed to add product.' };
-// //   }
-// // };
-
-// // /**
-// //  * Update Product (Admin Only)
-// //  * @param {string} productId - ID of the product to update.
-// //  * @param {object} updateData - Data to update the product with.
-// //  * @returns {Promise<object>} Updated product data or error object.
-// //  */
-// // export const updateProduct = async (productId, updateData) => {
-// //   try {
-// //     const token = await getAuthToken();
-// //     if (!token) {
-// //       throw new Error('No authentication token found.');
-// //     }
-
-// //     const config = {
-// //       headers: {
-// //         'Content-Type': 'application/json',
-// //         Authorization: `Bearer ${token}`,
-// //       },
-// //     };
-
-// //     const response = await axios.put(`${API_URL}/products/${productId}`, updateData, config);
-// //     return { success: true, data: response.data };
-// //   } catch (error) {
-// //     console.error('Update Product error:', error.response?.data?.message || error.message);
-// //     return { success: false, message: error.response?.data?.message || 'Failed to update product.' };
-// //   }
-// // };
-
-// // /**
-// //  * Delete Product (Admin Only)
-// //  * @param {string} productId - ID of the product to delete.
-// //  * @returns {Promise<object>} Success message or error object.
-// //  */
-// // export const deleteProduct = async (productId) => {
-// //   try {
-// //     const token = await getAuthToken();
-// //     if (!token) {
-// //       throw new Error('No authentication token found.');
-// //     }
-
-// //     const config = {
-// //       headers: {
-// //         Authorization: `Bearer ${token}`,
-// //       },
-// //     };
-
-// //     const response = await axios.delete(`${API_URL}/products/${productId}`, config);
-// //     return { success: true, data: response.data };
-// //   } catch (error) {
-// //     console.error('Delete Product error:', error.response?.data?.message || error.message);
-// //     return { success: false, message: error.response?.data?.message || 'Failed to delete product.' };
-// //   }
-// // };
-
-// /**
-//  * Get Product Details
-//  * @param {string} productId - ID of the product.
-//  * @returns {Promise<object>} Product details data or error object.
-//  */
-// export const getProductDetails = async (productId) => {
-//   try {
-//     const response = await axios.get(`${API_URL}/products/${productId}`);
-//     return { success: true, data: response.data };
-//   } catch (error) {
-//     console.error('Get Product Details error:', error.response?.data?.message || error.message);
-//     return { success: false, message: error.response?.data?.message || 'Failed to fetch product details.' };
-//   }
-// };
-
-// /**
-//  * Get Top-Rated Products
-//  * @returns {Promise<object>} Top-rated products data or error object.
-//  */
-// export const getTopProducts = async () => {
-//   try {
-//     const response = await axios.get(`${API_URL}/products/top`);
-//     return { success: true, data: response.data };
-//   } catch (error) {
-//     console.error('Get Top Products error:', error.response?.data?.message || error.message);
-//     return { success: false, message: error.response?.data?.message || 'Failed to fetch top products.' };
-//   }
-// };
-
-// // ----------------------- Review Functions ----------------------- //
-
-// /**
-//  * Add or Update a Review (Authenticated Users)
-//  * @param {string} productId - ID of the product to review.
-//  * @param {number} rating - Rating between 1 and 5.
-//  * @param {string} comment - Review comment.
-//  * @returns {Promise<object>} Response data or error object.
-//  */
-// export const addOrUpdateReview = async (productId, rating, comment) => {
-//   try {
-//     const token = await getAuthToken();
-//     if (!token) {
-//       throw new Error('No authentication token found.');
-//     }
-
-//     const config = {
-//       headers: {
-//         'Content-Type': 'application/json',
-//         Authorization: `Bearer ${token}`,
-//       },
-//     };
-
-//     const response = await axios.post(
-//       `${API_URL}/reviews`,
-//       { productId, rating, comment },
-//       config
-//     );
-
-//     return { success: true, data: response.data };
-//   } catch (error) {
-//     console.error('Add/Update Review error:', error.response?.data?.message || error.message);
-//     return { success: false, message: error.response?.data?.message || 'Failed to add/update review.' };
-//   }
-// };
-
-// /**
-//  * Get All Reviews for a Product
-//  * @param {string} productId - ID of the product.
-//  * @returns {Promise<object>} Reviews data or error object.
-//  */
-// export const getProductReviewsAPI = async (productId) => {
-//   try {
-    
-//     const response = await axios.get(`${API_URL}/reviews/product/${productId}`);
-//     console.log(response);
-
-//     return response;
-//   } catch (error) {
-//     console.error('Get Product Reviews error:', error.response?.data?.message || error.message);
-//     return { success: false, message: error.response?.data?.message || 'Failed to fetch reviews.' };
-//   }
-// };
-
-// /**
-//  * Delete a Review (Authenticated Users/Admin)
-//  * @param {string} reviewId - ID of the review to delete.
-//  * @returns {Promise<object>} Success message or error object.
-//  */
-// export const deleteReviewAPI = async (reviewId) => {
-//   try {
-//     const token = await getAuthToken();
-//     if (!token) {
-//       throw new Error('No authentication token found.');
-//     }
-
-//     const config = {
-//       headers: {
-//         Authorization: `Bearer ${token}`,
-//       },
-//     };
-
-//     const response = await axios.delete(`${API_URL}/reviews/${reviewId}`, config);
-//     return { success: true, data: response.data };
-//   } catch (error) {
-//     console.error('Delete Review error:', error.response?.data?.message || error.message);
-//     return { success: false, message: error.response?.data?.message || 'Failed to delete review.' };
-//   }
-// };
-
-// // ----------------------- Export All Functions ----------------------- //
-
-// export default {
-//   // Authentication
-//   loginUser,
-//   registerUser,
-//   forgotPassword,
-//   verifyOtp,
-//   resetPassword,
-//   getUserProfile,
-//   logoutUser,
-
-//   // Products
-//   fetchProducts,
-//   // addProduct,
-//   // updateProduct,
-//   // deleteProduct,
-//   getProductDetails,
-//   getTopProducts,
-
-//   // Reviews
-//   addOrUpdateReview,
-//   getProductReviewsAPI,
-//   deleteReviewAPI,
-// };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
