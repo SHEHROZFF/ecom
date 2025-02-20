@@ -15,6 +15,8 @@ const orderRoutes = require('./routes/orderRoutes');
 const themeRoutes = require('./routes/themeRoutes');
 const courseRoutes = require('./routes/courseRoutes');
 const adRoutes = require('./routes/adRoutes');
+const enrollmentRoutes = require('./routes/enrollmentRoutes');
+
 // const stripe = require('stripe')('sk_test_51OXlAIAZK57wNYnQQluuPOe6YHwpKCs2dZfKLaEe7Ye67OObYR3Hes3i0Vjo1yp450mlVWQ9ufvWWYYymF1mc33R00GwSCgwFi');
 
 // Load environment variables
@@ -80,6 +82,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/theme', themeRoutes);
 app.use('/api/courses', courseRoutes); // Mount the courses routes
 app.use('/api/ads', adRoutes);
+app.use('/api/enrollments', enrollmentRoutes);
 
 // Error handling middleware (should be last piece of middleware)
 app.use(errorHandler);
