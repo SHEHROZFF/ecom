@@ -30,13 +30,14 @@ router.route('/featured')
 router.route('/featuredreels')
   .get(protect, getFeaturedReels);
 
+router.get('/search', protect, searchCourses);
 // Endpoints for a single course by id
 router.route('/:id')
   .get(protect, getCourseById)
   .put(protect, updateCourse)
   .delete(protect, deleteCourse);
 
-router.get('/search', protect, searchCourses);
+
 
 module.exports = router;
 

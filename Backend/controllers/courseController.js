@@ -130,7 +130,7 @@ const searchCourses = asyncHandler(async (req, res) => {
   }
 
   // For short suggestions, limit to 5 or 10
-  const limit = 5;
+  // const limit = 5;
 
   // Basic regex search, case-insensitive, matching title OR description
   const filter = {
@@ -142,7 +142,7 @@ const searchCourses = asyncHandler(async (req, res) => {
 
   const suggestions = await Course.find(filter)
     .select('title description image rating reviews isFeatured shortVideoLink') 
-    .limit(limit);
+    // .limit(limit);
 
   res.json(suggestions);
 });

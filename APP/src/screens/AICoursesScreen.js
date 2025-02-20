@@ -23,7 +23,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+
+import { useNavigation } from '@react-navigation/native'; // for navigating to detail
 
 import { ThemeContext } from '../../ThemeContext';
 import { lightTheme, darkTheme } from '../../themes';
@@ -48,7 +49,7 @@ const AICoursesScreen = () => {
   const { width } = useWindowDimensions();
   const navigation = useNavigation();
 
-  // Courses
+  // 1) Main states for courses
   const [courses, setCourses] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -56,31 +57,36 @@ const AICoursesScreen = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Reels
+  // 2) Reels
   const [reels, setReels] = useState([]);
   const [reelsPage, setReelsPage] = useState(1);
   const [hasMoreReels, setHasMoreReels] = useState(true);
   const [loadingMoreReels, setLoadingMoreReels] = useState(false);
 
-  // Ads
+  // 3) Ads
   const [ads, setAds] = useState([]);
 
-  // Fade-in
+  // 4) Animated fade
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Search states
+  // 5) Searching for suggestions
   const [searchTerm, setSearchTerm] = useState('');
   const [searchSuggestions, setSearchSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Layout calculations
+  // Debounce timer
+  const searchTimeout = useRef(null);
+
+  // For layout
   const numColumns = useMemo(() => (width < 600 ? 1 : 2), [width]);
   const cardWidth = useMemo(() => {
     const totalMargin = 20 * (numColumns + 1);
     return (width - totalMargin) / numColumns;
   }, [width, numColumns]);
 
-  // 1) fetchData for courses + ads
+  // ---------------------------------------------------------------------------
+  // fetchData (courses + ads) same as your original
+  // ---------------------------------------------------------------------------
   const fetchData = useCallback(
     async (isRefreshing = false) => {
       try {
@@ -95,6 +101,8 @@ const AICoursesScreen = () => {
         }
 
         const currentPage = isRefreshing ? 1 : page;
+
+        // fetch courses + ads
         const [coursesResponse, adsResponse] = await Promise.all([
           fetchCourses(currentPage, PAGE_LIMIT),
           fetchAds(),
@@ -149,38 +157,42 @@ const AICoursesScreen = () => {
     [page, fadeAnim]
   );
 
-  // 2) fetchReels
+  // ---------------------------------------------------------------------------
+  // fetchReels same as your original
+  // ---------------------------------------------------------------------------
   const fetchReels = useCallback(
-    async (isRefresh = false) => {
+    async (isRefreshing = false) => {
       try {
-        if (isRefresh) {
+        if (isRefreshing) {
           setReelsPage(1);
           setHasMoreReels(true);
         }
         setLoadingMoreReels(true);
 
-        const currentPage = isRefresh ? 1 : reelsPage;
+        const currentPage = isRefreshing ? 1 : reelsPage;
         const reelsResponse = await fetchFeaturedReels(currentPage, REELS_LIMIT);
 
         if (reelsResponse.success) {
-          const newReels = reelsResponse.data.map((item) => ({
+          const fetchedReels = reelsResponse.data.map((item) => ({
             ...item,
             id: item._id,
           }));
 
-          if (isRefresh) {
-            setReels(newReels);
+          if (isRefreshing) {
+            setReels(fetchedReels);
             setReelsPage(2);
           } else {
-            const deduped = newReels.filter((r) => !reels.some((ex) => ex.id === r.id));
-            if (deduped.length === 0) {
+            const newItems = fetchedReels.filter(
+              (r) => !reels.some((existing) => existing.id === r.id)
+            );
+            if (newItems.length === 0) {
               setHasMoreReels(false);
             } else {
-              setReels((prev) => [...prev, ...deduped]);
+              setReels((prev) => [...prev, ...newItems]);
               setReelsPage(currentPage + 1);
             }
           }
-          if (newReels.length < REELS_LIMIT) {
+          if (fetchedReels.length < REELS_LIMIT) {
             setHasMoreReels(false);
           }
         }
@@ -193,7 +205,9 @@ const AICoursesScreen = () => {
     [reels, reelsPage]
   );
 
-  // 3) refreshAll
+  // ---------------------------------------------------------------------------
+  // Refresh all
+  // ---------------------------------------------------------------------------
   const refreshAll = useCallback(() => {
     setHasMore(true);
     setHasMoreReels(true);
@@ -207,49 +221,49 @@ const AICoursesScreen = () => {
   }, []);
 
   // ---------------------------------------------------------------------------
-  // Search by button press
+  // Suggestions: server-side search on each keystroke (debounced)
   // ---------------------------------------------------------------------------
-  const handleSearchPress = useCallback(async () => {
-    if (!searchTerm) {
+  const handleSearchChange = useCallback((text) => {
+    setSearchTerm(text);
+    if (searchTimeout.current) {
+      clearTimeout(searchTimeout.current);
+    }
+
+    if (text.length === 0) {
       setSearchSuggestions([]);
       setShowSuggestions(false);
       return;
     }
-    try {
-      const result = await searchCoursesAPI(searchTerm);
-      if (result.success && result.data) {
-        setSearchSuggestions(result.data);
-        setShowSuggestions(true);
-      } else {
-        setSearchSuggestions([]);
-        setShowSuggestions(false);
-      }
-    } catch (err) {
-      console.error('search error', err);
-      setSearchSuggestions([]);
-      setShowSuggestions(false);
-    }
-  }, [searchTerm]);
 
-  // Tapping a suggestion -> navigate
+    // Debounce: only search after 400ms
+    searchTimeout.current = setTimeout(async () => {
+      try {
+        const result = await searchCoursesAPI(text);
+        if (result.success && result.data) {
+          setSearchSuggestions(result.data); // an array of course suggestions
+          setShowSuggestions(true);
+        } else {
+          setSearchSuggestions([]);
+          setShowSuggestions(false);
+        }
+      } catch (err) {
+        console.error('search error', err);
+        setSearchSuggestions([]);
+      }
+    }, 400);
+  }, []);
+
+  // When user taps on a suggestion, navigate to detail
   const handleSuggestionPress = useCallback((course) => {
     setSearchTerm(course.title);
     setShowSuggestions(false);
+
+    // Navigate to detail, pass full course object
     navigation.navigate('CourseDetailScreen', { course });
   }, [navigation]);
 
-  // If user changes text, we only set it locally. We do NOT fetch suggestions automatically.
-  const handleTextChange = useCallback((text) => {
-    setSearchTerm(text);
-    // If user clears text, hide suggestions
-    if (!text) {
-      setSearchSuggestions([]);
-      setShowSuggestions(false);
-    }
-  }, []);
-
   // ---------------------------------------------------------------------------
-  // Load more
+  // Infinite scroll
   // ---------------------------------------------------------------------------
   const handleLoadMoreCourses = useCallback(() => {
     if (!loadingMore && hasMore) {
@@ -264,7 +278,7 @@ const AICoursesScreen = () => {
   }, [loadingMoreReels, hasMoreReels, fetchReels]);
 
   // ---------------------------------------------------------------------------
-  // UI handlers
+  // UI Handlers
   // ---------------------------------------------------------------------------
   const handleFeaturedPress = useCallback((course) => {
     Alert.alert('Course Details', `Featured Course: ${course.title}`);
@@ -274,7 +288,9 @@ const AICoursesScreen = () => {
     Alert.alert('New Courses', `Ad clicked: ${ad.title}`);
   }, []);
 
+  // ---------------------------------------------------------------------------
   // Render Items
+  // ---------------------------------------------------------------------------
   const renderCourse = useCallback(
     ({ item }) => (
       <CourseCard course={item} cardWidth={cardWidth} currentTheme={currentTheme} />
@@ -288,55 +304,57 @@ const AICoursesScreen = () => {
     return { length: CARD_HEIGHT, offset: row * CARD_HEIGHT, index };
   }, [numColumns]);
 
+  // ---------------------------------------------------------------------------
   // Header
-  const renderHeader = useCallback(() => (
-    <View>
-      {/* Featured Reels */}
-      <View style={styles.featuredSection}>
-        <Text style={[styles.sectionTitle, { color: currentTheme.cardTextColor }]}>
-          Featured Courses
-        </Text>
-        <FlatList
-          data={reels}
-          horizontal
-          keyExtractor={(item, i) => `${item.id}-${i}`}
-          renderItem={({ item }) => (
-            <FeaturedReel
-              course={item}
-              reelWidth={width * 0.35}
-              reelHeight={220}
-              onPress={() => handleFeaturedPress(item)}
-              currentTheme={currentTheme}
-              reelsData={reels}
-            />
-          )}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.reelsContainer}
-          onEndReached={handleLoadMoreReels}
-          onEndReachedThreshold={0.1}
-          ListFooterComponent={
-            loadingMoreReels ? (
-              <ActivityIndicator size="small" color={currentTheme.primaryColor} />
-            ) : null
-          }
-        />
-      </View>
-
-      {/* Ads */}
-      <View style={styles.adsSection}>
-        <Text style={[styles.sectionTitle, { color: currentTheme.cardTextColor }]}>
-          Sponsored Ads
-        </Text>
-        <View style={{ marginTop: 0 }}>
-          <NewCourseAdsList ads={ads} onAdPress={handleAdPress} currentTheme={currentTheme} />
+  // ---------------------------------------------------------------------------
+  const renderHeader = useCallback(() => {
+    return (
+      <View>
+        <View style={styles.featuredSection}>
+          <Text style={[styles.sectionTitle, { color: currentTheme.cardTextColor }]}>
+            Featured Courses
+          </Text>
+          <FlatList
+            data={reels}
+            horizontal
+            keyExtractor={(item, i) => `${item.id}-${i}`}
+            renderItem={({ item }) => (
+              <FeaturedReel
+                course={item}
+                reelWidth={width * 0.35}
+                reelHeight={220}
+                onPress={() => handleFeaturedPress(item)}
+                currentTheme={currentTheme}
+                reelsData={reels}
+              />
+            )}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.reelsContainer}
+            onEndReached={handleLoadMoreReels}
+            onEndReachedThreshold={0.1}
+            ListFooterComponent={
+              loadingMoreReels ? (
+                <ActivityIndicator size="small" color={currentTheme.primaryColor} />
+              ) : null
+            }
+          />
         </View>
-      </View>
+        {/* Ads Carousel */}
+        <View style={styles.adsSection}>
+          <Text style={[styles.sectionTitle, { color: currentTheme.cardTextColor }]}>
+            Sponsored Ads
+          </Text>
+          <View style={{ marginTop: 0 }}>
+            <NewCourseAdsList ads={ads} onAdPress={handleAdPress} currentTheme={currentTheme} />
+          </View>
+        </View>
 
-      <Text style={[styles.sectionTitle, { color: currentTheme.cardTextColor }]}>
-        All Courses
-      </Text>
-    </View>
-  ), [
+        <Text style={[styles.sectionTitle, { color: currentTheme.cardTextColor }]}>
+          All Courses
+        </Text>
+      </View>
+    );
+  }, [
     reels,
     currentTheme,
     width,
@@ -347,11 +365,12 @@ const AICoursesScreen = () => {
     handleAdPress,
   ]);
 
+  // ---------------------------------------------------------------------------
+  // Empty & Footer
+  // ---------------------------------------------------------------------------
   const renderEmptyComponent = useCallback(() => (
     <View style={styles.emptyContainer}>
-      <Text style={[styles.emptyText, { color: currentTheme.textColor }]}>
-        No courses available.
-      </Text>
+      <Text style={[styles.emptyText, { color: currentTheme.textColor }]}>No courses available.</Text>
     </View>
   ), [currentTheme]);
 
@@ -364,7 +383,7 @@ const AICoursesScreen = () => {
     );
   }, [loadingMore, currentTheme]);
 
-  // If no data
+  // Loading screen if no data initially
   if (loading && courses.length === 0 && !refreshing) {
     return (
       <SafeAreaView style={[styles.loadingScreen, { backgroundColor: currentTheme.backgroundColor }]}>
@@ -374,6 +393,9 @@ const AICoursesScreen = () => {
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // Main Return
+  // ---------------------------------------------------------------------------
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
       <StatusBar
@@ -387,7 +409,7 @@ const AICoursesScreen = () => {
       {/* Custom Header */}
       <CustomHeader />
 
-      {/* Gradient Header */}
+      {/* Gradient Header with search bar */}
       <View style={styles.header}>
         <LinearGradient
           colors={currentTheme.headerBackground || ['#3a7bd5', '#00d2ff']}
@@ -400,24 +422,22 @@ const AICoursesScreen = () => {
             Elevate your skills with modern AI education
           </Text>
 
-          {/* Search bar with "Search" button */}
-          <View style={styles.searchBar}>
+          {/* Search bar */}
+          <View style={styles.searchBarContainer}>
+            <Ionicons name="search" size={20} color="#999" style={{ marginHorizontal: 8 }} />
             <TextInput
-              placeholder="Search..."
+              placeholder="Search courses..."
               placeholderTextColor="#999"
               style={[styles.searchInput, { color: currentTheme.textColor }]}
               value={searchTerm}
-              onChangeText={handleTextChange}
+              onChangeText={handleSearchChange}
             />
-            <TouchableOpacity onPress={handleSearchPress} style={styles.searchButton}>
-              <Ionicons name="search" size={20} color="#fff" />
-            </TouchableOpacity>
           </View>
         </LinearGradient>
 
-        {/* If we have suggestions & showSuggestions = true */}
+        {/* Suggestion List (conditional) */}
         {showSuggestions && searchSuggestions.length > 0 && (
-          <View style={styles.suggestionContainer}>
+          <View style={styles.suggestionsContainer}>
             <FlatList
               data={searchSuggestions}
               keyExtractor={(item) => item.id}
@@ -426,7 +446,9 @@ const AICoursesScreen = () => {
                   style={styles.suggestionItem}
                   onPress={() => handleSuggestionPress(item)}
                 >
-                  <Text style={{ color: currentTheme.textColor }}>{item.title}</Text>
+                  <Text style={[styles.suggestionText, { color: currentTheme.textColor }]}>
+                    {item.title}
+                  </Text>
                 </TouchableOpacity>
               )}
             />
@@ -462,7 +484,7 @@ const AICoursesScreen = () => {
         />
       </Animated.View>
 
-      {/* Overlay loader if we're fetching in background */}
+      {/* Overlay loader if loading in background */}
       {loading && courses.length > 0 && (
         <View style={[styles.loadingOverlay, { backgroundColor: currentTheme.backgroundColor + 'cc' }]}>
           <ActivityIndicator size="large" color={currentTheme.primaryColor} />
@@ -485,7 +507,10 @@ const styles = StyleSheet.create({
   },
   loadingOverlay: {
     position: 'absolute',
-    top: 0, left: 0, right: 0, bottom: 0,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 99,
@@ -516,45 +541,39 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 2,
   },
-
-  // Search bar with separate search button
-  searchBar: {
+  searchBarContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 10,
     backgroundColor: '#fff',
     borderRadius: 20,
-    alignItems: 'center',
     paddingHorizontal: 10,
     height: 40,
   },
   searchInput: {
     flex: 1,
+    padding: 0,
     fontSize: 14,
   },
-  searchButton: {
-    backgroundColor: '#3b5998',
-    padding: 8,
-    borderRadius: 20,
-    marginLeft: 8,
-  },
-
   // Suggestions
-  suggestionContainer: {
+  suggestionsContainer: {
     position: 'absolute',
-    top: 140,
+    top: 130,       // just below the search bar
     left: 20,
     right: 20,
+    maxHeight: 200, 
     backgroundColor: '#fff',
-    maxHeight: 200,
     borderRadius: 8,
-    padding: 5,
-    zIndex: 100,
     elevation: 5,
+    zIndex: 100,    // above the gradient
   },
   suggestionItem: {
-    padding: 8,
-    borderBottomColor: '#ccc',
+    padding: 10,
     borderBottomWidth: 0.5,
+    borderBottomColor: '#ccc',
+  },
+  suggestionText: {
+    fontSize: 14,
   },
 
   contentContainer: {
@@ -596,6 +615,8 @@ const styles = StyleSheet.create({
 });
 
 export default AICoursesScreen;
+
+
 
 
 

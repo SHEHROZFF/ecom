@@ -528,12 +528,16 @@ export const searchCoursesAPI = async (query) => {
   try {
     const token = await getAuthToken();
     const config = { headers: { Authorization: `Bearer ${token}` } };
+    console.log("query",encodeURIComponent(query));
+    
 
     // encodeURI the query to be safe
     const response = await axios.get(`${API_URL}/courses/search?query=${encodeURIComponent(query)}`, config);
-
+    console.log("response",response);
+    
     return { success: true, data: response.data };
   } catch (error) {
+    console.log("error",error);
     console.error('Search Courses error:', error.response?.data?.message || error.message);
     return { success: false, message: 'Failed to search courses.' };
   }
