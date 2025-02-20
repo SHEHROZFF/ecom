@@ -93,7 +93,7 @@ const getCourses = asyncHandler(async (req, res) => {
   const skip = (page - 1) * limit;
 
   const courses = await Course.find({})
-    .select('title description image rating reviews isFeatured')
+    .select('title description image rating reviews isFeatured videos[0].url')
     .skip(skip)
     .limit(limit);
 
