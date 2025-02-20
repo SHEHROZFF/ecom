@@ -93,12 +93,32 @@ const getCourses = asyncHandler(async (req, res) => {
   const skip = (page - 1) * limit;
 
   const courses = await Course.find({})
-    .select('title description image rating reviews isFeatured videos[0].url')
+    .select('title description image rating reviews isFeatured videos') // Select full videos array
     .skip(skip)
-    .limit(limit);
+    .limit(limit)
+    .lean(); // Converts Mongoose documents to plain JavaScript objects
 
-  res.json(courses);
+  // Extract the first video URL from the videos array
+  const formattedCourses = courses.map(course => ({
+    ...course,
+    videoUrl: course.videos?.[0]?.url || null, // Extracts the first video's URL or null if unavailable
+  }));
+
+  res.json(formattedCourses);
 });
+
+// const getCourses = asyncHandler(async (req, res) => {
+//   const page = Number(req.query.page) || 1;
+//   const limit = Number(req.query.limit) || 10;
+//   const skip = (page - 1) * limit;
+
+//   const courses = await Course.find({})
+//     .select('title description image rating reviews isFeatured videos[0].url')
+//     .skip(skip)
+//     .limit(limit);
+
+//   res.json(courses);
+// });
 
 /**
  * @desc    Get featured reels (lightweight data with pagination)

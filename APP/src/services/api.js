@@ -484,6 +484,8 @@ export const fetchCourses = async (page = 1, limit = 10) => {
     const token = await getAuthToken();
     const config = { headers: { Authorization: `Bearer ${token}` } };
     const response = await axios.get(`${API_URL}/courses?page=${page}&limit=${limit}`, config);
+    console.log("response",response.data);
+    
     return { success: true, data: response.data };
   } catch (error) {
     console.error('Fetch Courses error:', error.response?.data?.message || error.message);
