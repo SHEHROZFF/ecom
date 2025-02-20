@@ -18,12 +18,27 @@ const createCourse = asyncHandler(async (req, res) => {
     reviews,
     isFeatured,
     shortVideoLink,
+
+    // Additional fields
+    difficultyLevel,
+    language,
+    topics,
+    totalDuration,
+    numberOfLectures,
+    category,
+    tags,
+    requirements,
+    whatYouWillLearn,
   } = req.body;
 
+  // Basic required fields check
   if (!title || !description || !instructor || !price || !image) {
     res.status(400);
-    throw new Error('Please provide all required fields.');
+    throw new Error('Please provide all required fields: title, description, instructor, price, image.');
   }
+
+  // If not featured, shortVideoLink should be empty
+  const finalShortVideoLink = isFeatured ? shortVideoLink || '' : '';
 
   const course = new Course({
     title,
@@ -35,7 +50,18 @@ const createCourse = asyncHandler(async (req, res) => {
     rating: rating || 0,
     reviews: reviews || 0,
     isFeatured: isFeatured || false,
-    shortVideoLink: isFeatured ? shortVideoLink : '',
+    shortVideoLink: finalShortVideoLink,
+
+    // Additional fields
+    difficultyLevel: difficultyLevel || 'Beginner', // default or from body
+    language: language || 'English',
+    topics: topics || [],
+    totalDuration: totalDuration || 0,
+    numberOfLectures: numberOfLectures || 0,
+    category: category || '',
+    tags: tags || [],
+    requirements: requirements || [],
+    whatYouWillLearn: whatYouWillLearn || [],
   });
 
   const createdCourse = await course.save();
@@ -58,11 +84,23 @@ const createFeaturedCourse = asyncHandler(async (req, res) => {
     rating,
     reviews,
     shortVideoLink,
+
+    // Additional fields
+    difficultyLevel,
+    language,
+    topics,
+    totalDuration,
+    numberOfLectures,
+    category,
+    tags,
+    requirements,
+    whatYouWillLearn,
   } = req.body;
 
+  // Basic required fields check
   if (!title || !description || !instructor || !price || !image) {
     res.status(400);
-    throw new Error('Please provide all required fields.');
+    throw new Error('Please provide all required fields: title, description, instructor, price, image.');
   }
 
   const course = new Course({
@@ -76,6 +114,17 @@ const createFeaturedCourse = asyncHandler(async (req, res) => {
     reviews: reviews || 0,
     isFeatured: true,
     shortVideoLink: shortVideoLink || '',
+
+    // Additional fields
+    difficultyLevel: difficultyLevel || 'Beginner',
+    language: language || 'English',
+    topics: topics || [],
+    totalDuration: totalDuration || 0,
+    numberOfLectures: numberOfLectures || 0,
+    category: category || '',
+    tags: tags || [],
+    requirements: requirements || [],
+    whatYouWillLearn: whatYouWillLearn || [],
   });
 
   const createdCourse = await course.save();
@@ -92,33 +141,23 @@ const getCourses = asyncHandler(async (req, res) => {
   const limit = Number(req.query.limit) || 10;
   const skip = (page - 1) * limit;
 
+  // Using .lean() to get plain JS objects
   const courses = await Course.find({})
-    .select('title description image rating reviews isFeatured videos') // Select full videos array
+    .select(
+      'title description image rating reviews isFeatured videos difficultyLevel language topics totalDuration numberOfLectures category tags requirements whatYouWillLearn'
+    )
     .skip(skip)
     .limit(limit)
-    .lean(); // Converts Mongoose documents to plain JavaScript objects
+    .lean();
 
-  // Extract the first video URL from the videos array
-  const formattedCourses = courses.map(course => ({
+  // Optionally extract the first video URL from the videos array
+  const formattedCourses = courses.map((course) => ({
     ...course,
-    videoUrl: course.videos?.[0]?.url || null, // Extracts the first video's URL or null if unavailable
+    videoUrl: course.videos?.[0]?.url || null, // or omit if you don't want
   }));
 
   res.json(formattedCourses);
 });
-
-// const getCourses = asyncHandler(async (req, res) => {
-//   const page = Number(req.query.page) || 1;
-//   const limit = Number(req.query.limit) || 10;
-//   const skip = (page - 1) * limit;
-
-//   const courses = await Course.find({})
-//     .select('title description image rating reviews isFeatured videos[0].url')
-//     .skip(skip)
-//     .limit(limit);
-
-//   res.json(courses);
-// });
 
 /**
  * @desc    Get featured reels (lightweight data with pagination)
@@ -129,12 +168,12 @@ const getFeaturedReels = asyncHandler(async (req, res) => {
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 5;
   const skip = (page - 1) * limit;
-  
+
   const reels = await Course.find({ isFeatured: true })
     .select('title shortVideoLink image')
     .skip(skip)
     .limit(limit);
-  
+
   res.json(reels);
 });
 
@@ -145,14 +184,11 @@ const getFeaturedReels = asyncHandler(async (req, res) => {
  */
 const searchCourses = asyncHandler(async (req, res) => {
   const { query = '' } = req.query;
-  if (!query) {
-    return res.json([]); // no query => return empty
+  if (!query.trim()) {
+    return res.json([]);
   }
 
-  // For short suggestions, limit to 5 or 10
-  // const limit = 5;
-
-  // Basic regex search, case-insensitive, matching title OR description
+  // Basic regex search, matching title OR description
   const filter = {
     $or: [
       { title: { $regex: query, $options: 'i' } },
@@ -160,12 +196,13 @@ const searchCourses = asyncHandler(async (req, res) => {
     ],
   };
 
-  const suggestions = await Course.find(filter)
-    .select('title description image rating reviews isFeatured shortVideoLink') 
-    // .limit(limit);
+  const suggestions = await Course.find(filter).select(
+    'title description image rating reviews isFeatured shortVideoLink'
+  );
 
   res.json(suggestions);
 });
+
 /**
  * @desc    Get a course by ID
  * @route   GET /api/courses/:id
@@ -198,27 +235,52 @@ const updateCourse = asyncHandler(async (req, res) => {
     reviews,
     isFeatured,
     shortVideoLink,
+
+    // Additional fields
+    difficultyLevel,
+    language,
+    topics,
+    totalDuration,
+    numberOfLectures,
+    category,
+    tags,
+    requirements,
+    whatYouWillLearn,
   } = req.body;
+
   const course = await Course.findById(req.params.id);
-
-  if (course) {
-    course.title = title || course.title;
-    course.description = description || course.description;
-    course.instructor = instructor || course.instructor;
-    course.price = price || course.price;
-    course.image = image || course.image;
-    course.videos = videos || course.videos;
-    course.rating = rating !== undefined ? rating : course.rating;
-    course.reviews = reviews !== undefined ? reviews : course.reviews;
-    course.isFeatured = isFeatured !== undefined ? isFeatured : course.isFeatured;
-    course.shortVideoLink = isFeatured ? shortVideoLink : '';
-
-    const updatedCourse = await course.save();
-    res.json(updatedCourse);
-  } else {
+  if (!course) {
     res.status(404);
     throw new Error('Course not found.');
   }
+
+  // Update each field if provided; otherwise use existing
+  course.title = title ?? course.title;
+  course.description = description ?? course.description;
+  course.instructor = instructor ?? course.instructor;
+  course.price = price ?? course.price;
+  course.image = image ?? course.image;
+  course.videos = videos ?? course.videos;
+  course.rating = rating !== undefined ? rating : course.rating;
+  course.reviews = reviews !== undefined ? reviews : course.reviews;
+  course.isFeatured = isFeatured !== undefined ? isFeatured : course.isFeatured;
+  course.shortVideoLink = course.isFeatured ? shortVideoLink || '' : '';
+
+  // Additional fields
+  course.difficultyLevel = difficultyLevel ?? course.difficultyLevel;
+  course.language = language ?? course.language;
+  course.topics = topics ?? course.topics;
+  course.totalDuration =
+    totalDuration !== undefined ? totalDuration : course.totalDuration;
+  course.numberOfLectures =
+    numberOfLectures !== undefined ? numberOfLectures : course.numberOfLectures;
+  course.category = category ?? course.category;
+  course.tags = tags ?? course.tags;
+  course.requirements = requirements ?? course.requirements;
+  course.whatYouWillLearn = whatYouWillLearn ?? course.whatYouWillLearn;
+
+  const updatedCourse = await course.save();
+  res.json(updatedCourse);
 });
 
 /**
@@ -258,6 +320,273 @@ module.exports = {
   deleteCourse,
   searchCourses,
 };
+
+
+
+
+
+
+
+// const asyncHandler = require('express-async-handler');
+// const Course = require('../models/Course');
+
+// /**
+//  * @desc    Create a new course (non-featured by default)
+//  * @route   POST /api/courses
+//  * @access  Private/Admin
+//  */
+// const createCourse = asyncHandler(async (req, res) => {
+//   const {
+//     title,
+//     description,
+//     instructor,
+//     price,
+//     image,
+//     videos,
+//     rating,
+//     reviews,
+//     isFeatured,
+//     shortVideoLink,
+//   } = req.body;
+
+//   if (!title || !description || !instructor || !price || !image) {
+//     res.status(400);
+//     throw new Error('Please provide all required fields.');
+//   }
+
+//   const course = new Course({
+//     title,
+//     description,
+//     instructor,
+//     price,
+//     image,
+//     videos: videos || [],
+//     rating: rating || 0,
+//     reviews: reviews || 0,
+//     isFeatured: isFeatured || false,
+//     shortVideoLink: isFeatured ? shortVideoLink : '',
+//   });
+
+//   const createdCourse = await course.save();
+//   res.status(201).json(createdCourse);
+// });
+
+// /**
+//  * @desc    Create a new featured course (isFeatured forced to true)
+//  * @route   POST /api/courses/featured
+//  * @access  Private/Admin
+//  */
+// const createFeaturedCourse = asyncHandler(async (req, res) => {
+//   const {
+//     title,
+//     description,
+//     instructor,
+//     price,
+//     image,
+//     videos,
+//     rating,
+//     reviews,
+//     shortVideoLink,
+//   } = req.body;
+
+//   if (!title || !description || !instructor || !price || !image) {
+//     res.status(400);
+//     throw new Error('Please provide all required fields.');
+//   }
+
+//   const course = new Course({
+//     title,
+//     description,
+//     instructor,
+//     price,
+//     image,
+//     videos: videos || [],
+//     rating: rating || 0,
+//     reviews: reviews || 0,
+//     isFeatured: true,
+//     shortVideoLink: shortVideoLink || '',
+//   });
+
+//   const createdCourse = await course.save();
+//   res.status(201).json(createdCourse);
+// });
+
+// /**
+//  * @desc    Get all courses with pagination & selective projection
+//  * @route   GET /api/courses
+//  * @access  Private
+//  */
+// const getCourses = asyncHandler(async (req, res) => {
+//   const page = Number(req.query.page) || 1;
+//   const limit = Number(req.query.limit) || 10;
+//   const skip = (page - 1) * limit;
+
+//   const courses = await Course.find({})
+//     .select('title description image rating reviews isFeatured videos') // Select full videos array
+//     .skip(skip)
+//     .limit(limit)
+//     .lean(); // Converts Mongoose documents to plain JavaScript objects
+
+//   // Extract the first video URL from the videos array
+//   const formattedCourses = courses.map(course => ({
+//     ...course,
+//     videoUrl: course.videos?.[0]?.url || null, // Extracts the first video's URL or null if unavailable
+//   }));
+
+//   res.json(formattedCourses);
+// });
+
+// // const getCourses = asyncHandler(async (req, res) => {
+// //   const page = Number(req.query.page) || 1;
+// //   const limit = Number(req.query.limit) || 10;
+// //   const skip = (page - 1) * limit;
+
+// //   const courses = await Course.find({})
+// //     .select('title description image rating reviews isFeatured videos[0].url')
+// //     .skip(skip)
+// //     .limit(limit);
+
+// //   res.json(courses);
+// // });
+
+// /**
+//  * @desc    Get featured reels (lightweight data with pagination)
+//  * @route   GET /api/courses/featuredreels
+//  * @access  Private
+//  */
+// const getFeaturedReels = asyncHandler(async (req, res) => {
+//   const page = Number(req.query.page) || 1;
+//   const limit = Number(req.query.limit) || 5;
+//   const skip = (page - 1) * limit;
+  
+//   const reels = await Course.find({ isFeatured: true })
+//     .select('title shortVideoLink image')
+//     .skip(skip)
+//     .limit(limit);
+  
+//   res.json(reels);
+// });
+
+// /**
+//  * @desc    Quick search for courses by title/description
+//  * @route   GET /api/courses/search?query=...
+//  * @access  Private
+//  */
+// const searchCourses = asyncHandler(async (req, res) => {
+//   const { query = '' } = req.query;
+//   if (!query) {
+//     return res.json([]); // no query => return empty
+//   }
+
+//   // For short suggestions, limit to 5 or 10
+//   // const limit = 5;
+
+//   // Basic regex search, case-insensitive, matching title OR description
+//   const filter = {
+//     $or: [
+//       { title: { $regex: query, $options: 'i' } },
+//       { description: { $regex: query, $options: 'i' } },
+//     ],
+//   };
+
+//   const suggestions = await Course.find(filter)
+//     .select('title description image rating reviews isFeatured shortVideoLink') 
+//     // .limit(limit);
+
+//   res.json(suggestions);
+// });
+// /**
+//  * @desc    Get a course by ID
+//  * @route   GET /api/courses/:id
+//  * @access  Private
+//  */
+// const getCourseById = asyncHandler(async (req, res) => {
+//   const course = await Course.findById(req.params.id);
+//   if (course) {
+//     res.json(course);
+//   } else {
+//     res.status(404);
+//     throw new Error('Course not found.');
+//   }
+// });
+
+// /**
+//  * @desc    Update a course
+//  * @route   PUT /api/courses/:id
+//  * @access  Private/Admin
+//  */
+// const updateCourse = asyncHandler(async (req, res) => {
+//   const {
+//     title,
+//     description,
+//     instructor,
+//     price,
+//     image,
+//     videos,
+//     rating,
+//     reviews,
+//     isFeatured,
+//     shortVideoLink,
+//   } = req.body;
+//   const course = await Course.findById(req.params.id);
+
+//   if (course) {
+//     course.title = title || course.title;
+//     course.description = description || course.description;
+//     course.instructor = instructor || course.instructor;
+//     course.price = price || course.price;
+//     course.image = image || course.image;
+//     course.videos = videos || course.videos;
+//     course.rating = rating !== undefined ? rating : course.rating;
+//     course.reviews = reviews !== undefined ? reviews : course.reviews;
+//     course.isFeatured = isFeatured !== undefined ? isFeatured : course.isFeatured;
+//     course.shortVideoLink = isFeatured ? shortVideoLink : '';
+
+//     const updatedCourse = await course.save();
+//     res.json(updatedCourse);
+//   } else {
+//     res.status(404);
+//     throw new Error('Course not found.');
+//   }
+// });
+
+// /**
+//  * @desc    Delete a course
+//  * @route   DELETE /api/courses/:id
+//  * @access  Private/Admin
+//  */
+// const deleteCourse = asyncHandler(async (req, res) => {
+//   const course = await Course.findById(req.params.id);
+//   if (course) {
+//     await course.deleteOne();
+//     res.json({ message: 'Course removed successfully.' });
+//   } else {
+//     res.status(404);
+//     throw new Error('Course not found.');
+//   }
+// });
+
+// /**
+//  * @desc    Get all courses for admin (no pagination)
+//  * @route   GET /api/courses/admin
+//  * @access  Private
+//  */
+// const getCoursesAdmin = asyncHandler(async (req, res) => {
+//   const courses = await Course.find({});
+//   res.json(courses);
+// });
+
+// module.exports = {
+//   createCourse,
+//   createFeaturedCourse,
+//   getCourses,
+//   getCoursesAdmin,
+//   getFeaturedReels,
+//   getCourseById,
+//   updateCourse,
+//   deleteCourse,
+//   searchCourses,
+// };
 
 
 

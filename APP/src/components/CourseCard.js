@@ -1,12 +1,12 @@
-import React from 'react';
+import React, { memo, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
-const CourseCard = ({ course, cardWidth, currentTheme }) => {
+function CourseCard({ course, cardWidth, currentTheme }) {
   const navigation = useNavigation();
 
-  const renderRating = (rating) => {
+  const renderRating = useCallback((rating) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
       stars.push(
@@ -20,15 +20,17 @@ const CourseCard = ({ course, cardWidth, currentTheme }) => {
       );
     }
     return stars;
-  };
+  }, []);
 
-  const handleEnroll = () => {
-    navigation.navigate('EnrollmentScreen', { course });
-  };
+  const handleEnroll = useCallback(() => {
+    navigation.navigate('EnrollmentScreen', { courseId: course.id }); 
+    // or course._id if you prefer
+  }, [course.id, navigation]);
 
-  const handleDetail = () => {
-    navigation.navigate('CourseDetailScreen', { course });
-  };
+  const handleDetail = useCallback(() => {
+    navigation.navigate('CourseDetailScreen', { courseId: course.id });
+    // or course._id
+  }, [course.id, navigation]);
 
   return (
     <View style={[styles.card, { backgroundColor: currentTheme.cardBackground, width: cardWidth }]}>
@@ -58,7 +60,7 @@ const CourseCard = ({ course, cardWidth, currentTheme }) => {
       </TouchableOpacity>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   card: {
@@ -110,5 +112,5 @@ const styles = StyleSheet.create({
   },
 });
 
-// memo to help reduce re-renders if props don’t change
-export default React.memo(CourseCard);
+// Wrap with React.memo for performance
+export default memo(CourseCard);

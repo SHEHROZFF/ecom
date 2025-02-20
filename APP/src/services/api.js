@@ -546,6 +546,22 @@ export const searchCoursesAPI = async (query) => {
 };
 
 
+// api.js
+export const fetchCourseById = async (courseId) => {
+  try {
+    const token = await getAuthToken();
+    if (!token) throw new Error('No authentication token found.');
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    
+    const response = await axios.get(`${API_URL}/courses/${courseId}`, config);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Fetch course by ID error:', error.response?.data?.message || error.message);
+    return { success: false, message: 'Failed to fetch course details.' };
+  }
+};
+
+
 // // Add this near the other exported functions in src/services/api.js
 // export const fetchCourses = async () => {
 //   try {
@@ -640,6 +656,9 @@ export default {
     fetchAds,
 
     // Search
-    searchCoursesAPI
+    searchCoursesAPI,
+
+    // Fetch Course by ID
+    fetchCourseById
 
 };
