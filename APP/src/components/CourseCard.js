@@ -1,4 +1,3 @@
-// src/components/CourseCard.js
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,7 +7,7 @@ const CourseCard = ({ course, cardWidth, currentTheme }) => {
   const navigation = useNavigation();
 
   const renderRating = (rating) => {
-    let stars = [];
+    const stars = [];
     for (let i = 1; i <= 5; i++) {
       stars.push(
         <Ionicons
@@ -24,12 +23,10 @@ const CourseCard = ({ course, cardWidth, currentTheme }) => {
   };
 
   const handleEnroll = () => {
-    // Navigate to the EnrollmentScreen with course data
     navigation.navigate('EnrollmentScreen', { course });
   };
 
   const handleDetail = () => {
-    // Navigate to the CourseDetailScreen with course data
     navigation.navigate('CourseDetailScreen', { course });
   };
 
@@ -52,6 +49,7 @@ const CourseCard = ({ course, cardWidth, currentTheme }) => {
           </View>
         </View>
       </TouchableOpacity>
+
       <TouchableOpacity
         style={[styles.enrollButton, { backgroundColor: currentTheme.primaryColor }]}
         onPress={handleEnroll}
@@ -112,4 +110,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CourseCard;
+// memo to help reduce re-renders if props don’t change
+export default React.memo(CourseCard);

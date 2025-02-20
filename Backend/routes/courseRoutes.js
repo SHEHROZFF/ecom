@@ -1,4 +1,3 @@
-// routes/courseRoutes.js
 const express = require('express');
 const router = express.Router();
 const { protect, admin } = require('../middleware/authMiddleware');
@@ -6,16 +5,22 @@ const {
   createCourse,
   createFeaturedCourse,
   getCourses,
-  getFeaturedReels, // new function
+  getFeaturedReels,
   getCourseById,
   updateCourse,
   deleteCourse,
+  getCoursesAdmin,
+  searchCourses
 } = require('../controllers/courseController');
 
 // Standard course endpoints with pagination
 router.route('/')
   .get(protect, getCourses)
   .post(protect, createCourse);
+
+// Admin endpoint (all courses without pagination)
+router.route('/admin')
+  .get(protect, getCoursesAdmin);
 
 // Endpoint for creating a featured course (POST)
 router.route('/featured')
@@ -25,12 +30,13 @@ router.route('/featured')
 router.route('/featuredreels')
   .get(protect, getFeaturedReels);
 
-// Endpoints for a single course (by id)
-// Place these after other specific routes to avoid conflicts.
+// Endpoints for a single course by id
 router.route('/:id')
   .get(protect, getCourseById)
   .put(protect, updateCourse)
   .delete(protect, deleteCourse);
+
+router.get('/search', protect, searchCourses);
 
 module.exports = router;
 

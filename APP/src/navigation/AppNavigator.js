@@ -1,11 +1,23 @@
 // src/navigation/AppNavigator.js
 
 import React, { useContext } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
+import {
+  NavigationContainer,
+  DefaultTheme as NavigationDefaultTheme,
+} from '@react-navigation/native';
+import { createStackNavigator, CardStyleInterpolators } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+
+// Screens
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
@@ -20,29 +32,30 @@ import ProductPage from '../screens/ProductPage';
 import CartPage from '../screens/CartPage';
 import FavouritesPage from '../screens/FavouritesPage';
 import ChangePasswordScreen from '../screens/ChangePasswordScreen';
-import AICoursesScreen from '../screens/AICoursesScreen'; // New AI Courses Screen
-
-// New Screens
+import AICoursesScreen from '../screens/AICoursesScreen';
 import CourseDetailScreen from '../screens/CourseDetailScreen';
 import EnrollmentScreen from '../screens/EnrollmentScreen';
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-
+// Context
 import { ThemeProvider, ThemeContext } from '../../ThemeContext';
 import { lightTheme, darkTheme } from '../../themes';
 import { FavouritesContext, FavouritesProvider } from '../contexts/FavouritesContext';
 import { UserContext, UserProvider } from '../contexts/UserContext';
 
+// Create Navigators
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 const MarketStack = createStackNavigator();
 const FavouritesStack = createStackNavigator();
 
-// ----------------------- Stack Screens ----------------------- //
-
+// ----------------------- Market Stack ----------------------- //
 const MarketStackScreen = () => (
-  <MarketStack.Navigator screenOptions={{ headerShown: false }}>
+  <MarketStack.Navigator
+    screenOptions={{
+      headerShown: false,
+      cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+    }}
+  >
     <MarketStack.Screen name="MarketHome" component={MarketPage} />
     <MarketStack.Screen name="ProductPage" component={ProductPage} />
     <MarketStack.Screen name="CartPage" component={CartPage} />
@@ -51,8 +64,14 @@ const MarketStackScreen = () => (
   </MarketStack.Navigator>
 );
 
+// ----------------------- Favourites Stack ----------------------- //
 const FavouritesStackScreen = () => (
-  <FavouritesStack.Navigator screenOptions={{ headerShown: false }}>
+  <FavouritesStack.Navigator
+    screenOptions={{
+      headerShown: false,
+      cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+    }}
+  >
     <FavouritesStack.Screen name="Favourites2" component={FavouritesPage} />
     <FavouritesStack.Screen name="ProductPage" component={ProductPage} />
     <FavouritesStack.Screen name="CartPageF" component={CartPage} />
@@ -60,77 +79,104 @@ const FavouritesStackScreen = () => (
   </FavouritesStack.Navigator>
 );
 
-// ----------------------- Tab Navigator ----------------------- //
-
-const MainTabNavigator = () => {
+// ----------------------- Custom Tab Bar ----------------------- //
+function CustomTabBar({ state, descriptors, navigation }) {
   const { theme } = useContext(ThemeContext);
-  const { favouriteItems } = useContext(FavouritesContext);
-
   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
 
-  const styles = StyleSheet.create({
-    badge: {
-      position: 'absolute',
-      right: -6,
-      top: -3,
-      backgroundColor: currentTheme.priceColor,
-      borderRadius: 8,
-      width: 16,
-      height: 16,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    badgeText: {
-      color: '#FFFFFF',
-      fontSize: 10,
-      fontWeight: 'bold',
-    },
-  });
+  // A taller, more rounded, and spacious container
+  const tabBarContainerStyle = {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    height: 68, // Slightly taller
+    borderRadius: 34, // Half of height for a fully rounded pill
+    backgroundColor: currentTheme.cardBackground,
+    flexDirection: 'row',
+    // Spread icons more evenly
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 4 },
+    // Add padding so icons don’t touch edges
+    paddingHorizontal: 15,
+  };
 
+  return (
+    <View style={tabBarContainerStyle}>
+      {state.routes.map((route, index) => {
+        const { options } = descriptors[route.key];
+        const label = route.name;
+        const isFocused = state.index === index;
+
+        // Colors
+        const color = isFocused
+          ? currentTheme.tabBarActiveTintColor
+          : currentTheme.tabBarInactiveTintColor;
+
+        let iconName;
+        let useMaterialIcons = false;
+
+        // Decide which icon set + icon name
+        if (label === 'Favourites') {
+          iconName = isFocused ? 'heart' : 'heart-outline';
+        } else if (label === 'PurchaseHistory') {
+          // "history" is from MaterialIcons
+          useMaterialIcons = true;
+          iconName = 'history';
+        } else if (label === 'Market') {
+          iconName = isFocused ? 'storefront' : 'storefront-outline';
+        } else if (label === 'AICourses') {
+          iconName = isFocused ? 'school' : 'school-outline';
+        } else if (label === 'UserProfile') {
+          iconName = isFocused ? 'person' : 'person-outline';
+        } else if (label === 'Help') {
+          iconName = isFocused ? 'help-circle' : 'help-circle-outline';
+        }
+
+        const onPress = () => {
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+          });
+          if (!event.defaultPrevented) {
+            navigation.navigate(route.name);
+          }
+        };
+
+        return (
+          <TouchableOpacity
+            key={route.key}
+            onPress={onPress}
+            style={styles.iconWrapper}
+            activeOpacity={0.7}
+          >
+            {useMaterialIcons ? (
+              <MaterialIcons name={iconName} size={22} color={color} />
+            ) : (
+              <Ionicons name={iconName} size={22} color={color} />
+            )}
+            <Text style={[styles.iconLabel, { color }]}>{label}</Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
+// ----------------------- Main Tabs ----------------------- //
+const MainTabNavigator = () => {
   return (
     <Tab.Navigator
       initialRouteName="Market"
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-          if (route.name === 'Favourites') {
-            iconName = focused ? 'heart' : 'heart-outline';
-            return (
-              <View style={{ width: 24, height: 24, margin: 5 }}>
-                <Ionicons name={iconName} size={size} color={color} />
-                {favouriteItems?.length > 0 && (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>
-                      {favouriteItems.length}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            );
-          } else if (route.name === 'PurchaseHistory') {
-            iconName = focused ? 'history' : 'history';
-            return <MaterialIcons name={iconName} size={size} color={color} />;
-          } else if (route.name === 'Market') {
-            iconName = focused ? 'storefront' : 'storefront-outline';
-            return <Ionicons name={iconName} size={size} color={color} />;
-          } else if (route.name === 'AICourses') {
-            iconName = focused ? 'school' : 'school-outline';
-            return <Ionicons name={iconName} size={size} color={color} />;
-          } else if (route.name === 'UserProfile') {
-            iconName = focused ? 'person' : 'person-outline';
-            return <Ionicons name={iconName} size={size} color={color} />;
-          } else if (route.name === 'Help') {
-            iconName = focused ? 'help-circle' : 'help-circle-outline';
-            return <Ionicons name={iconName} size={size} color={color} />;
-          }
-        },
-        tabBarActiveTintColor: currentTheme.tabBarActiveTintColor,
-        tabBarInactiveTintColor: currentTheme.tabBarInactiveTintColor,
-        tabBarStyle: {
-          backgroundColor: currentTheme.cardBackground,
-        },
-      })}
+      screenOptions={{ headerShown: false }}
+      // Use a custom tabBar for the floating style
+      tabBar={(props) => <CustomTabBar {...props} />}
     >
       <Tab.Screen name="Favourites" component={FavouritesStackScreen} />
       <Tab.Screen name="PurchaseHistory" component={PurchaseHistoryScreen} />
@@ -143,9 +189,13 @@ const MainTabNavigator = () => {
 };
 
 // ----------------------- Auth Stack Navigator ----------------------- //
-
 const AuthStackScreen = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+      cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+    }}
+  >
     <Stack.Screen name="Login" component={LoginScreen} />
     <Stack.Screen name="Register" component={RegisterScreen} />
     <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
@@ -155,17 +205,27 @@ const AuthStackScreen = () => (
 );
 
 // ----------------------- App Stack Navigator ----------------------- //
-
 const AppStackScreen = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="Main" component={MainTabNavigator} />
-    <Stack.Screen name="CourseDetailScreen" component={CourseDetailScreen} />
-    <Stack.Screen name="EnrollmentScreen" component={EnrollmentScreen} />
+    <Stack.Screen
+      name="CourseDetailScreen"
+      component={CourseDetailScreen}
+      options={{
+        cardStyleInterpolator: CardStyleInterpolators.forFadeFromBottomAndroid,
+      }}
+    />
+    <Stack.Screen
+      name="EnrollmentScreen"
+      component={EnrollmentScreen}
+      options={{
+        cardStyleInterpolator: CardStyleInterpolators.forVerticalIOS,
+      }}
+    />
   </Stack.Navigator>
 );
 
-// ----------------------- App Navigator ----------------------- //
-
+// ----------------------- Root App Navigator ----------------------- //
 const AppNavigator = () => {
   const { isAuthenticated, loading } = useContext(UserContext);
 
@@ -180,7 +240,7 @@ const AppNavigator = () => {
   return (
     <ThemeProvider>
       <FavouritesProvider>
-        <NavigationContainer>
+        <NavigationContainer theme={NavigationDefaultTheme}>
           <Stack.Navigator screenOptions={{ headerShown: false }}>
             {isAuthenticated ? (
               <Stack.Screen name="AppStack" component={AppStackScreen} />
@@ -194,8 +254,6 @@ const AppNavigator = () => {
   );
 };
 
-// ----------------------- Styles ----------------------- //
-
 const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
@@ -203,9 +261,238 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
   },
+  iconWrapper: {
+    alignItems: 'center',
+    // Add horizontal spacing so icons aren't too close
+    marginHorizontal: 6,
+  },
+  iconLabel: {
+    fontSize: 9, // slightly smaller text for less clutter
+    marginTop: 2,
+  },
 });
 
 export default AppNavigator;
+
+
+
+
+
+
+
+
+
+
+
+
+// // src/navigation/AppNavigator.js
+
+// import React, { useContext } from 'react';
+// import { View, ActivityIndicator, StyleSheet } from 'react-native';
+// import { NavigationContainer } from '@react-navigation/native';
+// import { createStackNavigator } from '@react-navigation/stack';
+// import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+
+// import LoginScreen from '../screens/LoginScreen';
+// import RegisterScreen from '../screens/RegisterScreen';
+// import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
+// import OtpScreen from '../screens/OtpScreen';
+// import NewPasswordScreen from '../screens/NewPasswordScreen';
+// import UserProfileScreen from '../screens/UserProfileScreen';
+// import MarketPage from '../screens/MarketPage';
+// import PurchaseHistoryScreen from '../screens/PurchaseHistoryScreen';
+// import SettingsScreen from '../screens/SettingsScreen';
+// import HelpScreen from '../screens/HelpScreen';
+// import ProductPage from '../screens/ProductPage';
+// import CartPage from '../screens/CartPage';
+// import FavouritesPage from '../screens/FavouritesPage';
+// import ChangePasswordScreen from '../screens/ChangePasswordScreen';
+// import AICoursesScreen from '../screens/AICoursesScreen'; // New AI Courses Screen
+
+// // New Screens
+// import CourseDetailScreen from '../screens/CourseDetailScreen';
+// import EnrollmentScreen from '../screens/EnrollmentScreen';
+
+// import AsyncStorage from '@react-native-async-storage/async-storage';
+// import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+
+// import { ThemeProvider, ThemeContext } from '../../ThemeContext';
+// import { lightTheme, darkTheme } from '../../themes';
+// import { FavouritesContext, FavouritesProvider } from '../contexts/FavouritesContext';
+// import { UserContext, UserProvider } from '../contexts/UserContext';
+
+// const Stack = createStackNavigator();
+// const Tab = createBottomTabNavigator();
+// const MarketStack = createStackNavigator();
+// const FavouritesStack = createStackNavigator();
+
+// // ----------------------- Stack Screens ----------------------- //
+
+// const MarketStackScreen = () => (
+//   <MarketStack.Navigator screenOptions={{ headerShown: false }}>
+//     <MarketStack.Screen name="MarketHome" component={MarketPage} />
+//     <MarketStack.Screen name="ProductPage" component={ProductPage} />
+//     <MarketStack.Screen name="CartPage" component={CartPage} />
+//     <MarketStack.Screen name="Settings" component={SettingsScreen} />
+//     <MarketStack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+//   </MarketStack.Navigator>
+// );
+
+// const FavouritesStackScreen = () => (
+//   <FavouritesStack.Navigator screenOptions={{ headerShown: false }}>
+//     <FavouritesStack.Screen name="Favourites2" component={FavouritesPage} />
+//     <FavouritesStack.Screen name="ProductPage" component={ProductPage} />
+//     <FavouritesStack.Screen name="CartPageF" component={CartPage} />
+//     <FavouritesStack.Screen name="Settings" component={SettingsScreen} />
+//   </FavouritesStack.Navigator>
+// );
+
+// // ----------------------- Tab Navigator ----------------------- //
+
+// const MainTabNavigator = () => {
+//   const { theme } = useContext(ThemeContext);
+//   const { favouriteItems } = useContext(FavouritesContext);
+
+//   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
+
+//   const styles = StyleSheet.create({
+//     badge: {
+//       position: 'absolute',
+//       right: -6,
+//       top: -3,
+//       backgroundColor: currentTheme.priceColor,
+//       borderRadius: 8,
+//       width: 16,
+//       height: 16,
+//       justifyContent: 'center',
+//       alignItems: 'center',
+//     },
+//     badgeText: {
+//       color: '#FFFFFF',
+//       fontSize: 10,
+//       fontWeight: 'bold',
+//     },
+//   });
+
+//   return (
+//     <Tab.Navigator
+//       initialRouteName="Market"
+//       screenOptions={({ route }) => ({
+//         headerShown: false,
+//         tabBarIcon: ({ focused, color, size }) => {
+//           let iconName;
+//           if (route.name === 'Favourites') {
+//             iconName = focused ? 'heart' : 'heart-outline';
+//             return (
+//               <View style={{ width: 24, height: 24, margin: 5 }}>
+//                 <Ionicons name={iconName} size={size} color={color} />
+//                 {favouriteItems?.length > 0 && (
+//                   <View style={styles.badge}>
+//                     <Text style={styles.badgeText}>
+//                       {favouriteItems.length}
+//                     </Text>
+//                   </View>
+//                 )}
+//               </View>
+//             );
+//           } else if (route.name === 'PurchaseHistory') {
+//             iconName = focused ? 'history' : 'history';
+//             return <MaterialIcons name={iconName} size={size} color={color} />;
+//           } else if (route.name === 'Market') {
+//             iconName = focused ? 'storefront' : 'storefront-outline';
+//             return <Ionicons name={iconName} size={size} color={color} />;
+//           } else if (route.name === 'AICourses') {
+//             iconName = focused ? 'school' : 'school-outline';
+//             return <Ionicons name={iconName} size={size} color={color} />;
+//           } else if (route.name === 'UserProfile') {
+//             iconName = focused ? 'person' : 'person-outline';
+//             return <Ionicons name={iconName} size={size} color={color} />;
+//           } else if (route.name === 'Help') {
+//             iconName = focused ? 'help-circle' : 'help-circle-outline';
+//             return <Ionicons name={iconName} size={size} color={color} />;
+//           }
+//         },
+//         tabBarActiveTintColor: currentTheme.tabBarActiveTintColor,
+//         tabBarInactiveTintColor: currentTheme.tabBarInactiveTintColor,
+//         tabBarStyle: {
+//           backgroundColor: currentTheme.cardBackground,
+//         },
+//       })}
+//     >
+//       <Tab.Screen name="Favourites" component={FavouritesStackScreen} />
+//       <Tab.Screen name="PurchaseHistory" component={PurchaseHistoryScreen} />
+//       <Tab.Screen name="Market" component={MarketStackScreen} />
+//       <Tab.Screen name="AICourses" component={AICoursesScreen} />
+//       <Tab.Screen name="UserProfile" component={UserProfileScreen} />
+//       <Tab.Screen name="Help" component={HelpScreen} />
+//     </Tab.Navigator>
+//   );
+// };
+
+// // ----------------------- Auth Stack Navigator ----------------------- //
+
+// const AuthStackScreen = () => (
+//   <Stack.Navigator screenOptions={{ headerShown: false }}>
+//     <Stack.Screen name="Login" component={LoginScreen} />
+//     <Stack.Screen name="Register" component={RegisterScreen} />
+//     <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+//     <Stack.Screen name="Otp" component={OtpScreen} />
+//     <Stack.Screen name="NewPassword" component={NewPasswordScreen} />
+//   </Stack.Navigator>
+// );
+
+// // ----------------------- App Stack Navigator ----------------------- //
+
+// const AppStackScreen = () => (
+//   <Stack.Navigator screenOptions={{ headerShown: false }}>
+//     <Stack.Screen name="Main" component={MainTabNavigator} />
+//     <Stack.Screen name="CourseDetailScreen" component={CourseDetailScreen} />
+//     <Stack.Screen name="EnrollmentScreen" component={EnrollmentScreen} />
+//   </Stack.Navigator>
+// );
+
+// // ----------------------- App Navigator ----------------------- //
+
+// const AppNavigator = () => {
+//   const { isAuthenticated, loading } = useContext(UserContext);
+
+//   if (loading) {
+//     return (
+//       <View style={styles.loadingContainer}>
+//         <ActivityIndicator size="large" color="#0000ff" />
+//       </View>
+//     );
+//   }
+
+//   return (
+//     <ThemeProvider>
+//       <FavouritesProvider>
+//         <NavigationContainer>
+//           <Stack.Navigator screenOptions={{ headerShown: false }}>
+//             {isAuthenticated ? (
+//               <Stack.Screen name="AppStack" component={AppStackScreen} />
+//             ) : (
+//               <Stack.Screen name="AuthStack" component={AuthStackScreen} />
+//             )}
+//           </Stack.Navigator>
+//         </NavigationContainer>
+//       </FavouritesProvider>
+//     </ThemeProvider>
+//   );
+// };
+
+// // ----------------------- Styles ----------------------- //
+
+// const styles = StyleSheet.create({
+//   loadingContainer: {
+//     flex: 1,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//     backgroundColor: '#fff',
+//   },
+// });
+
+// export default AppNavigator;
 
 
 

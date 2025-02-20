@@ -1,5 +1,11 @@
-// src/screens/AICoursesScreen.js
-import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+  useRef,
+  useMemo,
+} from 'react';
 import {
   View,
   Text,
@@ -12,177 +18,398 @@ import {
   TouchableOpacity,
   useWindowDimensions,
   Animated,
+  TextInput,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+
+import { useNavigation } from '@react-navigation/native'; // for navigating to detail
+
 import { ThemeContext } from '../../ThemeContext';
 import { lightTheme, darkTheme } from '../../themes';
 
+import CustomHeader from '../components/CustomHeader';
 import CourseCard from '../components/CourseCard';
 import FeaturedReel from '../components/FeaturedReel';
 import NewCourseAdsList from '../components/NewCourseAdsList';
-// Import updated API functions
-import { fetchCourses, fetchFeaturedReels, fetchAds } from '../services/api';
+import {
+  fetchCourses,
+  fetchFeaturedReels,
+  fetchAds,
+  searchCoursesAPI,
+} from '../services/api';
+
+const PAGE_LIMIT = 10;
+const REELS_LIMIT = 5;
 
 const AICoursesScreen = () => {
   const { theme } = useContext(ThemeContext);
   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
   const { width } = useWindowDimensions();
+  const navigation = useNavigation();
 
-  // State for courses, featured reels, ads, etc.
+  // 1) Main states for courses
   const [courses, setCourses] = useState([]);
-  const [reels, setReels] = useState([]);
-  const [ads, setAds] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Animated value for fade-in effect
+  // 2) Reels
+  const [reels, setReels] = useState([]);
+  const [reelsPage, setReelsPage] = useState(1);
+  const [hasMoreReels, setHasMoreReels] = useState(true);
+  const [loadingMoreReels, setLoadingMoreReels] = useState(false);
+
+  // 3) Ads
+  const [ads, setAds] = useState([]);
+
+  // 4) Animated fade
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Fetch courses (with pagination) and featured reels separately
-  const fetchData = async (isRefreshing = false) => {
-    try {
-      isRefreshing ? setRefreshing(true) : setLoading(true);
+  // 5) Searching for suggestions
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchSuggestions, setSearchSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
-      // Fetch courses (lightweight fields only)
-      const coursesResponse = await fetchCourses(1, 10);
-      if (coursesResponse.success) {
-        const allCourses = coursesResponse.data.map(course => ({
-          id: course._id,
-          title: course.title,
-          description: course.description,
-          image: course.image,
-          rating: course.rating,
-          reviews: course.reviews,
-        }));
-        setCourses(allCourses);
-      } else {
-        setError(coursesResponse.message);
-      }
+  // Debounce timer
+  const searchTimeout = useRef(null);
 
-      // Fetch featured reels (dedicated endpoint)
-      const reelsResponse = await fetchFeaturedReels();
-      if (reelsResponse.success) {
-        setReels(reelsResponse.data);
-      } else {
-        setReels([]); // Fallback if reels not available
-      }
-
-      // Fetch ads
-      const adsResponse = await fetchAds();
-      if (adsResponse.success) {
-        setAds(adsResponse.data);
-      } else {
-        setAds([]);
-      }
-
-      // Start fade-in animation after data loads
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }).start();
-
-      setError(null);
-    } catch (err) {
-      setError(err.message || 'Failed to fetch data');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  // Responsive grid: 1 column on narrow screens, 2 columns on wider screens
-  const getNumberOfColumns = () => (width < 600 ? 1 : 2);
-  const numColumns = getNumberOfColumns();
-  const getCardWidth = () => {
+  // For layout
+  const numColumns = useMemo(() => (width < 600 ? 1 : 2), [width]);
+  const cardWidth = useMemo(() => {
     const totalMargin = 20 * (numColumns + 1);
     return (width - totalMargin) / numColumns;
-  };
+  }, [width, numColumns]);
 
-  const handleEnroll = course =>
-    Alert.alert('Enrollment', `You have enrolled in "${course.title}"!`);
-  const handleFeaturedPress = course =>
+  // ---------------------------------------------------------------------------
+  // fetchData (courses + ads) same as your original
+  // ---------------------------------------------------------------------------
+  const fetchData = useCallback(
+    async (isRefreshing = false) => {
+      try {
+        if (isRefreshing) {
+          setRefreshing(true);
+          setPage(1);
+          setHasMore(true);
+        } else if (page === 1) {
+          setLoading(true);
+        } else {
+          setLoadingMore(true);
+        }
+
+        const currentPage = isRefreshing ? 1 : page;
+
+        // fetch courses + ads
+        const [coursesResponse, adsResponse] = await Promise.all([
+          fetchCourses(currentPage, PAGE_LIMIT),
+          fetchAds(),
+        ]);
+
+        if (coursesResponse.success) {
+          const newCourses = coursesResponse.data.map((course) => ({
+            id: course._id,
+            title: course.title,
+            description: course.description,
+            image: course.image,
+            rating: course.rating,
+            reviews: course.reviews,
+            videoUrl: course.isFeatured ? course.shortVideoLink : undefined,
+          }));
+
+          if (isRefreshing) {
+            setCourses(newCourses);
+            setPage(2);
+          } else {
+            setCourses((prev) => {
+              const existingIds = new Set(prev.map((c) => c.id));
+              const filtered = newCourses.filter((c) => !existingIds.has(c.id));
+              return [...prev, ...filtered];
+            });
+            setPage(currentPage + 1);
+          }
+          if (newCourses.length < PAGE_LIMIT) {
+            setHasMore(false);
+          }
+        }
+
+        if (adsResponse.success) {
+          setAds(adsResponse.data);
+        } else {
+          setAds([]);
+        }
+
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
+      } catch (err) {
+        console.error('fetchData error:', err);
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
+        setRefreshing(false);
+      }
+    },
+    [page, fadeAnim]
+  );
+
+  // ---------------------------------------------------------------------------
+  // fetchReels same as your original
+  // ---------------------------------------------------------------------------
+  const fetchReels = useCallback(
+    async (isRefreshing = false) => {
+      try {
+        if (isRefreshing) {
+          setReelsPage(1);
+          setHasMoreReels(true);
+        }
+        setLoadingMoreReels(true);
+
+        const currentPage = isRefreshing ? 1 : reelsPage;
+        const reelsResponse = await fetchFeaturedReels(currentPage, REELS_LIMIT);
+
+        if (reelsResponse.success) {
+          const fetchedReels = reelsResponse.data.map((item) => ({
+            ...item,
+            id: item._id,
+          }));
+
+          if (isRefreshing) {
+            setReels(fetchedReels);
+            setReelsPage(2);
+          } else {
+            const newItems = fetchedReels.filter(
+              (r) => !reels.some((existing) => existing.id === r.id)
+            );
+            if (newItems.length === 0) {
+              setHasMoreReels(false);
+            } else {
+              setReels((prev) => [...prev, ...newItems]);
+              setReelsPage(currentPage + 1);
+            }
+          }
+          if (fetchedReels.length < REELS_LIMIT) {
+            setHasMoreReels(false);
+          }
+        }
+      } catch (err) {
+        console.error('fetchReels error:', err);
+      } finally {
+        setLoadingMoreReels(false);
+      }
+    },
+    [reels, reelsPage]
+  );
+
+  // ---------------------------------------------------------------------------
+  // Refresh all
+  // ---------------------------------------------------------------------------
+  const refreshAll = useCallback(() => {
+    setHasMore(true);
+    setHasMoreReels(true);
+    fetchData(true);
+    fetchReels(true);
+  }, [fetchData, fetchReels]);
+
+  useEffect(() => {
+    refreshAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ---------------------------------------------------------------------------
+  // Suggestions: server-side search on each keystroke (debounced)
+  // ---------------------------------------------------------------------------
+  const handleSearchChange = useCallback((text) => {
+    setSearchTerm(text);
+    if (searchTimeout.current) {
+      clearTimeout(searchTimeout.current);
+    }
+
+    if (text.length === 0) {
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    // Debounce: only search after 400ms
+    searchTimeout.current = setTimeout(async () => {
+      try {
+        const result = await searchCoursesAPI(text);
+        if (result.success && result.data) {
+          setSearchSuggestions(result.data); // an array of course suggestions
+          setShowSuggestions(true);
+        } else {
+          setSearchSuggestions([]);
+          setShowSuggestions(false);
+        }
+      } catch (err) {
+        console.error('search error', err);
+        setSearchSuggestions([]);
+      }
+    }, 400);
+  }, []);
+
+  // When user taps on a suggestion, navigate to detail
+  const handleSuggestionPress = useCallback((course) => {
+    setSearchTerm(course.title);
+    setShowSuggestions(false);
+
+    // Navigate to detail, pass full course object
+    navigation.navigate('CourseDetailScreen', { course });
+  }, [navigation]);
+
+  // ---------------------------------------------------------------------------
+  // Infinite scroll
+  // ---------------------------------------------------------------------------
+  const handleLoadMoreCourses = useCallback(() => {
+    if (!loadingMore && hasMore) {
+      fetchData();
+    }
+  }, [loadingMore, hasMore, fetchData]);
+
+  const handleLoadMoreReels = useCallback(() => {
+    if (!loadingMoreReels && hasMoreReels) {
+      fetchReels();
+    }
+  }, [loadingMoreReels, hasMoreReels, fetchReels]);
+
+  // ---------------------------------------------------------------------------
+  // UI Handlers
+  // ---------------------------------------------------------------------------
+  const handleFeaturedPress = useCallback((course) => {
     Alert.alert('Course Details', `Featured Course: ${course.title}`);
-  const handleAdPress = ad =>
-    Alert.alert('New Courses', `Ad clicked: ${ad.title}`);
+  }, []);
 
-  // Render a course card
+  const handleAdPress = useCallback((ad) => {
+    Alert.alert('New Courses', `Ad clicked: ${ad.title}`);
+  }, []);
+
+  // ---------------------------------------------------------------------------
+  // Render Items
+  // ---------------------------------------------------------------------------
   const renderCourse = useCallback(
     ({ item }) => (
-      <CourseCard
-        course={item}
-        cardWidth={getCardWidth()}
-        currentTheme={currentTheme}
-        onEnroll={handleEnroll}
-      />
+      <CourseCard course={item} cardWidth={cardWidth} currentTheme={currentTheme} />
     ),
-    [currentTheme, width]
+    [cardWidth, currentTheme]
   );
 
-  // Render header containing featured reels and ads
-  const renderHeader = () => (
-    <View>
-      {/* Featured Reels Carousel */}
-      <View style={styles.featuredSection}>
+  const getItemLayout = useCallback((_, index) => {
+    const CARD_HEIGHT = 300;
+    const row = Math.floor(index / numColumns);
+    return { length: CARD_HEIGHT, offset: row * CARD_HEIGHT, index };
+  }, [numColumns]);
+
+  // ---------------------------------------------------------------------------
+  // Header
+  // ---------------------------------------------------------------------------
+  const renderHeader = useCallback(() => {
+    return (
+      <View>
+        <View style={styles.featuredSection}>
+          <Text style={[styles.sectionTitle, { color: currentTheme.cardTextColor }]}>
+            Featured Courses
+          </Text>
+          <FlatList
+            data={reels}
+            horizontal
+            keyExtractor={(item, i) => `${item.id}-${i}`}
+            renderItem={({ item }) => (
+              <FeaturedReel
+                course={item}
+                reelWidth={width * 0.35}
+                reelHeight={220}
+                onPress={() => handleFeaturedPress(item)}
+                currentTheme={currentTheme}
+                reelsData={reels}
+              />
+            )}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.reelsContainer}
+            onEndReached={handleLoadMoreReels}
+            onEndReachedThreshold={0.1}
+            ListFooterComponent={
+              loadingMoreReels ? (
+                <ActivityIndicator size="small" color={currentTheme.primaryColor} />
+              ) : null
+            }
+          />
+        </View>
+        {/* Ads Carousel */}
+        <View style={styles.adsSection}>
+          <Text style={[styles.sectionTitle, { color: currentTheme.cardTextColor }]}>
+            Sponsored Ads
+          </Text>
+          <View style={{ marginTop: 0 }}>
+            <NewCourseAdsList ads={ads} onAdPress={handleAdPress} currentTheme={currentTheme} />
+          </View>
+        </View>
+
         <Text style={[styles.sectionTitle, { color: currentTheme.cardTextColor }]}>
-          Featured Courses
+          All Courses
         </Text>
-        <FlatList
-          data={reels}
-          keyExtractor={item => item._id || item.id}
-          renderItem={({ item }) => (
-            <FeaturedReel
-              course={item}
-              reelWidth={width * 0.35}
-              reelHeight={240}
-              onPress={() => handleFeaturedPress(item)}
-              currentTheme={currentTheme}
-              reelsData={reels}
-            />
-          )}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.reelsContainer}
-        />
       </View>
+    );
+  }, [
+    reels,
+    currentTheme,
+    width,
+    handleFeaturedPress,
+    handleLoadMoreReels,
+    loadingMoreReels,
+    ads,
+    handleAdPress,
+  ]);
 
-      {/* Ads Carousel */}
-      <View style={styles.adSection}>
-        <NewCourseAdsList
-          ads={ads}
-          onAdPress={handleAdPress}
-          currentTheme={currentTheme}
-        />
-      </View>
-
-      <Text style={[styles.sectionTitle, { color: currentTheme.cardTextColor }]}>
-        All Courses
-      </Text>
-    </View>
-  );
-
-  const renderEmptyComponent = () => (
+  // ---------------------------------------------------------------------------
+  // Empty & Footer
+  // ---------------------------------------------------------------------------
+  const renderEmptyComponent = useCallback(() => (
     <View style={styles.emptyContainer}>
-      <Text style={[styles.emptyText, { color: currentTheme.textColor }]}>
-        No courses available.
-      </Text>
+      <Text style={[styles.emptyText, { color: currentTheme.textColor }]}>No courses available.</Text>
     </View>
-  );
+  ), [currentTheme]);
 
+  const renderFooter = useCallback(() => {
+    if (!loadingMore) return null;
+    return (
+      <View style={styles.footer}>
+        <ActivityIndicator size="small" color={currentTheme.primaryColor} />
+      </View>
+    );
+  }, [loadingMore, currentTheme]);
+
+  // Loading screen if no data initially
+  if (loading && courses.length === 0 && !refreshing) {
+    return (
+      <SafeAreaView style={[styles.loadingScreen, { backgroundColor: currentTheme.backgroundColor }]}>
+        <ActivityIndicator size="large" color={currentTheme.primaryColor} />
+        <Text style={{ color: currentTheme.textColor, marginTop: 10 }}>Loading courses...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Main Return
+  // ---------------------------------------------------------------------------
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
       <StatusBar
-        backgroundColor={currentTheme.headerBackground ? currentTheme.headerBackground[1] : currentTheme.primaryColor}
+        backgroundColor={
+          currentTheme.headerBackground
+            ? currentTheme.headerBackground[1]
+            : currentTheme.primaryColor
+        }
         barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
       />
+      {/* Custom Header */}
+      <CustomHeader />
 
-      {/* Modern Header */}
+      {/* Gradient Header with search bar */}
       <View style={styles.header}>
         <LinearGradient
           colors={currentTheme.headerBackground || ['#3a7bd5', '#00d2ff']}
@@ -194,82 +421,197 @@ const AICoursesScreen = () => {
           <Text style={[styles.headerSubtitle, { color: currentTheme.headerTextColor }]}>
             Elevate your skills with modern AI education
           </Text>
+
+          {/* Search bar */}
+          <View style={styles.searchBarContainer}>
+            <Ionicons name="search" size={20} color="#999" style={{ marginHorizontal: 8 }} />
+            <TextInput
+              placeholder="Search courses..."
+              placeholderTextColor="#999"
+              style={[styles.searchInput, { color: currentTheme.textColor }]}
+              value={searchTerm}
+              onChangeText={handleSearchChange}
+            />
+          </View>
         </LinearGradient>
+
+        {/* Suggestion List (conditional) */}
+        {showSuggestions && searchSuggestions.length > 0 && (
+          <View style={styles.suggestionsContainer}>
+            <FlatList
+              data={searchSuggestions}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.suggestionItem}
+                  onPress={() => handleSuggestionPress(item)}
+                >
+                  <Text style={[styles.suggestionText, { color: currentTheme.textColor }]}>
+                    {item.title}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        )}
       </View>
 
-      {loading && !refreshing ? (
-        <View style={styles.loadingContainer}>
+      {/* Content */}
+      <Animated.View style={[styles.contentContainer, { opacity: fadeAnim }]}>
+        <FlatList
+          data={courses}
+          keyExtractor={(item, index) => `${item.id}-${index}`}
+          renderItem={renderCourse}
+          numColumns={numColumns}
+          ListHeaderComponent={renderHeader}
+          ListEmptyComponent={renderEmptyComponent}
+          ListFooterComponent={renderFooter}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={refreshAll}
+              tintColor={currentTheme.primaryColor}
+            />
+          }
+          onEndReached={handleLoadMoreCourses}
+          onEndReachedThreshold={0.5}
+          removeClippedSubviews
+          initialNumToRender={6}
+          windowSize={5}
+          getItemLayout={getItemLayout}
+        />
+      </Animated.View>
+
+      {/* Overlay loader if loading in background */}
+      {loading && courses.length > 0 && (
+        <View style={[styles.loadingOverlay, { backgroundColor: currentTheme.backgroundColor + 'cc' }]}>
           <ActivityIndicator size="large" color={currentTheme.primaryColor} />
+          <Text style={{ color: currentTheme.textColor, marginTop: 10 }}>Loading...</Text>
         </View>
-      ) : error ? (
-        <View style={styles.errorContainer}>
-          <Text style={[styles.errorText, { color: currentTheme.errorTextColor }]}>{error}</Text>
-          <TouchableOpacity
-            style={[styles.retryButton, { backgroundColor: currentTheme.primaryColor }]}
-            onPress={() => fetchData()}
-          >
-            <Text style={styles.retryButtonText}>Retry</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <Animated.View style={[styles.contentContainer, { opacity: fadeAnim }]}>
-          <FlatList
-            data={courses}
-            keyExtractor={item => item.id}
-            renderItem={renderCourse}
-            numColumns={numColumns}
-            ListHeaderComponent={renderHeader}
-            ListEmptyComponent={renderEmptyComponent}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={() => fetchData(true)}
-                tintColor={currentTheme.primaryColor}
-              />
-            }
-          />
-        </Animated.View>
       )}
     </SafeAreaView>
   );
 };
 
+// ---------------------------------------------------------------------------
+// Styles
+// ---------------------------------------------------------------------------
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  loadingScreen: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 99,
+  },
   header: {
-    height: 190,
+    height: 180,
     overflow: 'hidden',
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
+    marginBottom: 2,
     elevation: 6,
     shadowColor: '#000',
     shadowOpacity: 0.3,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 5 },
+    position: 'relative',
   },
   headerGradient: {
     flex: 1,
     paddingHorizontal: 20,
     justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: 32,
+    fontWeight: '700',
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    marginTop: 2,
+  },
+  searchBarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    height: 40,
+  },
+  searchInput: {
+    flex: 1,
+    padding: 0,
+    fontSize: 14,
+  },
+  // Suggestions
+  suggestionsContainer: {
+    position: 'absolute',
+    top: 130,       // just below the search bar
+    left: 20,
+    right: 20,
+    maxHeight: 200, 
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    elevation: 5,
+    zIndex: 100,    // above the gradient
+  },
+  suggestionItem: {
+    padding: 10,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#ccc',
+  },
+  suggestionText: {
+    fontSize: 14,
+  },
+
+  contentContainer: {
+    flex: 1,
+  },
+  listContent: {
+    paddingBottom: 40,
+    paddingHorizontal: 10,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    marginVertical: 15,
+    marginHorizontal: 15,
+  },
+  featuredSection: {
+    marginBottom: 20,
+  },
+  reelsContainer: {
+    paddingLeft: 15,
+    paddingBottom: 10,
+  },
+  adsSection: {
+    marginHorizontal: 15,
+    marginBottom: 20,
+  },
+  emptyContainer: {
+    flex: 1,
+    marginTop: 50,
     alignItems: 'center',
   },
-  headerTitle: { fontSize: 36, fontWeight: '800' },
-  headerSubtitle: { fontSize: 18, marginTop: 8 },
-  contentContainer: { flex: 1 },
-  sectionTitle: { fontSize: 24, fontWeight: '700', marginVertical: 15, marginHorizontal: 15 },
-  listContent: { paddingBottom: 40, paddingHorizontal: 10 },
-  featuredSection: { marginBottom: 20 },
-  reelsContainer: { paddingLeft: 15, paddingBottom: 10 },
-  adSection: { marginHorizontal: 15, marginBottom: 20 },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  errorText: { fontSize: 16, marginBottom: 10 },
-  retryButton: { paddingVertical: 12, paddingHorizontal: 30, borderRadius: 30 },
-  retryButtonText: { color: '#fff', fontSize: 16 },
-  emptyContainer: { flex: 1, marginTop: 50, alignItems: 'center' },
-  emptyText: { fontSize: 18 },
+  emptyText: {
+    fontSize: 18,
+  },
+  footer: {
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
 });
 
 export default AICoursesScreen;
@@ -284,8 +626,14 @@ export default AICoursesScreen;
 
 
 
-// // src/screens/AICoursesScreen.js
-// import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
+// import React, {
+//   useState,
+//   useEffect,
+//   useContext,
+//   useCallback,
+//   useRef,
+//   useMemo,
+// } from 'react';
 // import {
 //   View,
 //   Text,
@@ -299,525 +647,360 @@ export default AICoursesScreen;
 //   useWindowDimensions,
 //   Animated,
 // } from 'react-native';
-// import { LinearGradient } from 'expo-linear-gradient';
 // import { SafeAreaView } from 'react-native-safe-area-context';
+// import { LinearGradient } from 'expo-linear-gradient';
 // import { ThemeContext } from '../../ThemeContext';
 // import { lightTheme, darkTheme } from '../../themes';
 
+// import CustomHeader from '../components/CustomHeader';
 // import CourseCard from '../components/CourseCard';
 // import FeaturedReel from '../components/FeaturedReel';
 // import NewCourseAdsList from '../components/NewCourseAdsList';
-// // Import API functions including ads
-// import { fetchCourses, fetchAds } from '../services/api';
+// import { fetchCourses, fetchFeaturedReels, fetchAds } from '../services/api';
+
+// const PAGE_LIMIT = 10;
+// const REELS_LIMIT = 5;
 
 // const AICoursesScreen = () => {
 //   const { theme } = useContext(ThemeContext);
 //   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
 //   const { width } = useWindowDimensions();
 
-//   // State for courses, reels, ads, etc.
+//   // ---------------------------------------------------------------------------
+//   // State: Courses
+//   // ---------------------------------------------------------------------------
 //   const [courses, setCourses] = useState([]);
+//   const [page, setPage] = useState(1);
+//   const [hasMore, setHasMore] = useState(true);
+//   const [loading, setLoading] = useState(false);
+//   const [loadingMore, setLoadingMore] = useState(false);
+//   const [refreshing, setRefreshing] = useState(false);
+//   const [error, setError] = useState(null);
+
+//   // ---------------------------------------------------------------------------
+//   // State: Reels
+//   // ---------------------------------------------------------------------------
 //   const [reels, setReels] = useState([]);
+//   const [reelsPage, setReelsPage] = useState(1);
+//   const [hasMoreReels, setHasMoreReels] = useState(true);
+//   const [loadingMoreReels, setLoadingMoreReels] = useState(false);
+
+//   // ---------------------------------------------------------------------------
+//   // State: Ads
+//   // ---------------------------------------------------------------------------
 //   const [ads, setAds] = useState([]);
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState(null);
-//   const [refreshing, setRefreshing] = useState(false);
 
-//   // Persisted animated value for fade-in effect
+//   // ---------------------------------------------------------------------------
+//   // Animated fade-in
+//   // ---------------------------------------------------------------------------
 //   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-//   // Function to fetch courses and ads from the backend API
-//   const fetchData = async (isRefreshing = false) => {
-//     try {
-//       isRefreshing ? setRefreshing(true) : setLoading(true);
-
-//       // Fetch courses
-//       const coursesResponse = await fetchCourses();
-//       if (coursesResponse.success) {
-//         const allCourses = coursesResponse.data.map(course => ({
-//           id: course._id,
-//           title: course.title,
-//           description: course.description,
-//           image: course.image,
-//           rating: course.rating,
-//           reviews: course.reviews,
-//           videoUrl:
-//             course.isFeatured && course.shortVideoLink
-//               ? course.shortVideoLink
-//               : undefined,
-//         }));
-//         setCourses(allCourses);
-//         setReels(allCourses.filter(course => course.videoUrl));
-//       } else {
-//         setError(coursesResponse.message);
-//       }
-
-//       // Fetch ads from BE
-//       const adsResponse = await fetchAds();
-//       if (adsResponse.success) {
-//         setAds(adsResponse.data);
-//       } else {
-//         // Optionally, you could leave ads empty or set a fallback.
-//         setAds([]);
-//       }
-
-//       // Animate fade-in once data is loaded
-//       Animated.timing(fadeAnim, {
-//         toValue: 1,
-//         duration: 500,
-//         useNativeDriver: true,
-//       }).start();
-
-//       // Clear error on success
-//       setError(null);
-//     } catch (err) {
-//       setError(err.message || 'Failed to fetch data');
-//     } finally {
-//       setLoading(false);
-//       setRefreshing(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchData();
-//   }, []);
-
-//   // Responsive grid: 1 column on narrow screens, 2 columns on wider ones
-//   const getNumberOfColumns = () => (width < 600 ? 1 : 2);
-//   const numColumns = getNumberOfColumns();
-//   const getCardWidth = () => {
+//   // ---------------------------------------------------------------------------
+//   // Responsive card calculations
+//   // ---------------------------------------------------------------------------
+//   const numColumns = useMemo(() => (width < 600 ? 1 : 2), [width]);
+//   const cardWidth = useMemo(() => {
 //     const totalMargin = 20 * (numColumns + 1);
 //     return (width - totalMargin) / numColumns;
-//   };
+//   }, [width, numColumns]);
 
-//   const handleEnroll = course =>
-//     Alert.alert('Enrollment', `You have enrolled in "${course.title}"!`);
-//   const handleFeaturedPress = course =>
-//     Alert.alert('Course Details', `Featured Course: ${course.title}`);
-//   const handleAdPress = ad =>
-//     Alert.alert('New Courses', `Ad clicked: ${ad.title}`);
-
-//   // Render a course card
-//   const renderCourse = useCallback(
-//     ({ item }) => (
-//       <CourseCard
-//         course={item}
-//         cardWidth={getCardWidth()}
-//         currentTheme={currentTheme}
-//         onEnroll={handleEnroll}
-//       />
-//     ),
-//     [currentTheme, width]
-//   );
-
-//   // Render header containing featured reels and ads
-//   const renderHeader = () => (
-//     <View>
-//       {/* Featured Reels Carousel */}
-//       <View style={styles.featuredSection}>
-//         <Text style={[styles.sectionTitle, { color: currentTheme.cardTextColor }]}>
-//           Featured Courses
-//         </Text>
-//         <FlatList
-//           data={reels}
-//           keyExtractor={item => item.id}
-//           renderItem={({ item }) => (
-//             <FeaturedReel
-//               course={item}
-//               reelWidth={width * 0.35}
-//               reelHeight={240}
-//               onPress={() => handleFeaturedPress(item)}
-//               currentTheme={currentTheme}
-//               reelsData={reels}
-//             />
-//           )}
-//           horizontal
-//           showsHorizontalScrollIndicator={false}
-//           contentContainerStyle={styles.reelsContainer}
-//         />
-//       </View>
-
-//       {/* Ads Carousel */}
-//       <View style={styles.adSection}>
-//         <NewCourseAdsList
-//           ads={ads}
-//           onAdPress={handleAdPress}
-//           currentTheme={currentTheme}
-//         />
-//       </View>
-
-//       <Text style={[styles.sectionTitle, { color: currentTheme.cardTextColor }]}>
-//         All Courses
-//       </Text>
-//     </View>
-//   );
-
-//   const renderEmptyComponent = () => (
-//     <View style={styles.emptyContainer}>
-//       <Text style={[styles.emptyText, { color: currentTheme.textColor }]}>
-//         No courses available.
-//       </Text>
-//     </View>
-//   );
-
-//   return (
-//     <SafeAreaView
-//       style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}
-//     >
-//       <StatusBar
-//         backgroundColor={
-//           currentTheme.headerBackground
-//             ? currentTheme.headerBackground[1]
-//             : currentTheme.primaryColor
+//   // ---------------------------------------------------------------------------
+//   // Fetch Courses & Ads (bundled in Promise.all)
+//   // ---------------------------------------------------------------------------
+//   const fetchData = useCallback(
+//     async (isRefreshing = false) => {
+//       try {
+//         if (isRefreshing) {
+//           setRefreshing(true);
+//           setPage(1);
+//           setHasMore(true);
+//         } else if (page === 1) {
+//           setLoading(true);
+//         } else {
+//           setLoadingMore(true);
 //         }
-//         barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
-//       />
 
-//       {/* Modern Header */}
-//       <View style={styles.header}>
-//         <LinearGradient
-//           colors={currentTheme.headerBackground || ['#3a7bd5', '#00d2ff']}
-//           style={styles.headerGradient}
-//         >
-//           <Text style={[styles.headerTitle, { color: currentTheme.headerTextColor }]}>
-//             AI Courses
-//           </Text>
-//           <Text style={[styles.headerSubtitle, { color: currentTheme.headerTextColor }]}>
-//             Elevate your skills with modern AI education
-//           </Text>
-//         </LinearGradient>
-//       </View>
+//         const currentPage = isRefreshing ? 1 : page;
 
-//       {loading && !refreshing ? (
-//         <View style={styles.loadingContainer}>
-//           <ActivityIndicator size="large" color={currentTheme.primaryColor} />
-//         </View>
-//       ) : error ? (
-//         <View style={styles.errorContainer}>
-//           <Text style={[styles.errorText, { color: currentTheme.errorTextColor }]}>
-//             {error}
-//           </Text>
-//           <TouchableOpacity
-//             style={[styles.retryButton, { backgroundColor: currentTheme.primaryColor }]}
-//             onPress={() => fetchData()}
-//           >
-//             <Text style={styles.retryButtonText}>Retry</Text>
-//           </TouchableOpacity>
-//         </View>
-//       ) : (
-//         <Animated.View style={[styles.contentContainer, { opacity: fadeAnim }]}>
-//           <FlatList
-//             data={courses}
-//             keyExtractor={item => item.id}
-//             renderItem={renderCourse}
-//             numColumns={numColumns}
-//             ListHeaderComponent={renderHeader}
-//             ListEmptyComponent={renderEmptyComponent}
-//             contentContainerStyle={styles.listContent}
-//             showsVerticalScrollIndicator={false}
-//             refreshControl={
-//               <RefreshControl
-//                 refreshing={refreshing}
-//                 onRefresh={() => fetchData(true)}
-//                 tintColor={currentTheme.primaryColor}
-//               />
-//             }
-//           />
-//         </Animated.View>
-//       )}
-//     </SafeAreaView>
-//   );
-// };
+//         // Fire both courses & ads in parallel
+//         const [coursesResponse, adsResponse] = await Promise.all([
+//           fetchCourses(currentPage, PAGE_LIMIT),
+//           fetchAds(),
+//         ]);
 
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//   },
-//   header: {
-//     height: 190,
-//     overflow: 'hidden',
-//     borderBottomLeftRadius: 30,
-//     borderBottomRightRadius: 30,
-//     elevation: 6,
-//     shadowColor: '#000',
-//     shadowOpacity: 0.3,
-//     shadowRadius: 10,
-//     shadowOffset: { width: 0, height: 5 },
-//   },
-//   headerGradient: {
-//     flex: 1,
-//     paddingHorizontal: 20,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//   },
-//   headerTitle: {
-//     fontSize: 36,
-//     fontWeight: '800',
-//   },
-//   headerSubtitle: {
-//     fontSize: 18,
-//     marginTop: 8,
-//   },
-//   contentContainer: {
-//     flex: 1,
-//   },
-//   sectionTitle: {
-//     fontSize: 24,
-//     fontWeight: '700',
-//     marginVertical: 15,
-//     marginHorizontal: 15,
-//   },
-//   listContent: {
-//     paddingBottom: 40,
-//     paddingHorizontal: 10,
-//   },
-//   featuredSection: {
-//     marginBottom: 20,
-//   },
-//   reelsContainer: {
-//     paddingLeft: 15,
-//     paddingBottom: 10,
-//   },
-//   adSection: {
-//     marginHorizontal: 15,
-//     marginBottom: 20,
-//   },
-//   loadingContainer: {
-//     flex: 1,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//   },
-//   errorContainer: {
-//     flex: 1,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//   },
-//   errorText: {
-//     fontSize: 16,
-//     marginBottom: 10,
-//   },
-//   retryButton: {
-//     paddingVertical: 12,
-//     paddingHorizontal: 30,
-//     borderRadius: 30,
-//   },
-//   retryButtonText: {
-//     color: '#fff',
-//     fontSize: 16,
-//   },
-//   emptyContainer: {
-//     flex: 1,
-//     marginTop: 50,
-//     alignItems: 'center',
-//   },
-//   emptyText: {
-//     fontSize: 18,
-//   },
-// });
+//         // Handle courses
+//         if (coursesResponse.success) {
+//           const newCourses = coursesResponse.data.map(course => ({
+//             id: course._id,
+//             title: course.title,
+//             description: course.description,
+//             image: course.image,
+//             rating: course.rating,
+//             reviews: course.reviews,
+//             videoUrl:
+//               course.isFeatured && course.shortVideoLink
+//                 ? course.shortVideoLink
+//                 : undefined,
+//           }));
 
-// export default AICoursesScreen;
+//           if (isRefreshing) {
+//             setCourses(newCourses);
+//             setPage(2);
+//           } else {
+//             setCourses(prev => {
+//               const existingIds = new Set(prev.map(c => c.id));
+//               const filtered = newCourses.filter(c => !existingIds.has(c.id));
+//               return [...prev, ...filtered];
+//             });
+//             setPage(currentPage + 1);
+//           }
 
+//           if (newCourses.length < PAGE_LIMIT) {
+//             setHasMore(false);
+//           }
+//         } else {
+//           setError(coursesResponse.message);
+//         }
 
+//         // Handle ads
+//         if (adsResponse.success) {
+//           setAds(adsResponse.data);
+//         } else {
+//           setAds([]);
+//         }
 
-
-
-
-
-
-
-
-
-
-// // src/screens/AICoursesScreen.js
-// import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
-// import {
-//   View,
-//   Text,
-//   StyleSheet,
-//   FlatList,
-//   StatusBar,
-//   ActivityIndicator,
-//   RefreshControl,
-//   Alert,
-//   TouchableOpacity,
-//   useWindowDimensions,
-//   Animated,
-// } from 'react-native';
-// import { LinearGradient } from 'expo-linear-gradient';
-// import { SafeAreaView } from 'react-native-safe-area-context';
-// import { ThemeContext } from '../../ThemeContext';
-// import { lightTheme, darkTheme } from '../../themes';
-
-// import CourseCard from '../components/CourseCard';
-// import FeaturedReel from '../components/FeaturedReel';
-// import NewCourseAdsList from '../components/NewCourseAdsList';
-// // Import the new API function
-// import { fetchCourses } from '../services/api';
-
-// const AICoursesScreen = () => {
-//   const { theme } = useContext(ThemeContext);
-//   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
-//   const { width } = useWindowDimensions();
-
-//   // State variables for courses, reels, etc.
-//   const [courses, setCourses] = useState([]);
-//   const [reels, setReels] = useState([]);
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState(null);
-//   const [refreshing, setRefreshing] = useState(false);
-
-//   // Sample new ads data for the carousel
-//   const newAds = [
-//     {
-//       id: 'ad1',
-//       image: 'https://via.placeholder.com/150x100.png?text=Ad+1',
-//       title: 'Boost Your Career!',
-//       subtitle: 'Enroll in our latest AI courses.',
-//     },
-//     {
-//       id: 'ad2',
-//       image: 'https://via.placeholder.com/150x100.png?text=Ad+2',
-//       title: 'Special Offer',
-//       subtitle: 'Up to 50% off on new courses.',
-//     },
-//     {
-//       id: 'ad3',
-//       image: 'https://via.placeholder.com/150x100.png?text=Ad+3',
-//       title: 'Fresh Content!',
-//       subtitle: 'Discover cutting-edge topics in AI.',
-//     },
-//   ];
-
-//   // Persisted animated value for fade-in effect
-//   const fadeAnim = useRef(new Animated.Value(0)).current;
-
-//   // Function to fetch courses from the backend API
-//   const fetchData = async (isRefreshing = false) => {
-//     try {
-//       isRefreshing ? setRefreshing(true) : setLoading(true);
-//       const response = await fetchCourses();
-//       if (response.success) {
-//         // Map each course so that it has an "id" (from _id) and a videoUrl if featured.
-//         const allCourses = response.data.map(course => ({
-//           id: course._id,
-//           title: course.title,
-//           description: course.description,
-//           image: course.image,
-//           rating: course.rating,
-//           reviews: course.reviews,
-//           videoUrl:
-//             course.isFeatured && course.shortVideoLink
-//               ? course.shortVideoLink
-//               : undefined,
-//         }));
-//         setCourses(allCourses);
-//         // Filter featured courses (with a valid short video link) for the reels carousel.
-//         setReels(allCourses.filter(course => course.videoUrl));
+//         // Animate fade in for content
+//         Animated.timing(fadeAnim, {
+//           toValue: 1,
+//           duration: 300,
+//           useNativeDriver: true,
+//         }).start();
 //         setError(null);
-//       } else {
-//         setError(response.message);
+//       } catch (err) {
+//         console.error(err);
+//         setError(err.message || 'Failed to fetch data');
+//       } finally {
+//         setLoading(false);
+//         setLoadingMore(false);
+//         setRefreshing(false);
 //       }
+//     },
+//     [page, fadeAnim]
+//   );
 
-//       // Animate fade-in once data is loaded
-//       Animated.timing(fadeAnim, {
-//         toValue: 1,
-//         duration: 500,
-//         useNativeDriver: true,
-//       }).start();
-//     } catch (err) {
-//       setError(err.message || 'Failed to fetch data');
-//     } finally {
-//       setLoading(false);
-//       setRefreshing(false);
-//     }
-//   };
+//   // ---------------------------------------------------------------------------
+//   // Fetch Reels
+//   // ---------------------------------------------------------------------------
+//   const fetchReels = useCallback(
+//     async (isRefreshing = false) => {
+//       try {
+//         if (isRefreshing) {
+//           setReelsPage(1);
+//           setHasMoreReels(true);
+//         }
+//         setLoadingMoreReels(true);
+
+//         const currentPage = isRefreshing ? 1 : reelsPage;
+//         const reelsResponse = await fetchFeaturedReels(currentPage, REELS_LIMIT);
+
+//         if (reelsResponse.success) {
+//           const fetchedReels = reelsResponse.data.map(item => ({
+//             ...item,
+//             id: item._id, // so we have a consistent 'id' field
+//           }));
+
+//           if (isRefreshing) {
+//             setReels(fetchedReels);
+//             setReelsPage(2);
+//           } else {
+//             // Deduplicate
+//             const newItems = fetchedReels.filter(
+//               r => !reels.some(existing => existing.id === r.id)
+//             );
+//             if (newItems.length === 0) {
+//               setHasMoreReels(false);
+//             } else {
+//               setReels(prev => [...prev, ...newItems]);
+//               setReelsPage(currentPage + 1);
+//             }
+//           }
+//           // If fewer than the limit, no more reels to load
+//           if (fetchedReels.length < REELS_LIMIT) {
+//             setHasMoreReels(false);
+//           }
+//         } else {
+//           // If it fails, we assume no reels
+//           if (isRefreshing) setReels([]);
+//           setHasMoreReels(false);
+//         }
+//       } catch (err) {
+//         console.error(err);
+//       } finally {
+//         setLoadingMoreReels(false);
+//       }
+//     },
+//     [reels, reelsPage]
+//   );
+
+//   // ---------------------------------------------------------------------------
+//   // Refresh all
+//   // ---------------------------------------------------------------------------
+//   const refreshAll = useCallback(() => {
+//     setHasMore(true);
+//     setHasMoreReels(true);
+//     fetchData(true);
+//     fetchReels(true);
+//   }, [fetchData, fetchReels]);
 
 //   useEffect(() => {
-//     fetchData();
+//     refreshAll();
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
 //   }, []);
 
-//   // Responsive grid: 1 column on narrow screens, 2 columns on wider ones
-//   const getNumberOfColumns = () => (width < 600 ? 1 : 2);
-//   const numColumns = getNumberOfColumns();
-//   const getCardWidth = () => {
-//     const totalMargin = 20 * (numColumns + 1);
-//     return (width - totalMargin) / numColumns;
-//   };
+//   // ---------------------------------------------------------------------------
+//   // Handlers
+//   // ---------------------------------------------------------------------------
+//   const handleLoadMoreCourses = useCallback(() => {
+//     if (!loadingMore && hasMore) {
+//       fetchData();
+//     }
+//   }, [loadingMore, hasMore, fetchData]);
 
-//   const handleEnroll = course =>
-//     Alert.alert('Enrollment', `You have enrolled in "${course.title}"!`);
-//   const handleFeaturedPress = course =>
+//   const handleLoadMoreReels = useCallback(() => {
+//     if (!loadingMoreReels && hasMoreReels) {
+//       fetchReels();
+//     }
+//   }, [loadingMoreReels, hasMoreReels, fetchReels]);
+
+//   const handleFeaturedPress = useCallback(course => {
 //     Alert.alert('Course Details', `Featured Course: ${course.title}`);
-//   const handleAdPress = ad =>
-//     Alert.alert('New Courses', `Ad clicked: ${ad.title}`);
+//   }, []);
 
-//   // Render a course card
+//   const handleAdPress = useCallback(ad => {
+//     Alert.alert('New Courses', `Ad clicked: ${ad.title}`);
+//   }, []);
+
+//   // ---------------------------------------------------------------------------
+//   // Render items
+//   // ---------------------------------------------------------------------------
 //   const renderCourse = useCallback(
 //     ({ item }) => (
 //       <CourseCard
 //         course={item}
-//         cardWidth={getCardWidth()}
+//         cardWidth={cardWidth}
 //         currentTheme={currentTheme}
-//         onEnroll={handleEnroll}
 //       />
 //     ),
-//     [currentTheme, width]
+//     [cardWidth, currentTheme]
 //   );
 
-//   // Render header containing featured reels and new course ads
-//   const renderHeader = () => (
-//     <View>
-//       {/* Featured Reels Carousel */}
-//       <View style={styles.featuredSection}>
+//   const getItemLayout = useCallback(
+//     (data, index) => {
+//       const CARD_HEIGHT = 300; // Adjust to your card’s approximate height
+//       const row = Math.floor(index / numColumns);
+//       return { length: CARD_HEIGHT, offset: row * CARD_HEIGHT, index };
+//     },
+//     [numColumns]
+//   );
+
+//   // ---------------------------------------------------------------------------
+//   // Header / Footer / Empty
+//   // ---------------------------------------------------------------------------
+//   const renderHeader = useCallback(() => {
+//     return (
+//       <View>
+//         {/* Featured Reels Carousel */}
+//         <View style={styles.featuredSection}>
+//           <Text style={[styles.sectionTitle, { color: currentTheme.cardTextColor }]}>
+//             Featured Courses
+//           </Text>
+//           <FlatList
+//             data={reels}
+//             keyExtractor={(item, index) => `${item.id}-${index}`}
+//             renderItem={({ item }) => (
+//               <FeaturedReel
+//                 course={item}
+//                 reelWidth={width * 0.35}
+//                 reelHeight={220}
+//                 onPress={() => handleFeaturedPress(item)}
+//                 currentTheme={currentTheme}
+//                 reelsData={reels}
+//               />
+//             )}
+//             horizontal
+//             showsHorizontalScrollIndicator={false}
+//             contentContainerStyle={styles.reelsContainer}
+//             onEndReached={handleLoadMoreReels}
+//             onEndReachedThreshold={0.1}
+//             ListFooterComponent={
+//               loadingMoreReels ? (
+//                 <ActivityIndicator size="small" color={currentTheme.primaryColor} />
+//               ) : null
+//             }
+//           />
+//         </View>
+
+//         {/* Ads Carousel */}
+//         <View style={styles.adsSection}>
 //         <Text style={[styles.sectionTitle, { color: currentTheme.cardTextColor }]}>
-//           Featured Courses
+//           Sponsored Ads
 //         </Text>
-//         <FlatList
-//           data={reels}
-//           keyExtractor={item => item.id}
-//           renderItem={({ item }) => (
-//             <FeaturedReel
-//               course={item}
-//               reelWidth={width * 0.35}
-//               reelHeight={240}
-//               onPress={() => handleFeaturedPress(item)}
-//               currentTheme={currentTheme}
-//               reelsData={reels}
-//             />
-//           )}
-//           horizontal
-//           showsHorizontalScrollIndicator={false}
-//           contentContainerStyle={styles.reelsContainer}
-//         />
+//         <View style={{ marginTop: 0 }}>
+//           <NewCourseAdsList ads={ads} onAdPress={handleAdPress} currentTheme={currentTheme} />
+//         </View>
 //       </View>
 
-//       {/* New Course Ads Carousel */}
-//       <View style={styles.adSection}>
-//         <NewCourseAdsList
-//           ads={newAds}
-//           onAdPress={handleAdPress}
-//           currentTheme={currentTheme}
-//         />
+//         <Text style={[styles.sectionTitle, { color: currentTheme.cardTextColor }]}>
+//           All Courses
+//         </Text>
 //       </View>
+//     );
+//   }, [
+//     reels,
+//     currentTheme,
+//     width,
+//     handleFeaturedPress,
+//     handleLoadMoreReels,
+//     loadingMoreReels,
+//     ads,
+//     handleAdPress,
+//   ]);
 
-//       <Text style={[styles.sectionTitle, { color: currentTheme.cardTextColor }]}>
-//         All Courses
-//       </Text>
-//     </View>
+//   const renderEmptyComponent = useCallback(
+//     () => (
+//       <View style={styles.emptyContainer}>
+//         <Text style={[styles.emptyText, { color: currentTheme.textColor }]}>No courses available.</Text>
+//       </View>
+//     ),
+//     [currentTheme]
 //   );
 
-//   const renderEmptyComponent = () => (
-//     <View style={styles.emptyContainer}>
-//       <Text style={[styles.emptyText, { color: currentTheme.textColor }]}>
-//         No courses available.
-//       </Text>
-//     </View>
-//   );
+//   const renderFooter = useCallback(() => {
+//     if (!loadingMore) return null;
+//     return (
+//       <View style={styles.footer}>
+//         <ActivityIndicator size="small" color={currentTheme.primaryColor} />
+//       </View>
+//     );
+//   }, [loadingMore, currentTheme]);
 
+//   // ---------------------------------------------------------------------------
+//   // Loading screen if no data
+//   // ---------------------------------------------------------------------------
+//   if (loading && courses.length === 0 && !refreshing) {
+//     return (
+//       <SafeAreaView style={[styles.loadingScreen, { backgroundColor: currentTheme.backgroundColor }]}>
+//         <ActivityIndicator size="large" color={currentTheme.primaryColor} />
+//         <Text style={{ color: currentTheme.textColor, marginTop: 10 }}>Loading courses...</Text>
+//       </SafeAreaView>
+//     );
+//   }
+
+//   // ---------------------------------------------------------------------------
+//   // Main return
+//   // ---------------------------------------------------------------------------
 //   return (
-//     <SafeAreaView
-//       style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}
-//     >
+//     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
 //       <StatusBar
 //         backgroundColor={
 //           currentTheme.headerBackground
@@ -826,8 +1009,10 @@ export default AICoursesScreen;
 //         }
 //         barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
 //       />
+//       {/* Custom Header */}
+//       <CustomHeader />
 
-//       {/* Modern Header */}
+//       {/* Gradient Header */}
 //       <View style={styles.header}>
 //         <LinearGradient
 //           colors={currentTheme.headerBackground || ['#3a7bd5', '#00d2ff']}
@@ -842,53 +1027,64 @@ export default AICoursesScreen;
 //         </LinearGradient>
 //       </View>
 
-//       {loading && !refreshing ? (
-//         <View style={styles.loadingContainer}>
+//       {/* Content */}
+//       <Animated.View style={[styles.contentContainer, { opacity: fadeAnim }]}>
+//         <FlatList
+//           data={courses}
+//           keyExtractor={(item, index) => `${item.id}-${index}`}
+//           renderItem={renderCourse}
+//           numColumns={numColumns}
+//           ListHeaderComponent={renderHeader}
+//           ListEmptyComponent={renderEmptyComponent}
+//           ListFooterComponent={renderFooter}
+//           contentContainerStyle={styles.listContent}
+//           showsVerticalScrollIndicator={false}
+//           refreshControl={
+//             <RefreshControl
+//               refreshing={refreshing}
+//               onRefresh={refreshAll}
+//               tintColor={currentTheme.primaryColor}
+//             />
+//           }
+//           onEndReached={handleLoadMoreCourses}
+//           onEndReachedThreshold={0.5}
+//           removeClippedSubviews
+//           initialNumToRender={6}
+//           windowSize={5}
+//           getItemLayout={getItemLayout}
+//         />
+//       </Animated.View>
+
+//       {/* Overlay Loader for “background” pagination */}
+//       {loading && courses.length > 0 && (
+//         <View style={[styles.loadingOverlay, { backgroundColor: currentTheme.backgroundColor + 'cc' }]}>
 //           <ActivityIndicator size="large" color={currentTheme.primaryColor} />
+//           <Text style={{ color: currentTheme.textColor, marginTop: 10 }}>Loading...</Text>
 //         </View>
-//       ) : error ? (
-//         <View style={styles.errorContainer}>
-//           <Text style={[styles.errorText, { color: currentTheme.errorTextColor }]}>
-//             {error}
-//           </Text>
-//           <TouchableOpacity
-//             style={[styles.retryButton, { backgroundColor: currentTheme.primaryColor }]}
-//             onPress={() => fetchData()}
-//           >
-//             <Text style={styles.retryButtonText}>Retry</Text>
-//           </TouchableOpacity>
-//         </View>
-//       ) : (
-//         <Animated.View style={[styles.contentContainer, { opacity: fadeAnim }]}>
-//           <FlatList
-//             data={courses}
-//             keyExtractor={item => item.id}
-//             renderItem={renderCourse}
-//             numColumns={numColumns}
-//             ListHeaderComponent={renderHeader}
-//             ListEmptyComponent={renderEmptyComponent}
-//             contentContainerStyle={styles.listContent}
-//             showsVerticalScrollIndicator={false}  // Scrollbar hidden here
-//             refreshControl={
-//               <RefreshControl
-//                 refreshing={refreshing}
-//                 onRefresh={() => fetchData(true)}
-//                 tintColor={currentTheme.primaryColor}
-//               />
-//             }
-//           />
-//         </Animated.View>
 //       )}
 //     </SafeAreaView>
 //   );
 // };
 
 // const styles = StyleSheet.create({
-//   container: {
+//   container: { flex: 1 },
+//   loadingScreen: {
 //     flex: 1,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//   },
+//   loadingOverlay: {
+//     position: 'absolute',
+//     top: 0,
+//     left: 0,
+//     right: 0,
+//     bottom: 0,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//     zIndex: 10,
 //   },
 //   header: {
-//     height: 190,
+//     height: 150,
 //     overflow: 'hidden',
 //     borderBottomLeftRadius: 30,
 //     borderBottomRightRadius: 30,
@@ -907,10 +1103,12 @@ export default AICoursesScreen;
 //   headerTitle: {
 //     fontSize: 36,
 //     fontWeight: '800',
+//     textAlign: 'center',
 //   },
 //   headerSubtitle: {
 //     fontSize: 18,
 //     marginTop: 8,
+//     textAlign: 'center',
 //   },
 //   contentContainer: {
 //     flex: 1,
@@ -934,30 +1132,6 @@ export default AICoursesScreen;
 //   },
 //   adSection: {
 //     marginHorizontal: 15,
-//     marginBottom: 20,
-//   },
-//   loadingContainer: {
-//     flex: 1,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//   },
-//   errorContainer: {
-//     flex: 1,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//   },
-//   errorText: {
-//     fontSize: 16,
-//     marginBottom: 10,
-//   },
-//   retryButton: {
-//     paddingVertical: 12,
-//     paddingHorizontal: 30,
-//     borderRadius: 30,
-//   },
-//   retryButtonText: {
-//     color: '#fff',
-//     fontSize: 16,
 //   },
 //   emptyContainer: {
 //     flex: 1,
@@ -967,16 +1141,10 @@ export default AICoursesScreen;
 //   emptyText: {
 //     fontSize: 18,
 //   },
+//   footer: {
+//     paddingVertical: 20,
+//     alignItems: 'center',
+//   },
 // });
 
 // export default AICoursesScreen;
-
-
-
-
-
-
-
-
-
-

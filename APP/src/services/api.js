@@ -479,7 +479,6 @@ console.log("config",config);
 
 // ----------------------- Courses & Ads ----------------------- //
 
-// Updated fetchCourses with pagination & selective projection
 export const fetchCourses = async (page = 1, limit = 10) => {
   try {
     const token = await getAuthToken();
@@ -491,21 +490,27 @@ export const fetchCourses = async (page = 1, limit = 10) => {
     return { success: false, message: error.response?.data?.message || 'Failed to fetch courses.' };
   }
 };
-
-// New API for fetching featured reels (lightweight data)
-export const fetchFeaturedReels = async () => {
+export const fetchFeaturedReels = async (page = 1, limit = 5) => {
   try {
     const token = await getAuthToken();
     const config = { headers: { Authorization: `Bearer ${token}` } };
-    const response = await axios.get(`${API_URL}/courses/featuredreels`, config);
+    const response = await axios.get(
+      `${API_URL}/courses/featuredreels?page=${page}&limit=${limit}`,
+      config
+    );
     return { success: true, data: response.data };
   } catch (error) {
-    console.error('Fetch Featured Reels error:', error.response?.data?.message || error.message);
-    return { success: false, message: error.response?.data?.message || 'Failed to fetch featured reels.' };
+    console.error(
+      'Fetch Featured Reels error:',
+      error.response?.data?.message || error.message
+    );
+    return {
+      success: false,
+      message: error.response?.data?.message || 'Failed to fetch featured reels.',
+    };
   }
 };
 
-// Fetch Ads remains unchanged
 export const fetchAds = async () => {
   try {
     const token = await getAuthToken();
@@ -517,6 +522,23 @@ export const fetchAds = async () => {
     return { success: false, message: error.response?.data?.message || 'Failed to fetch ads.' };
   }
 };
+
+// src/services/api.js
+export const searchCoursesAPI = async (query) => {
+  try {
+    const token = await getAuthToken();
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+
+    // encodeURI the query to be safe
+    const response = await axios.get(`${API_URL}/courses/search?query=${encodeURIComponent(query)}`, config);
+
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Search Courses error:', error.response?.data?.message || error.message);
+    return { success: false, message: 'Failed to search courses.' };
+  }
+};
+
 
 // // Add this near the other exported functions in src/services/api.js
 // export const fetchCourses = async () => {
@@ -610,5 +632,8 @@ export default {
     fetchCourses,
     fetchFeaturedReels,
     fetchAds,
+
+    // Search
+    searchCoursesAPI
 
 };

@@ -6,7 +6,7 @@ export const fetchCourses = createAsyncThunk(
   'courses/fetchCourses',
   async (_, thunkAPI) => {
     try {
-      const response = await axiosInstance.get('/api/courses');
+      const response = await axiosInstance.get('/api/courses/admin');
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(

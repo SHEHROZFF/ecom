@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Modal, 
-  TouchableOpacity, 
-  Image, 
-  Text, 
-  StyleSheet, 
-  View, 
-  Dimensions 
+import React, { useState } from 'react';
+import {
+  Modal,
+  TouchableOpacity,
+  Image,
+  Text,
+  StyleSheet,
+  View,
+  Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Video } from 'expo-av';
@@ -21,42 +21,35 @@ const FeaturedReel = ({
   reelHeight,
   onPress,
   currentTheme,
-  reelsData = [], // Default to empty array if not provided
+  reelsData = [],
   initialIndex = 0,
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
-  // Use a fallback if reelsData is empty
+  // If no reelsData provided, fallback to a single [course]
   const effectiveReels = reelsData && reelsData.length > 0 ? reelsData : [course];
 
-  useEffect(() => {
-    // Debug logs (feel free to remove in production)
-    console.log('Effective Reels Data:', effectiveReels);
-    console.log('Effective Reels Count:', effectiveReels.length);
-    console.log('Initial Course ID:', course.id);
-  }, [effectiveReels, course]);
-
   const handlePress = () => {
+    // Find index of the current course
     const index = effectiveReels.findIndex(item => item.id === course.id);
     setCurrentIndex(index !== -1 ? index : 0);
     setModalVisible(true);
-    if (onPress) onPress();
+    onPress?.(course);
   };
 
   const closeModal = () => {
     setModalVisible(false);
   };
 
-  // Render each item in the full-screen carousel
+  // Full-screen carousel item
   const renderCarouselItem = ({ item, index }) => {
-    // Only play the video when it's the current reel
-    const shouldPlay = index === currentIndex;
+    const shouldPlay = index === currentIndex; // only play the current item
     return (
       <View style={styles.fullReelContainer}>
-        {item.videoUrl ? (
+        {item.shortVideoLink ? (
           <Video
-            source={{ uri: item.videoUrl }}
+            source={{ uri: item.shortVideoLink }}
             rate={1.0}
             volume={1.0}
             isMuted={false}
@@ -92,21 +85,21 @@ const FeaturedReel = ({
         onPress={handlePress}
       >
         <View style={styles.mediaContainer}>
-          {course.videoUrl ? (
+          {course.shortVideoLink ? (
             <Video
-              source={{ uri: course.videoUrl }}
+              source={{ uri: course.shortVideoLink }}
               rate={1.0}
               volume={1.0}
-              isMuted={true}
+              isMuted
               resizeMode="cover"
               shouldPlay={false}
               style={styles.reelMedia}
             />
           ) : (
-            <Image 
-              source={{ uri: course.image }} 
-              style={styles.reelMedia} 
-              resizeMode="cover" 
+            <Image
+              source={{ uri: course.image }}
+              style={styles.reelMedia}
+              resizeMode="cover"
             />
           )}
           <LinearGradient
@@ -114,21 +107,17 @@ const FeaturedReel = ({
             style={styles.reelOverlay}
           />
         </View>
-        {/* Title and play icon */}
+        {/* Title & play icon */}
         <View style={styles.titleContainer}>
           <Text style={styles.reelTitle}>{course.title}</Text>
-          {course.videoUrl && (
-            <Ionicons 
-              name="play-circle" 
-              size={24} 
-              color="#fff" 
-              style={styles.playIcon} 
-            />
+          {course.shortVideoLink && (
+            <Ionicons name="play-circle" size={24} color="#fff" style={styles.playIcon} />
           )}
         </View>
-        {/* New: Course image overlay at top-right */}
+
+        {/* Course image overlay at top-right */}
         <View style={styles.topRightImageContainer}>
-          <Image 
+          <Image
             source={{ uri: course.image }}
             style={styles.topRightImage}
             resizeMode="cover"
@@ -136,21 +125,20 @@ const FeaturedReel = ({
         </View>
       </TouchableOpacity>
 
-      {/* Full-Screen Modal with Vertical Carousel */}
+      {/* Full-Screen Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent={false}>
         <View style={styles.modalContainer}>
           <Carousel
             data={effectiveReels}
             renderItem={renderCarouselItem}
-            vertical={true}
+            vertical
             width={viewportWidth}
             height={viewportHeight}
-            onSnapToItem={(index) => {
-              setCurrentIndex(index);
-            }}
+            onSnapToItem={index => setCurrentIndex(index)}
             autoPlay={false}
             loop={false}
             mode="default"
+            defaultIndex={currentIndex}
           />
           <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
             <Ionicons name="close-circle" size={36} color="#fff" />
@@ -202,7 +190,6 @@ const styles = StyleSheet.create({
   playIcon: {
     marginLeft: 8,
   },
-  // New style for the top-right course image
   topRightImageContainer: {
     position: 'absolute',
     top: 8,
