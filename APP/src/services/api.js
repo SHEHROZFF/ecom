@@ -245,7 +245,7 @@ export const getTopProducts = async () => {
  * @param {string} comment - Review comment.
  * @returns {Promise<object>} Response data or error object.
  */
-export const addOrUpdateReview = async (productId, rating, comment) => {
+export const addOrUpdateReview = async (reviewableId,reviewableType, rating, comment) => {
   try {
     const token = await getAuthToken();
     if (!token) {
@@ -261,7 +261,7 @@ export const addOrUpdateReview = async (productId, rating, comment) => {
 
     const response = await axios.post(
       `${API_URL}/reviews`,
-      { productId, rating, comment },
+      { reviewableId,reviewableType, rating, comment },
       config
     );
 
@@ -279,7 +279,9 @@ export const addOrUpdateReview = async (productId, rating, comment) => {
  */
 export const getProductReviewsAPI = async (reviewableId, reviewableType) => {
   try {
-    const response = await axios.get(`${API_URL}/reviews/product/${reviewableType}/${reviewableId}`);
+    console.log("getProductReviewsAPI",reviewableId,reviewableType);
+    
+    const response = await axios.get(`${API_URL}/reviews/${reviewableType}/${reviewableId}`);
     console.log(response);
 
     return { success: true, data: response.data };
@@ -560,52 +562,93 @@ export const fetchCourseById = async (courseId) => {
     return { success: false, message: 'Failed to fetch course details.' };
   }
 };
+//----------------------------------------------------
+//  ENROLLMENT ENDPOINTS
+//----------------------------------------------------
+/**
+ * Enroll the current user in a course
+ * @param {string} courseId
+ * @returns {Promise<object>} { success, data }
+ */
+export const enrollInCourseAPI = async (courseId) => {
+  try {
+    const token = await getAuthToken();
+    if (!token) throw new Error('No token found. Please log in.');
 
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
 
-// // Add this near the other exported functions in src/services/api.js
-// export const fetchCourses = async () => {
-//   try {
-//     const token = await getAuthToken();
-//     const config = {
-//       headers: {
-//         Authorization: `Bearer ${token}`,
-//       },
-//     };
-//     const response = await axios.get(`${API_URL}/courses`, config);
-//     return { success: true, data: response.data };
-//   } catch (error) {
-//     console.error(
-//       'Fetch Courses error:',
-//       error.response?.data?.message || error.message
-//     );
-//     return {
-//       success: false,
-//       message:
-//         error.response?.data?.message || 'Failed to fetch courses.',
-//     };
-//   }
-// };
+    const response = await axios.post(`${API_URL}/enrollments/${courseId}`, {}, config);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Enroll in course error:', error.response?.data?.message || error.message);
+    return { success: false, message: error.response?.data?.message || 'Enrollment failed.' };
+  }
+};
 
+/**
+ * Unenroll from a course
+ * @param {string} courseId
+ */
+export const unenrollFromCourseAPI = async (courseId) => {
+  try {
+    const token = await getAuthToken();
+    if (!token) throw new Error('No token found. Please log in.');
 
-// // Fetch Ads
-// export const fetchAds = async () => {
-//   try {
-//     const token = await getAuthToken();
-//     const config = {
-//       headers: {
-//         Authorization: `Bearer ${token}`,
-//       },
-//     };
-//     const response = await axios.get(`${API_URL}/ads`, config);
-//     return { success: true, data: response.data };
-//   } catch (error) {
-//     console.error(
-//       'Fetch Ads error:',
-//       error.response?.data?.message || error.message
-//     );
-//     return { success: false, message: error.response?.data?.message || 'Failed to fetch ads.' };
-//   }
-// };
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+
+    const response = await axios.delete(`${API_URL}/enrollments/${courseId}`, config);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Unenroll error:', error.response?.data?.message || error.message);
+    return { success: false, message: error.response?.data?.message || 'Unenrollment failed.' };
+  }
+};
+
+/**
+ * Get all enrollments for the logged-in user
+ */
+export const getMyEnrollmentsAPI = async () => {
+  try {
+    const token = await getAuthToken();
+    if (!token) throw new Error('No token found. Please log in.');
+
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const response = await axios.get(`${API_URL}/enrollments/my`, config);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Get enrollments error:', error.response?.data?.message || error.message);
+    return { success: false, message: error.response?.data?.message || 'Failed to fetch enrollments.' };
+  }
+};
+
+/**
+ * Update an existing enrollment (progress, certificate, etc.)
+ * @param {string} courseId
+ * @param {object} updates
+ */
+export const updateEnrollmentAPI = async (courseId, updates = {}) => {
+  try {
+    const token = await getAuthToken();
+    if (!token) throw new Error('No token found. Please log in.');
+
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+
+    const response = await axios.patch(`${API_URL}/enrollments/${courseId}`, updates, config);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Update enrollment error:', error.response?.data?.message || error.message);
+    return { success: false, message: error.response?.data?.message || 'Failed to update enrollment.' };
+  }
+};
+
 
 
 // ----------------------- Export All Functions ----------------------- //
@@ -659,6 +702,12 @@ export default {
     searchCoursesAPI,
 
     // Fetch Course by ID
-    fetchCourseById
+    fetchCourseById,
+
+    // Enrollments
+    enrollInCourseAPI,
+    unenrollFromCourseAPI,
+    getMyEnrollmentsAPI,
+    updateEnrollmentAPI
 
 };

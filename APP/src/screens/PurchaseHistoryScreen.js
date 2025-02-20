@@ -341,10 +341,6 @@ const ProductHistoryPage = () => {
         start={[0, 0]}
         end={[0, 1]}
       >
-        {/* Back Button */}
-        {/* <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={currentTheme.headerTextColor} />
-        </TouchableOpacity> */}
         <View style={styles.headerTitleContainer}>
           <Text style={[styles.headerTitle, { color: currentTheme.headerTextColor }]}>
             Order History
@@ -354,6 +350,25 @@ const ProductHistoryPage = () => {
           </Text>
         </View>
       </LinearGradient>
+      {/* <LinearGradient
+        colors={currentTheme.headerBackground}
+        style={styles.header}
+        start={[0, 0]}
+        end={[0, 1]}
+      > */}
+        {/* Back Button */}
+        {/* <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color={currentTheme.headerTextColor} />
+        </TouchableOpacity> */}
+        {/* <View style={styles.headerTitleContainer}>
+          <Text style={[styles.headerTitle, { color: currentTheme.headerTextColor }]}>
+            Order History
+          </Text>
+          <Text style={[styles.headerSubtitle, { color: currentTheme.headerTextColor }]}>
+            View your past purchases
+          </Text>
+        </View>
+      </LinearGradient> */}
 
       <FlatList
         data={orders}
@@ -528,36 +543,53 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  header: {
-    width: '100%',
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
+  // header: {
+  //   width: '100%',
+  //   paddingVertical: 10,
+  //   paddingHorizontal: 15,
+  //   flexDirection: 'row',
+  //   alignItems: 'center',
+  //   justifyContent: 'center',
+  //   elevation: 4,
+  //   shadowColor: '#000',
+  //   shadowOffset: { width: 0, height: 2 },
+  //   shadowOpacity: 0.25,
+  //   shadowRadius: 3.84,
+  // },
   backButton: {
     position: 'absolute',
     left: 15,
     top: 10,
     padding: 8,
   },
-  headerTitleContainer: {
+  // headerTitleContainer: {
+  //   alignItems: 'center',
+  // },
+  // headerTitle: {
+  //   fontSize: 24,
+  //   fontWeight: '700',
+  // },
+  // headerSubtitle: {
+  //   fontSize: 14,
+  //   marginTop: 4,
+  // },
+  header: {
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    justifyContent: 'center',
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    marginTop: 4,
-  },
+  headerTitleContainer: { alignItems: 'center' },
+  headerTitle: { fontSize: 22, fontWeight: '700' },
+  headerSubtitle: { fontSize: 14, marginTop: 4 },
   listContent: {
     padding: 15,
     paddingBottom: 30,

@@ -48,14 +48,10 @@ const FavouritesPage = () => {
 
   // Render single favourite item
   const renderItem = ({ item }) => (
-    <View
-      style={[styles.itemContainer, { backgroundColor: currentTheme.cardBackground }]}
-    >
+    <View style={[styles.itemContainer, { backgroundColor: currentTheme.cardBackground }]}>
       <Image source={{ uri: item.image }} style={styles.itemImage} />
       <View style={styles.itemDetails}>
-        <Text style={[styles.itemName, { color: currentTheme.cardTextColor }]}>
-          {item.examName}
-        </Text>
+        <Text style={[styles.itemName, { color: currentTheme.cardTextColor }]}>{item.examName}</Text>
         <Text style={[styles.itemSubtitle, { color: currentTheme.textColor }]}>
           {item.subjectName} ({item.subjectCode})
         </Text>
@@ -75,11 +71,7 @@ const FavouritesPage = () => {
     setAlertMessage('Are you sure you want to clear all favourite items?');
     setAlertIcon('heart-dislike-outline');
     setAlertButtons([
-      {
-        text: 'Cancel',
-        onPress: () => setAlertVisible(false),
-        backgroundColor: '#AAAAAA',
-      },
+      { text: 'Cancel', onPress: () => setAlertVisible(false), backgroundColor: '#AAAAAA' },
       {
         text: 'Yes',
         onPress: () => {
@@ -92,14 +84,12 @@ const FavouritesPage = () => {
   };
 
   return (
-    <SafeAreaView
-      style={[styles.safeArea, { backgroundColor: currentTheme.backgroundColor }]}
-    >
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: currentTheme.backgroundColor }]}>
       <StatusBar
         backgroundColor={currentTheme.headerBackground[1]}
         barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
       />
-      {/* Header */}
+      {/* Unified Curved Header */}
       <LinearGradient
         colors={currentTheme.headerBackground}
         style={styles.header}
@@ -116,12 +106,12 @@ const FavouritesPage = () => {
         </View>
       </LinearGradient>
 
-      {/* Favourites List */}
+      {/* Favourites List with Footer as part of scroll */}
       <FlatList
         data={favouriteItems}
         keyExtractor={(item) => item._id.toString()}
         renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingBottom: 100 }]} // extra bottom padding
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="heart-outline" size={80} color={currentTheme.placeholderTextColor} />
@@ -130,23 +120,22 @@ const FavouritesPage = () => {
             </Text>
           </View>
         }
+        ListFooterComponent={
+          favouriteItems.length > 0 && (
+            <View style={styles.footer}>
+              <TouchableOpacity
+                style={[styles.clearButton, { backgroundColor: currentTheme.primaryColor }]}
+                onPress={handleClearFavourites}
+              >
+                <Text style={[styles.clearButtonText, { color: '#FFFFFF' }]}>
+                  Clear Favourites
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )
+        }
       />
 
-      {/* Clear Favourites Button */}
-      {favouriteItems.length > 0 && (
-        <View style={styles.footer}>
-          <TouchableOpacity
-            style={[styles.clearButton, { backgroundColor: currentTheme.primaryColor }]}
-            onPress={handleClearFavourites}
-          >
-            <Text style={[styles.clearButtonText, { color: '#FFFFFF' }]}>
-              Clear Favourites
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* CustomAlert */}
       <CustomAlert
         visible={alertVisible}
         title={alertTitle}
@@ -160,36 +149,26 @@ const FavouritesPage = () => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
+  safeArea: { flex: 1 },
   header: {
     width: '100%',
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 15,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
     elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
-  headerTitleContainer: {
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    marginTop: 4,
-  },
-  listContent: {
-    padding: 20,
-    paddingBottom: 80,
-  },
+  headerTitleContainer: { alignItems: 'center' },
+  headerTitle: { fontSize: 22, fontWeight: '700' },
+  headerSubtitle: { fontSize: 14, marginTop: 4 },
+  listContent: { padding: 20, paddingBottom: 100 },
   itemContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -204,59 +183,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
   },
-  itemImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
-    marginRight: 10,
-  },
-  itemDetails: {
-    flex: 1,
-  },
-  itemName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  itemSubtitle: {
-    fontSize: 14,
-    marginTop: 2,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    padding: 15,
-    alignItems: 'center',
-  },
-  clearButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 30,
-  },
-  clearButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    marginTop: 50,
-  },
-  emptyText: {
-    fontSize: 16,
-    marginTop: 15,
-    textAlign: 'center',
-  },
+  itemImage: { width: 60, height: 60, borderRadius: 10, marginRight: 10 },
+  itemDetails: { flex: 1 },
+  itemName: { fontSize: 16, fontWeight: 'bold' },
+  itemSubtitle: { fontSize: 14, marginTop: 2 },
+  footer: { marginTop: 20, alignItems: 'center' },
+  clearButton: { paddingVertical: 10, paddingHorizontal: 20, borderRadius: 30 },
+  clearButtonText: { fontSize: 16, fontWeight: 'bold' },
+  emptyContainer: { alignItems: 'center', marginTop: 50 },
+  emptyText: { fontSize: 16, marginTop: 15, textAlign: 'center' },
 });
 
 export default FavouritesPage;
-
-
-
-
-
-
-
-
 
 
 

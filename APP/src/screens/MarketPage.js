@@ -423,6 +423,7 @@ const MarketPage = () => {
           contentContainerStyle={[
             styles.listContent,
             numColumns === 1 && styles.singleColumnContent,
+            { paddingBottom: 100 } 
           ]}
           ListEmptyComponent={
             !loading && (
@@ -635,7 +636,7 @@ const styles = StyleSheet.create({
   },
   cartIcon: {
     position: 'absolute',
-    bottom: 10,
+    bottom: 20,
     right: 10,
     borderRadius: 20,
     padding: 8,

@@ -28,7 +28,7 @@ const { width, height } = Dimensions.get('window');
 const placeholderAvatar =
   'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
 
-const ReviewPopup = ({ closePopup, productId }) => {
+const ReviewPopup = ({ closePopup, reviewableId, reviewableType }) => {
   // Theming
   const { theme } = useContext(ThemeContext);
   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
@@ -57,19 +57,21 @@ const ReviewPopup = ({ closePopup, productId }) => {
   // Authentication
   const { isAuthenticated } = useContext(UserContext);
 
-  // Fetch reviews on component mount or productId change
+  // Fetch reviews on component mount or reviewableId change
   useEffect(() => {
     fetchReviews();
-  }, [productId]);
+  }, [reviewableId]);
 
   const fetchReviews = async () => {
     try {
       setLoading(true);
-      const response = await api.getProductReviewsAPI(productId, 'Product');
-      console.log(response.data);
+      const response = await api.getProductReviewsAPI(reviewableId, reviewableType);
+      console.log("fdsfd",response.data);
       
 
       if (response.data) {
+        
+        
         setReviews(response.data);
       } else {
         throw new Error(response.message || 'Failed to fetch reviews.');
@@ -132,7 +134,7 @@ const ReviewPopup = ({ closePopup, productId }) => {
 
     try {
       setSubmitting(true);
-      const response = await api.addOrUpdateReview(productId, rating, comment);
+      const response = await api.addOrUpdateReview(reviewableId,reviewableType, rating, comment);
 
       if (response.success) {
         // Refresh list
@@ -584,7 +586,7 @@ export default ReviewPopup;
 // const placeholderAvatar =
 //   'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
 
-// const ReviewPopup = ({ closePopup, productId }) => {
+// const ReviewPopup = ({ closePopup, reviewableId }) => {
 //   // Theming
 //   const { theme } = useContext(ThemeContext);
 //   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
@@ -613,15 +615,15 @@ export default ReviewPopup;
 //   // Authentication
 //   const { isAuthenticated } = useContext(UserContext);
 
-//   // Fetch all reviews on mount or when productId changes
+//   // Fetch all reviews on mount or when reviewableId changes
 //   useEffect(() => {
 //     fetchReviews();
-//   }, [productId]);
+//   }, [reviewableId]);
 
 //   const fetchReviews = async () => {
 //     try {
 //       setLoading(true);
-//       const response = await api.getProductReviewsAPI(productId);
+//       const response = await api.getProductReviewsAPI(reviewableId);
 
 //       if (response.data) {
 //         setReviews(response.data);
@@ -685,7 +687,7 @@ export default ReviewPopup;
 
 //     try {
 //       setSubmitting(true);
-//       const response = await api.addOrUpdateReview(productId, rating, comment);
+//       const response = await api.addOrUpdateReview(reviewableId, rating, comment);
 
 //       if (response.success) {
 //         await fetchReviews(); // Refresh reviews
@@ -1147,7 +1149,7 @@ export default ReviewPopup;
 // const placeholderAvatar =
 //   'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
 
-// const ReviewPopup = ({ closePopup, productId }) => {
+// const ReviewPopup = ({ closePopup, reviewableId }) => {
 //   const { theme } = useContext(ThemeContext);
 //   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
 //   const navigation = useNavigation();
@@ -1171,13 +1173,13 @@ export default ReviewPopup;
 
 //   useEffect(() => {
 //     fetchReviews();
-//   }, [productId]);
+//   }, [reviewableId]);
 
 //   // Fetch reviews using the API module
 //   const fetchReviews = async () => {
 //     try {
 //       setLoading(true);
-//       const response = await api.getProductReviewsAPI(productId);
+//       const response = await api.getProductReviewsAPI(reviewableId);
 
 //       if (response.data) {
 //         setReviews(response.data);
@@ -1258,7 +1260,7 @@ export default ReviewPopup;
 
 //     try {
 //       setSubmitting(true);
-//       const response = await api.addOrUpdateReview(productId, rating, comment);
+//       const response = await api.addOrUpdateReview(reviewableId, rating, comment);
 
 //       if (response.success) {
 //         // Refresh the reviews list
@@ -1767,7 +1769,7 @@ export default ReviewPopup;
 // const placeholderAvatar =
 //   'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
 
-// const ReviewPopup = ({ closePopup, productId }) => {
+// const ReviewPopup = ({ closePopup, reviewableId }) => {
 //   const { theme } = useContext(ThemeContext);
 //   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
 
@@ -1779,7 +1781,7 @@ export default ReviewPopup;
 //     // Fetch reviews using the API module
 //     const fetchReviews = async () => {
 //       try {
-//         const response = await api.getProductReviewsAPI(productId);
+//         const response = await api.getProductReviewsAPI(reviewableId);
 
 //         if (response.data) {
 //           setReviews(response.data);
@@ -1796,7 +1798,7 @@ export default ReviewPopup;
 //     };
 
 //     fetchReviews();
-//   }, [productId]);
+//   }, [reviewableId]);
 
 //   // Render individual review item
 //   const renderReview = (review) => {

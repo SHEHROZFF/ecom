@@ -1,58 +1,86 @@
 // src/screens/EnrollmentScreen.js
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  Button,
+  ActivityIndicator,
+  Alert,
+  StyleSheet
+} from 'react-native';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import { enrollInCourseAPI } from '../services/api'; // import your enroll function
 
 const EnrollmentScreen = () => {
-  const navigation = useNavigation();
   const route = useRoute();
-  const { course } = route.params;
+  const navigation = useNavigation();
+  const { courseId } = route.params || {};
+  const [loading, setLoading] = useState(false);
 
-  const handleContinue = () => {
-    // Further enrollment processing can be added here (e.g., payment)
-    // For now, simply navigate back to courses
-    navigation.navigate('Courses');
+  useEffect(() => {
+    // Optionally, fetch course details here or confirm with the user
+    // e.g., "Are you sure you want to enroll in X course?"
+  }, [courseId]);
+
+  const handleEnroll = async () => {
+    setLoading(true);
+    const result = await enrollInCourseAPI(courseId);
+    setLoading(false);
+
+    if (result.success) {
+      Alert.alert('Success', 'You have successfully enrolled in this course!');
+      // Optionally navigate away:
+      // navigation.navigate('MyEnrollmentsScreen');
+      // or navigation.goBack();
+    } else {
+      Alert.alert('Error', result.message || 'Enrollment failed.');
+    }
   };
+
+  if (!courseId) {
+    return (
+      <View style={styles.centered}>
+        <Text>No Course ID provided.</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Enrollment Confirmation</Text>
-      <Text style={styles.message}>You have successfully enrolled in {course.title}.</Text>
-      <TouchableOpacity style={styles.button} onPress={handleContinue}>
-        <Text style={styles.buttonText}>Continue</Text>
-      </TouchableOpacity>
+      <Text style={styles.title}>Enroll in Course</Text>
+      <Text style={styles.subtitle}>
+        Course ID: {courseId}
+      </Text>
+
+      {loading ? (
+        <ActivityIndicator size="large" />
+      ) : (
+        <Button title="Confirm Enrollment" onPress={handleEnroll} />
+      )}
     </View>
   );
 };
 
+export default EnrollmentScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    padding: 16,
+    justifyContent: 'center',
+  },
+  centered: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
     marginBottom: 20,
   },
-  message: {
-    fontSize: 18,
-    textAlign: 'center',
-    marginBottom: 30,
-  },
-  button: {
-    backgroundColor: '#2196F3',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 25,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
 });
-
-export default EnrollmentScreen;

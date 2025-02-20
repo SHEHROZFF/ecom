@@ -251,47 +251,36 @@ const HelpScreen = () => {
     <SafeAreaView style={[styles.safeArea, { backgroundColor: currentTheme.backgroundColor }]}>
       <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
         {/* Header with LinearGradient */}
+        {/* Unified Curved Header */}
         <LinearGradient
           colors={currentTheme.headerBackground}
           style={styles.header}
           start={[0, 0]}
           end={[0, 1]}
         >
-          {/* Animated Back Button (uncomment to use animations on back press) */}
-          {/* 
-          <TouchableWithoutFeedback
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
-            accessibilityLabel="Go Back"
-            accessibilityRole="button"
-          >
-            <Animated.View
-              style={[
-                styles.backButton,
-                {
-                  transform: [{ scale: scaleAnim }, { rotate: rotateInterpolate }],
-                },
-              ]}
-            >
-              <AnimatedIonicons name="arrow-back" size={24} color={colorInterpolate} />
-            </Animated.View>
-          </TouchableWithoutFeedback>
-          */}
-
-          {/* Static Back Button (if you don't want animated) */}
-          {/* <TouchableOpacity
+          <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
             accessibilityLabel="Go Back"
             accessibilityRole="button"
           >
             <Ionicons name="arrow-back" size={24} color={currentTheme.headerTextColor} />
-          </TouchableOpacity> */}
-
+          </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: currentTheme.headerTextColor }]}>
             Help & Support
           </Text>
         </LinearGradient>
+
+        {/* <LinearGradient
+          colors={currentTheme.headerBackground}
+          style={styles.header}
+          start={[0, 0]}
+          end={[0, 1]}
+        >
+          <Text style={[styles.headerTitle, { color: currentTheme.headerTextColor }]}>
+            Help & Support
+          </Text>
+        </LinearGradient> */}
 
         <View style={styles.helpContainer}>
           {/* FAQ */}
@@ -411,30 +400,48 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    width: '100%',
     paddingVertical: 15,
     paddingHorizontal: 15,
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  backButton: {
-    position: 'absolute',
-    left: 15,
-    padding: 8,
-    borderRadius: 20,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
+  backButton: { position: 'absolute', left: 15, padding: 8 },
+  headerTitle: { fontSize: 22, fontWeight: '700', textAlign: 'center', flex: 1 },
+  
+  // header: {
+  //   flexDirection: 'row',
+  //   alignItems: 'center',
+  //   paddingVertical: 15,
+  //   paddingHorizontal: 15,
+  //   justifyContent: 'center',
+  //   shadowColor: '#000',
+  //   shadowOffset: { width: 0, height: 2 },
+  //   shadowOpacity: 0.25,
+  //   shadowRadius: 3.84,
+  //   elevation: 5,
+  // },
+  // backButton: {
+  //   position: 'absolute',
+  //   left: 15,
+  //   padding: 8,
+  //   borderRadius: 20,
+  //   justifyContent: 'center',
+  //   alignItems: 'center',
+  // },
+  // headerTitle: {
+  //   fontSize: 24,
+  //   fontWeight: 'bold',
+  //   textAlign: 'center',
+  // },
   helpContainer: {
     marginTop: 10,
   },
