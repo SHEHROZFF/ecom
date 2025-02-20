@@ -65,7 +65,7 @@ const ReviewPopup = ({ closePopup, productId }) => {
   const fetchReviews = async () => {
     try {
       setLoading(true);
-      const response = await api.getProductReviewsAPI(productId);
+      const response = await api.getProductReviewsAPI(productId, 'Product');
       console.log(response.data);
       
 

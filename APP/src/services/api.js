@@ -277,9 +277,9 @@ export const addOrUpdateReview = async (productId, rating, comment) => {
  * @param {string} productId - ID of the product.
  * @returns {Promise<object>} Reviews data or error object.
  */
-export const getProductReviewsAPI = async (productId) => {
+export const getProductReviewsAPI = async (reviewableId, reviewableType) => {
   try {
-    const response = await axios.get(`${API_URL}/reviews/product/${productId}`);
+    const response = await axios.get(`${API_URL}/reviews/product/${reviewableType}/${reviewableId}`);
     console.log(response);
 
     return { success: true, data: response.data };
