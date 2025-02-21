@@ -1,5 +1,6 @@
 // src/screens/MyEnrollmentsScreen.js
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useContext } from 'react';
 import {
   View,
   Text,
@@ -7,16 +8,21 @@ import {
   ActivityIndicator,
   Alert,
   StyleSheet,
-  TouchableOpacity
+  TouchableOpacity,
+  SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-
+import { ThemeContext } from '../../ThemeContext';
+import { lightTheme, darkTheme } from '../../themes';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   getMyEnrollmentsAPI,
-  unenrollFromCourseAPI
-} from '../services/api'; // import your new endpoints
+  unenrollFromCourseAPI,
+} from '../services/api';
 
 const MyEnrollmentsScreen = () => {
+  const { theme } = useContext(ThemeContext);
+  const currentTheme = theme === 'light' ? lightTheme : darkTheme;
   const [loading, setLoading] = useState(false);
   const [enrollments, setEnrollments] = useState([]);
   const navigation = useNavigation();
@@ -29,9 +35,9 @@ const MyEnrollmentsScreen = () => {
     setLoading(true);
     const { success, data, message } = await getMyEnrollmentsAPI();
     setLoading(false);
-
     if (success) {
-      // data.enrollments has the array
+      console.log(data);
+      
       setEnrollments(data.enrollments);
     } else {
       Alert.alert('Error', message || 'Could not fetch enrollments.');
@@ -42,7 +48,6 @@ const MyEnrollmentsScreen = () => {
     const { success, message } = await unenrollFromCourseAPI(courseId);
     if (success) {
       Alert.alert('Success', 'You have been unenrolled.');
-      // Remove from local state
       setEnrollments((prev) =>
         prev.filter((en) => en.course._id !== courseId)
       );
@@ -53,38 +58,29 @@ const MyEnrollmentsScreen = () => {
 
   const renderEnrollment = ({ item }) => {
     const { course, paymentStatus, status, progress } = item;
-    // "course" is populated with .populate('course') in the controller
-
     return (
-      <View style={styles.enrollmentItem}>
-        <Text style={styles.courseTitle}>
-          {course.title}
-        </Text>
-        <Text style={styles.courseSubInfo}>
+      <View style={[styles.card, { backgroundColor: currentTheme.cardBackground, borderColor: currentTheme.borderColor }]}>
+        <Text style={[styles.courseTitle, { color: currentTheme.textColor }]}>{course.title}</Text>
+        <Text style={[styles.courseSubInfo, { color: currentTheme.textColor }]}>
           Instructor: {course.instructor || 'N/A'}
         </Text>
-        <Text style={styles.courseSubInfo}>
-          Payment: {paymentStatus}, Status: {status}, Progress: {progress}%
+        <Text style={[styles.courseSubInfo, { color: currentTheme.textColor }]}>
+          Payment: {paymentStatus} • Status: {status} • Progress: {progress}%
         </Text>
-
         <View style={styles.actionsRow}>
           <TouchableOpacity
-            style={styles.unenrollBtn}
+            style={[styles.button, styles.unenrollButton, { backgroundColor: currentTheme.errorColor || '#E53935' }]}
             onPress={() => handleUnenroll(course._id)}
           >
-            <Text style={styles.unenrollText}>Unenroll</Text>
+            <Text style={styles.buttonText}>Unenroll</Text>
           </TouchableOpacity>
-
-          {/* Possibly go to "CourseDetailScreen" */}
           <TouchableOpacity
-            style={styles.detailBtn}
+            style={[styles.button, styles.detailButton, { backgroundColor: currentTheme.primaryColor || '#1976D2' }]}
             onPress={() =>
-              navigation.navigate('CourseDetailScreen', {
-                courseId: course._id,
-              })
+              navigation.navigate('CourseDetailScreen', { courseId: course._id })
             }
           >
-            <Text style={styles.detailText}>Go to Course</Text>
+            <Text style={styles.buttonText}>Go to Course</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -93,74 +89,113 @@ const MyEnrollmentsScreen = () => {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" />
-      </View>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: currentTheme.backgroundColor }]}>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={currentTheme.primaryColor} />
+        </View>
+      </SafeAreaView>
     );
   }
 
   if (!loading && enrollments.length === 0) {
     return (
-      <View style={styles.centered}>
-        <Text>You are not enrolled in any courses.</Text>
-      </View>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: currentTheme.backgroundColor }]}>
+        <View style={styles.centered}>
+          <Text style={{ color: currentTheme.textColor }}>
+            You are not enrolled in any courses.
+          </Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <FlatList
-      data={enrollments}
-      keyExtractor={(item) => item._id}
-      renderItem={renderEnrollment}
-      contentContainerStyle={{ paddingBottom: 20 }}
-    />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: currentTheme.backgroundColor }]}>
+      <LinearGradient
+        colors={currentTheme.headerBackground}
+        style={styles.header}
+        start={[0, 0]}
+        end={[1, 1]}
+      >
+        <Text style={[styles.headerTitle, { color: currentTheme.headerTextColor }]}>
+          My Enrollments
+        </Text>
+      </LinearGradient>
+      <FlatList
+        data={enrollments}
+        keyExtractor={(item) => item._id}
+        renderItem={renderEnrollment}
+        contentContainerStyle={styles.listContent}
+      />
+    </SafeAreaView>
   );
 };
 
 export default MyEnrollmentsScreen;
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+  header: {
+    paddingVertical: 30,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    elevation: 6,
+    marginBottom: 20,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+  },
+  listContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 30,
+  },
+  card: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 20,
+    marginBottom: 20,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+  },
+  courseTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  courseSubInfo: {
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    marginTop: 15,
+    justifyContent: 'space-between',
+  },
+  button: {
+    flex: 0.48,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  unenrollButton: {},
+  detailButton: {},
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  enrollmentItem: {
-    backgroundColor: '#fff',
-    marginHorizontal: 12,
-    marginVertical: 6,
-    padding: 16,
-    borderRadius: 8,
-    elevation: 2,
-  },
-  courseTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  courseSubInfo: {
-    fontSize: 14,
-    marginTop: 4,
-    color: '#555',
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    marginTop: 10,
-  },
-  unenrollBtn: {
-    padding: 8,
-    backgroundColor: 'red',
-    borderRadius: 5,
-    marginRight: 10,
-  },
-  unenrollText: {
-    color: '#fff',
-  },
-  detailBtn: {
-    padding: 8,
-    backgroundColor: 'blue',
-    borderRadius: 5,
-  },
-  detailText: {
-    color: '#fff',
   },
 });

@@ -26,14 +26,16 @@ function CourseCard({ course, cardWidth, currentTheme }) {
 
   const handleEnroll = useCallback(async () => {
     // Example call to enroll with the new advanced schema logic:
-    const { success, message, data } = await enrollInCourseAPI(course._id);
-    if (success) {
-      Alert.alert('Enrollment', 'You have successfully enrolled!');
+    // const { success, message, data } = await enrollInCourseAPI(course._id);
+    // if (success) {
+      // navigation.navigate('CourseDetailScreen', { courseId: course._id });
+      navigation.navigate('PurchaseScreen', { courseId: course._id });
+      // Alert.alert('Enrollment', 'You have successfully enrolled!');
       // Optionally, navigate or refresh local state
-    } else {
-      Alert.alert('Error', message || 'Failed to enroll.');
-    }
-  }, [course.id]);
+    // } else {
+    //   Alert.alert('Error', message || 'Failed to enroll.');
+    // }
+  }, [course._id]);
 
   const handleDetail = useCallback(() => {
     // Navigate to course detail screen

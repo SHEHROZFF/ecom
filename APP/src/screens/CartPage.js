@@ -674,7 +674,7 @@ const styles = StyleSheet.create({
 
 
 
-// // src/screens/CartPage.js
+// src/screens/CartPage.js
 
 // import React, { useContext, useEffect, useState } from 'react';
 // import {

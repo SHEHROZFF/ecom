@@ -74,7 +74,7 @@ const getMyEnrollments = asyncHandler(async (req, res) => {
 
   // Populate course info if needed
   const enrollments = await Enrollment.find({ user: userId })
-    .populate('course', 'title image instructor price')
+    .populate('course')
     .sort({ enrolledAt: -1 });
 
   res.json({

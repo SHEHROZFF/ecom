@@ -5,7 +5,7 @@ import { View, Image, StyleSheet, Text, TouchableOpacity, Platform } from 'react
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeContext } from '../../ThemeContext';
-import { CartContext } from '../contexts/CartContext'; // Ensure correct path
+import { CartContext } from '../contexts/CartContext';
 import { lightTheme, darkTheme } from '../../themes';
 import { LinearGradient } from 'expo-linear-gradient';
 import { UserContext } from '../contexts/UserContext';
@@ -17,9 +17,7 @@ const CustomHeader = ({ userProfileImage = DEFAULT_PROFILE_IMAGE, username = 'Jo
   const { cartItems } = useContext(CartContext);
   const navigation = useNavigation();
   const { user } = useContext(UserContext);
-  ;
   
-
   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
 
   return (
@@ -38,10 +36,7 @@ const CustomHeader = ({ userProfileImage = DEFAULT_PROFILE_IMAGE, username = 'Jo
       >
         <Image
           source={{ uri: user.data.profileImage || DEFAULT_PROFILE_IMAGE }}
-          style={[
-            styles.profileImage,
-            { borderColor: currentTheme.borderColor },
-          ]}
+          style={[styles.profileImage, { borderColor: currentTheme.borderColor }]}
           accessibilityLabel={`${username}'s profile picture`}
           onError={(e) => {
             console.log(`Failed to load profile image for ${username}:`, e.nativeEvent.error);
@@ -69,14 +64,14 @@ const CustomHeader = ({ userProfileImage = DEFAULT_PROFILE_IMAGE, username = 'Jo
           )}
         </TouchableOpacity>
 
-        {/* Settings Button */}
+        {/* Hamburger Menu Button */}
         <TouchableOpacity
           style={styles.iconButton}
           onPress={() => navigation.navigate('Settings')}
-          accessibilityLabel="Go to Settings"
+          accessibilityLabel="Open Menu"
           accessibilityRole="button"
         >
-          <Ionicons name="settings-outline" size={24} color={currentTheme.headerTextColor} />
+          <Ionicons name="menu-outline" size={24} color={currentTheme.headerTextColor} />
         </TouchableOpacity>
       </View>
     </LinearGradient>
@@ -88,51 +83,52 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 15,
-    paddingVertical: Platform.OS === 'ios' ? 20 : 15,
+    paddingHorizontal: 20,
+    paddingVertical: Platform.OS === 'ios' ? 25 : 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1, 
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
     elevation: 5,
+    marginBottom: 10,
   },
   userInfoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   username: {
-    fontSize: 18,
-    marginLeft: 10,
-    fontWeight: 'bold',
+    fontSize: 20,
+    marginLeft: 12,
+    fontWeight: '600',
   },
   profileImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
     borderWidth: 2,
-    backgroundColor: '#ccc', // Placeholder background color
+    backgroundColor: '#fff',
   },
   rightButtonsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   iconButton: {
-    paddingHorizontal: 5,
-    paddingVertical: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
     marginLeft: 15,
-    position: 'relative',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 8,
   },
   cartBadge: {
     position: 'absolute',
     right: -2,
     top: -2,
     backgroundColor: '#E53935',
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -144,6 +140,161 @@ const styles = StyleSheet.create({
 });
 
 export default CustomHeader;
+
+
+
+
+
+
+
+
+
+// // components/CustomHeader.js
+
+// import React, { useContext } from 'react';
+// import { View, Image, StyleSheet, Text, TouchableOpacity, Platform } from 'react-native';
+// import { useNavigation } from '@react-navigation/native';
+// import { Ionicons } from '@expo/vector-icons';
+// import { ThemeContext } from '../../ThemeContext';
+// import { CartContext } from '../contexts/CartContext'; // Ensure correct path
+// import { lightTheme, darkTheme } from '../../themes';
+// import { LinearGradient } from 'expo-linear-gradient';
+// import { UserContext } from '../contexts/UserContext';
+
+// const DEFAULT_PROFILE_IMAGE = 'https://w7.pngwing.com/pngs/684/806/png-transparent-user-avatar-enter-photo-placeholder.png';
+
+// const CustomHeader = ({ userProfileImage = DEFAULT_PROFILE_IMAGE, username = 'John Doe' }) => {
+//   const { theme } = useContext(ThemeContext);
+//   const { cartItems } = useContext(CartContext);
+//   const navigation = useNavigation();
+//   const { user } = useContext(UserContext);
+//   ;
+  
+
+//   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
+
+//   return (
+//     <LinearGradient
+//       colors={currentTheme.headerBackground}
+//       style={styles.headerContainer}
+//       start={[0, 1]}
+//       end={[0, 0]}
+//     >
+//       {/* User Info */}
+//       <TouchableOpacity
+//         style={styles.userInfoContainer}
+//         onPress={() => navigation.navigate('UserProfile')}
+//         accessibilityLabel="Go to Profile"
+//         accessibilityRole="button"
+//       >
+//         <Image
+//           source={{ uri: user.data.profileImage || DEFAULT_PROFILE_IMAGE }}
+//           style={[
+//             styles.profileImage,
+//             { borderColor: currentTheme.borderColor },
+//           ]}
+//           accessibilityLabel={`${username}'s profile picture`}
+//           onError={(e) => {
+//             console.log(`Failed to load profile image for ${username}:`, e.nativeEvent.error);
+//           }}
+//         />
+//         <Text style={[styles.username, { color: currentTheme.headerTextColor }]}>
+//           {user.data.name}
+//         </Text>
+//       </TouchableOpacity>
+
+//       {/* Right Buttons */}
+//       <View style={styles.rightButtonsContainer}>
+//         {/* Cart Button */}
+//         <TouchableOpacity
+//           style={styles.iconButton}
+//           onPress={() => navigation.navigate('CartPage')}
+//           accessibilityLabel="Go to Cart"
+//           accessibilityRole="button"
+//         >
+//           <Ionicons name="cart-outline" size={24} color={currentTheme.headerTextColor} />
+//           {cartItems.length > 0 && (
+//             <View style={styles.cartBadge}>
+//               <Text style={styles.cartBadgeText}>{cartItems.length}</Text>
+//             </View>
+//           )}
+//         </TouchableOpacity>
+
+//         {/* Settings Button */}
+//         <TouchableOpacity
+//           style={styles.iconButton}
+//           onPress={() => navigation.navigate('Settings')}
+//           accessibilityLabel="Go to Settings"
+//           accessibilityRole="button"
+//         >
+//           <Ionicons name="settings-outline" size={24} color={currentTheme.headerTextColor} />
+//         </TouchableOpacity>
+//       </View>
+//     </LinearGradient>
+//   );
+// };
+
+// const styles = StyleSheet.create({
+//   headerContainer: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     justifyContent: 'space-between',
+//     paddingHorizontal: 15,
+//     paddingVertical: Platform.OS === 'ios' ? 20 : 15,
+//     shadowColor: '#000',
+//     shadowOffset: {
+//       width: 0,
+//       height: 1, 
+//     },
+//     shadowOpacity: 0.25,
+//     shadowRadius: 3.84,
+//     elevation: 5,
+//   },
+//   userInfoContainer: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//   },
+//   username: {
+//     fontSize: 18,
+//     marginLeft: 10,
+//     fontWeight: 'bold',
+//   },
+//   profileImage: {
+//     width: 40,
+//     height: 40,
+//     borderRadius: 20,
+//     borderWidth: 2,
+//     backgroundColor: '#ccc', // Placeholder background color
+//   },
+//   rightButtonsContainer: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//   },
+//   iconButton: {
+//     paddingHorizontal: 5,
+//     paddingVertical: 5,
+//     marginLeft: 15,
+//     position: 'relative',
+//   },
+//   cartBadge: {
+//     position: 'absolute',
+//     right: -2,
+//     top: -2,
+//     backgroundColor: '#E53935',
+//     width: 16,
+//     height: 16,
+//     borderRadius: 8,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//   },
+//   cartBadgeText: {
+//     color: '#FFFFFF',
+//     fontSize: 10,
+//     fontWeight: 'bold',
+//   },
+// });
+
+// export default CustomHeader;
 
 
 

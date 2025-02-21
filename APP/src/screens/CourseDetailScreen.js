@@ -112,6 +112,7 @@ const CourseDetailScreen = () => {
     tags,
     requirements,
     whatYouWillLearn,
+    price
   } = course;
 
   // Choose main media (video if available, else image)
@@ -324,8 +325,34 @@ const CourseDetailScreen = () => {
             </View>
           )}
 
-          {/* Enroll Button */}
           <TouchableOpacity
+            style={styles.enrollButton}
+            onPress={() => {
+              // If the course is paid, navigate to purchase logic; otherwise enroll directly.
+              if (price && price > 0) {
+                // Replace 'PurchaseScreen' with your purchase flow screen, if needed.
+                navigation.navigate('PurchaseScreen', { courseId: course._id });
+              } else {
+                // Handle free course enrollment logic
+                // enrollCourse(course._id);
+                console.log('Enrolling for free course:', course._id);
+              }
+            }}
+          >
+            <LinearGradient
+              colors={[currentTheme.primaryColor, currentTheme.secondaryColor]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.enrollButtonGradient}
+            >
+              <Text style={styles.enrollButtonText}>
+                {price && price > 0 ? `Buy for $${price.toFixed(2)}` : 'Enroll Now'}
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {/* Enroll Button */}
+          {/* <TouchableOpacity
             style={styles.enrollButton}
             onPress={() => {
               // Enrollment or purchase logic here
@@ -339,7 +366,7 @@ const CourseDetailScreen = () => {
             >
               <Text style={styles.enrollButtonText}>Enroll Now</Text>
             </LinearGradient>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </ScrollView>
 

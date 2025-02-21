@@ -559,6 +559,8 @@ export const fetchCourseById = async (courseId) => {
     const config = { headers: { Authorization: `Bearer ${token}` } };
     
     const response = await axios.get(`${API_URL}/courses/${courseId}`, config);
+    console.log("response",response.data);
+    
     return { success: true, data: response.data };
   } catch (error) {
     console.error('Fetch course by ID error:', error.response?.data?.message || error.message);
