@@ -7,7 +7,8 @@ import ordersReducer from './slices/ordersSlice';
 import reviewsReducer from './slices/reviewsSlice';
 import themeReducer from './slices/themeSlice';
 import coursesReducer from './slices/coursesSlice';
-import adsReducer from './slices/adsSlice'; // import the ads reducer
+import adsReducer from './slices/adsSlice';
+import enrollmentsReducer from './slices/enrollmentsSlice'; // <-- import
 
 const store = configureStore({
   reducer: {
@@ -18,13 +19,13 @@ const store = configureStore({
     reviews: reviewsReducer,
     theme: themeReducer,
     courses: coursesReducer,
-    ads: adsReducer, // add ads reducer here
+    ads: adsReducer,
+    enrollments: enrollmentsReducer, // <-- add here
   },
   devTools: process.env.NODE_ENV !== 'production',
 });
 
 export default store;
-
 
 
 

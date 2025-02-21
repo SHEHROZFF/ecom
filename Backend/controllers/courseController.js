@@ -170,7 +170,7 @@ const getFeaturedReels = asyncHandler(async (req, res) => {
   const skip = (page - 1) * limit;
 
   const reels = await Course.find({ isFeatured: true })
-    .select('title shortVideoLink image')
+    .select('title shortVideoLink image rating reviews difficultyLevel language topics totalDuration numberOfLectures category tags requirements whatYouWillLearn')
     .skip(skip)
     .limit(limit);
 

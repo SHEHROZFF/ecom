@@ -2,24 +2,48 @@
 
 const express = require('express');
 const router = express.Router();
-const { protect } = require('../middleware/authMiddleware');
+const { protect, admin } = require('../middleware/authMiddleware');
 const {
   enrollInCourse,
   unenrollFromCourse,
   getMyEnrollments,
   updateEnrollment,
+  getAllEnrollmentsAdmin,
+  createEnrollmentAdmin,
+  updateEnrollmentAdmin,
+  deleteEnrollmentAdmin,
 } = require('../controllers/enrollmentController');
 
-// Enroll in a course
+// ----------------------------------------------------------------------
+//  USER-FOCUSED ENDPOINTS
+// ----------------------------------------------------------------------
+
+// Enroll in a course (user)
 router.post('/:courseId', protect, enrollInCourse);
 
-// Unenroll from a course
+// Unenroll from a course (user)
 router.delete('/:courseId', protect, unenrollFromCourse);
 
-// Update enrollment (progress, certificate, etc.)
+// Update own enrollment (progress, certificate, etc.) (user)
 router.patch('/:courseId', protect, updateEnrollment);
 
-// Get all enrollments of current user
+// Get all enrollments for the current (logged-in) user
 router.get('/my', protect, getMyEnrollments);
+
+// ----------------------------------------------------------------------
+//  ADMIN-FOCUSED ENDPOINTS
+// ----------------------------------------------------------------------
+
+// GET all enrollments (admin)
+router.get('/admin', protect, getAllEnrollmentsAdmin);
+
+// CREATE a new enrollment (admin)
+router.post('/admin', protect, createEnrollmentAdmin);
+
+// UPDATE an enrollment by ID (admin)
+router.put('/admin/:id', protect, updateEnrollmentAdmin);
+
+// DELETE an enrollment by ID (admin)
+router.delete('/admin/:id', protect, deleteEnrollmentAdmin);
 
 module.exports = router;

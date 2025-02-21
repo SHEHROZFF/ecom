@@ -258,14 +258,14 @@ const HelpScreen = () => {
           start={[0, 0]}
           end={[0, 1]}
         >
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
             accessibilityLabel="Go Back"
             accessibilityRole="button"
           >
             <Ionicons name="arrow-back" size={24} color={currentTheme.headerTextColor} />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <Text style={[styles.headerTitle, { color: currentTheme.headerTextColor }]}>
             Help & Support
           </Text>

@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     borderRadius: 16,
     overflow: 'hidden',
-    marginTop: 10,
+    // marginTop: 10,
     marginBottom: 20,
     marginHorizontal: -8,
   },
@@ -520,7 +520,7 @@ const styles = StyleSheet.create({
   // Enroll Button
   enrollButton: {
     marginTop: 20,
-    marginBottom: 30,
+    marginBottom: 60,
   },
   enrollButtonGradient: {
     paddingVertical: 14,

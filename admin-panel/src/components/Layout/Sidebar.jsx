@@ -28,6 +28,7 @@ const Sidebar = () => {
     { name: 'Courses', icon: <FaBook className="h-6 w-6" />, path: '/courses' },
     { name: 'Ads', icon: <FaBullhorn className="h-6 w-6" />, path: '/ads' },
     { name: 'Theme Settings', icon: <FaEdit className="h-6 w-6" />, path: '/theme' },
+    { name: 'Enrollments', icon: <FaClipboardList className="h-6 w-6" />, path: '/enrollments' }, 
   ];
 
   const toggleSidebar = () => {
