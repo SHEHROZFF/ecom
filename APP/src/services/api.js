@@ -398,8 +398,11 @@ export const fetchPaymentIntent = async (totalPrice) => {
         totalPrice: parseInt(totalPrice) * 100, // Convert to cents
       }),
     });
+    
 
     const { clientSecret } = await response.json();
+    console.log(clientSecret);
+    
     return clientSecret;
   } catch (error) {
     console.error('Error fetching payment intent:', error);
