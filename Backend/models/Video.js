@@ -1,6 +1,7 @@
+// models/Video.js
 const mongoose = require('mongoose');
 
-const videoLessonSchema = new mongoose.Schema(
+const videoSchema = mongoose.Schema(
   {
     title: {
       type: String,
@@ -27,21 +28,20 @@ const videoLessonSchema = new mongoose.Schema(
       default: '',
     },
     duration: {
-      type: Number, // duration in seconds or minutes
+      type: Number,
       default: 0,
     },
     priority: {
       type: Number,
-      default: 0, // Lower number means higher priority
+      default: 0,
     },
     course: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Course',
-      required: true,
     },
   },
   { timestamps: true }
 );
 
-const VideoLesson = mongoose.model('VideoLesson', videoLessonSchema);
-module.exports = VideoLesson;
+const Video = mongoose.model('Video', videoSchema);
+module.exports = Video;
