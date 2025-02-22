@@ -227,13 +227,13 @@ const PurchaseScreen = () => {
           </View>
           
           {/* Alternate Back Button */}
-          <TouchableOpacity 
+          {/* <TouchableOpacity 
             style={styles.altBackButton} 
             onPress={() => navigation.goBack()}
           >
             <Ionicons name="arrow-back" size={24} color={currentTheme.primaryColor} />
             <Text style={[styles.altBackText, { color: currentTheme.primaryColor }]}>Back</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </ScrollView>
     </SafeAreaView>

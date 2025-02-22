@@ -1,53 +1,149 @@
 // themes.js
 
 export const lightTheme = {
-  backgroundHeaderColor: '#0033CC', // Logo's Blue
-  backgroundColor: '#FFFFFF', // White
-  primaryColor: '#0033CC', // Logo's Blue
-  secondaryColor: '#001A80', // Darker Blue for Depth
-  textColor: '#000000', // Black for Readability
-  headerBackground: ['#0033CC', '#7db6ff'], // Gradient from Blue to White
-  placeholderTextColor: '#BDBDBD', // Light Gray
-  cardBackground: '#FFFFFF', // White
-  cardTextColor: '#0033CC', // Logo's Blue
-  overlayColor: 'rgba(0, 51, 204, 0.8)', // Semi-transparent Blue
-  tabBarActiveTintColor: '#0033CC', // Logo's Blue
-  tabBarInactiveTintColor: 'gray', // Gray
-  statusBarStyle: 'light-content', // Light Text for Dark Backgrounds
-  switchTrackColorFalse: '#BDBDBD', // Light Gray
-  switchTrackColorTrue: '#80AFFF', // Light Blue
-  switchThumbColor: '#FFFFFF', // White
-  switchIosBackgroundColor: '#BDBDBD', // Gray
-  borderColor: '#80AFFF', // Light Blue
-  priceColor: '#E91E63', // Pink for Contrast
-  headerTextColor: '#FFFFFF', // White Text for Blue Backgrounds
-  arrowColor: '#FFFFFF', // White Arrows for Blue Backgrounds
+  backgroundHeaderColor: '#9C67B0', // Soft Lavender Purple for Header
+  backgroundColor: '#F7F3FC', // Light Purple-Gray for Soft Background
+  primaryColor: '#8E44AD', // Rich Purple for Branding
+  secondaryColor: '#6C3483', // Deeper Purple for Buttons and Links
+  textColor: '#2A2A2A', // Charcoal Black for Text Readability
+  headerBackground: ['#9C67B0', '#D8A9E2'], // Gradient from Lavender Purple to Light Lilac
+  placeholderTextColor: '#B9B9B9', // Light Gray for Neutral Feel
+  cardBackground: '#FFFFFF', // White Cards for Clean Look
+  cardTextColor: '#8E44AD', // Matching Primary Purple for Card Text
+  overlayColor: 'rgba(142, 68, 173, 0.8)', // Semi-transparent Purple for Focus
+  tabBarActiveTintColor: '#8E44AD', // Active Tab with Rich Purple
+  tabBarInactiveTintColor: '#A0A0A0', // Soft Gray for Inactive Tabs
+  statusBarStyle: 'dark-content', // Dark Text for Light Backgrounds
+  switchTrackColorFalse: '#E0E0E0', // Off State with Light Gray for Softness
+  switchTrackColorTrue: '#D9A0FF', // Soft Lavender for On Switches
+  switchThumbColor: '#FFFFFF', // White Thumb for Clean Contrast
+  switchIosBackgroundColor: '#E0E0E0', // Neutral Gray for iOS Switch Background
+  borderColor: '#D8A9E2', // Light Lilac for Inputs and Borders
+  priceColor: '#FF6F61', // Coral Pink for Price Tags for Visibility
+  headerTextColor: '#FFFFFF', // Crisp White Text for the Header
+  arrowColor: '#FFFFFF', // White Arrows for Standout Contrast
 };
-
 
 export const darkTheme = {
-  backgroundHeaderColor: '#002A9E', // Deep Blue for Header
-  backgroundColor: '#121212', // Near Black for Dark Theme
-  primaryColor: '#0033CC', // Vibrant Blue (Logo Primary Color)
-  secondaryColor: '#001A80', // Deep Blue for Accents
-  textColor: '#E0E0E0', // Light Gray for Readability
-  headerBackground: ['#1E1E1E', '#002A9E'], // Gradient from Dark Gray to Deep Blue
-  placeholderTextColor: '#A5A5A5', // Neutral Gray for Placeholders
-  cardBackground: '#1E1E1E', // Dark Gray for Cards
-  cardTextColor: '#0088CC', // Vibrant Blue for Text
-  overlayColor: 'rgba(0, 51, 204, 0.75)', // Semi-transparent Blue Overlay
-  tabBarActiveTintColor: '#0033CC', // Vibrant Blue for Active Tabs
-  tabBarInactiveTintColor: '#757575', // Gray for Inactive Tabs
-  statusBarStyle: 'light-content', // Light Text for Dark Background
-  switchTrackColorFalse: '#616161', // Medium Gray for Off Switches
-  switchTrackColorTrue: '#3399FF', // Bright Blue for On Switches
-  switchThumbColor: '#FFFFFF', // White for Switch Thumb
-  switchIosBackgroundColor: '#424242', // Neutral Gray for iOS Background
-  borderColor: '#CCD6FF', // Soft Blue for Borders
-  priceColor: '#FF4081', // Bright Pink for Contrast
-  headerTextColor: '#E0E0E0', // Light Gray for Header Text
-  arrowColor: '#0033CC', // Vibrant Blue for Arrows
+  backgroundHeaderColor: '#5D3F7E', // Deep Lavender Purple for Header
+  backgroundColor: '#121212', // Deep Charcoal for Dark Mode Background
+  primaryColor: '#8E44AD', // Consistent Rich Purple for Branding
+  secondaryColor: '#6C3483', // Darker Purple for Buttons and Links
+  textColor: '#E5E5E5', // Light Gray for Text Readability
+  headerBackground: ['#5D3F7E', '#8E44AD'], // Gradient from Deep Lavender to Purple
+  placeholderTextColor: '#6C6C6C', // Gray for Placeholder Text
+  cardBackground: '#1E1E1E', // Dark Gray for Card Background in Dark Mode
+  cardTextColor: '#8E44AD', // Rich Purple Text for Cards to Stand Out
+  overlayColor: 'rgba(142, 68, 173, 0.75)', // Soft Purple Overlay for Focused Areas
+  tabBarActiveTintColor: '#8E44AD', // Active Tab Color in Rich Purple
+  tabBarInactiveTintColor: '#757575', // Muted Gray for Inactive Tabs
+  statusBarStyle: 'light-content', // Light Text for Dark Backgrounds
+  switchTrackColorFalse: '#3C3C3C', // Subtle Gray for Off State of Switch
+  switchTrackColorTrue: '#D9A0FF', // Soft Lavender for On Switches
+  switchThumbColor: '#FFFFFF', // White Thumb for High Contrast
+  switchIosBackgroundColor: '#424242', // Darker Gray for iOS Switch Background
+  borderColor: '#D8A9E2', // Light Lilac Borders for Clean Lines
+  priceColor: '#FF6F61', // Coral Pink for Price Tags
+  headerTextColor: '#E5E5E5', // Subtle Gray Text for the Header
+  arrowColor: '#8E44AD', // Rich Purple for Arrows
 };
+
+// export const darkTheme = {
+//   backgroundHeaderColor: '#1A3D71', // Rich Dark Blue for Header
+//   backgroundColor: '#121212', // Deep Charcoal for Dark Mode Background
+//   primaryColor: '#2D74FF', // Consistent Blue Branding for Harmony
+//   secondaryColor: '#0057B8', // Darker Blue for Buttons and Links
+//   textColor: '#E5E5E5', // Light Gray for Text Readability
+//   headerBackground: ['#1A3D71', '#2D74FF'], // Gradient from Deep Blue to Soft Blue
+//   placeholderTextColor: '#6C6C6C', // Gray for Placeholder Text
+//   cardBackground: '#1E1E1E', // Dark Gray for Card Background in Dark Mode
+//   cardTextColor: '#2D74FF', // Light Blue Text for Cards to Stand Out
+//   overlayColor: 'rgba(45, 116, 255, 0.75)', // Soft Blue Overlay for Focused Areas
+//   tabBarActiveTintColor: '#2D74FF', // Active Tab Color in Bright Blue
+//   tabBarInactiveTintColor: '#757575', // Muted Gray for Inactive Tabs
+//   statusBarStyle: 'light-content', // Light Text for Dark Backgrounds
+//   switchTrackColorFalse: '#3C3C3C', // Subtle Gray for Off State of Switch
+//   switchTrackColorTrue: '#66A9FF', // Soft Blue for On Switches
+//   switchThumbColor: '#FFFFFF', // White Thumb for High Contrast
+//   switchIosBackgroundColor: '#424242', // Darker Gray for iOS Switch Background
+//   borderColor: '#A7C7FF', // Soft Blue Borders for Clean Lines
+//   priceColor: '#FF5C8D', // Vibrant Coral Pink for Price Tags
+//   headerTextColor: '#E5E5E5', // Subtle Gray Text for the Header
+//   arrowColor: '#2D74FF', // Professional Blue for Arrows
+// };
+
+
+// export const lightTheme = {
+//   backgroundHeaderColor: '#2D74FF', // Professional Soft Blue for Branding
+//   backgroundColor: '#F8FAFB', // Ultra-light Gray for Soft Background
+//   primaryColor: '#1A58D0', // Darker Blue for Clarity and Modernity
+//   secondaryColor: '#0057B8', // Richer Blue for Buttons and Links
+//   textColor: '#2A2A2A', // Charcoal Black for Text Readability
+//   headerBackground: ['#2D74FF', '#A7C7FF'], // Soft Blue to Lighter Blue Gradient
+//   placeholderTextColor: '#B9B9B9', // Light Gray for Neutral Feel
+//   cardBackground: '#FFFFFF', // White Cards with Soft Shadows for a Modern Look
+//   cardTextColor: '#2D74FF', // Matching Primary Blue for Text in Cards
+//   overlayColor: 'rgba(45, 116, 255, 0.8)', // Semi-transparent Blue for Focused Areas
+//   tabBarActiveTintColor: '#1A58D0', // Active Tab with Professional Blue
+//   tabBarInactiveTintColor: '#A0A0A0', // Subtle Gray for Inactive Tabs
+//   statusBarStyle: 'dark-content', // Dark Text for Light Backgrounds
+//   switchTrackColorFalse: '#E0E0E0', // Off State with Light Gray for Softness
+//   switchTrackColorTrue: '#66A9FF', // Smooth Light Blue for On Switches
+//   switchThumbColor: '#FFFFFF', // White Thumb for Clean Contrast
+//   switchIosBackgroundColor: '#E0E0E0', // Neutral Gray for iOS Switch Background
+//   borderColor: '#A7C7FF', // Light Blue for Inputs and Borders
+//   priceColor: '#FF5C8D', // Vibrant Coral Pink for Price Tags for Visibility
+//   headerTextColor: '#FFFFFF', // Crisp White Text for the Header
+//   arrowColor: '#FFFFFF', // White Arrows for Standout Contrast
+// };
+// export const lightTheme = {
+//   backgroundHeaderColor: '#0033CC', // Logo's Blue
+//   backgroundColor: '#FFFFFF', // White
+//   primaryColor: '#0033CC', // Logo's Blue
+//   secondaryColor: '#001A80', // Darker Blue for Depth
+//   textColor: '#000000', // Black for Readability
+//   headerBackground: ['#0033CC', '#7db6ff'], // Gradient from Blue to White
+//   placeholderTextColor: '#BDBDBD', // Light Gray
+//   cardBackground: '#FFFFFF', // White
+//   cardTextColor: '#0033CC', // Logo's Blue
+//   overlayColor: 'rgba(0, 51, 204, 0.8)', // Semi-transparent Blue
+//   tabBarActiveTintColor: '#0033CC', // Logo's Blue
+//   tabBarInactiveTintColor: 'gray', // Gray
+//   statusBarStyle: 'light-content', // Light Text for Dark Backgrounds
+//   switchTrackColorFalse: '#BDBDBD', // Light Gray
+//   switchTrackColorTrue: '#80AFFF', // Light Blue
+//   switchThumbColor: '#FFFFFF', // White
+//   switchIosBackgroundColor: '#BDBDBD', // Gray
+//   borderColor: '#80AFFF', // Light Blue
+//   priceColor: '#E91E63', // Pink for Contrast
+//   headerTextColor: '#FFFFFF', // White Text for Blue Backgrounds
+//   arrowColor: '#FFFFFF', // White Arrows for Blue Backgrounds
+// };
+
+
+// export const darkTheme = {
+//   backgroundHeaderColor: '#002A9E', // Deep Blue for Header
+//   backgroundColor: '#121212', // Near Black for Dark Theme
+//   primaryColor: '#0033CC', // Vibrant Blue (Logo Primary Color)
+//   secondaryColor: '#001A80', // Deep Blue for Accents
+//   textColor: '#E0E0E0', // Light Gray for Readability
+//   headerBackground: ['#1E1E1E', '#002A9E'], // Gradient from Dark Gray to Deep Blue
+//   placeholderTextColor: '#A5A5A5', // Neutral Gray for Placeholders
+//   cardBackground: '#1E1E1E', // Dark Gray for Cards
+//   cardTextColor: '#0088CC', // Vibrant Blue for Text
+//   overlayColor: 'rgba(0, 51, 204, 0.75)', // Semi-transparent Blue Overlay
+//   tabBarActiveTintColor: '#0033CC', // Vibrant Blue for Active Tabs
+//   tabBarInactiveTintColor: '#757575', // Gray for Inactive Tabs
+//   statusBarStyle: 'light-content', // Light Text for Dark Background
+//   switchTrackColorFalse: '#616161', // Medium Gray for Off Switches
+//   switchTrackColorTrue: '#3399FF', // Bright Blue for On Switches
+//   switchThumbColor: '#FFFFFF', // White for Switch Thumb
+//   switchIosBackgroundColor: '#424242', // Neutral Gray for iOS Background
+//   borderColor: '#CCD6FF', // Soft Blue for Borders
+//   priceColor: '#FF4081', // Bright Pink for Contrast
+//   headerTextColor: '#E0E0E0', // Light Gray for Header Text
+//   arrowColor: '#0033CC', // Vibrant Blue for Arrows
+// };
 
 
 export const blueTheme = {

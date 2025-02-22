@@ -42,6 +42,7 @@ import CourseDetailScreen from '../screens/CourseDetailScreen';
 import EnrollmentScreen from '../screens/EnrollmentScreen';
 import MyEnrollmentsScreen from '../screens/MyEnrollmentsScreen'; 
 import PurchaseScreen from '../screens/PurchaseScreen';
+import EnrolledCourseScreen from '../screens/EnrolledCourseScreen';
 // ^-- Make sure you have this screen in your project
 
 // Context
@@ -107,6 +108,7 @@ const AICoursesStackScreen = () => (
     <AICoursesStack.Screen name="PurchaseScreen" component={PurchaseScreen} />
     <AICoursesStack.Screen name="EnrollmentScreen" component={EnrollmentScreen} />
     <AICoursesStack.Screen name="MyEnrollmentsScreen" component={MyEnrollmentsScreen} />
+    <AICoursesStack.Screen name="EnrolledCourseScreen" component={EnrolledCourseScreen} />
   </AICoursesStack.Navigator>
 );
 

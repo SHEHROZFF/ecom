@@ -1,4 +1,3 @@
-// models/Enrollment.js
 const mongoose = require('mongoose');
 
 const enrollmentSchema = mongoose.Schema(
@@ -25,7 +24,7 @@ const enrollmentSchema = mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      default: '', // e.g. 'credit_card', 'paypal', etc.
+      default: '', // e.g., 'credit_card', 'paypal', etc.
     },
     transactionId: {
       type: String,
@@ -42,7 +41,9 @@ const enrollmentSchema = mongoose.Schema(
     // ---- Progress & Completion ----
     progress: {
       type: Number,
-      default: 0, // e.g. 0 to 100
+      default: 0, // e.g., 0 to 100
+      min: 0,
+      max: 100,
     },
     status: {
       type: String,
@@ -55,17 +56,26 @@ const enrollmentSchema = mongoose.Schema(
     },
     completionDate: {
       type: Date,
+      default: null, // Ensure a clean DB schema
     },
     // ---- Certification ----
     certificateUrl: {
       type: String,
       default: '',
     },
-    // ---- Optional Lesson-Level Tracking ----
+    // ---- Lesson-Level Tracking ----
     lessonsProgress: [
       {
-        lessonId: String, // or mongoose.Schema.Types.ObjectId if lessons are in a separate collection
-        watchedDuration: Number,
+        lessonId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'VideoLesson',
+          required: true,
+        },
+        watchedDuration: {
+          type: Number,
+          default: 0,
+          min: 0,
+        },
         completed: {
           type: Boolean,
           default: false,
@@ -77,13 +87,21 @@ const enrollmentSchema = mongoose.Schema(
       default: '',
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-// Ensure a user cannot enroll in the same course twice
+// ✅ Index to ensure a user cannot enroll in the same course twice
 enrollmentSchema.index({ user: 1, course: 1 }, { unique: true });
+
+// ✅ Pre-delete Hook: Ensure no orphan progress data
+enrollmentSchema.pre('deleteOne', { document: true, query: false }, async function (next) {
+  console.log(`Removing lesson progress for enrollment ${this._id}`);
+  await this.model('Enrollment').updateMany(
+    { _id: this._id },
+    { $set: { lessonsProgress: [] } }
+  );
+  next();
+});
 
 const Enrollment = mongoose.model('Enrollment', enrollmentSchema);
 module.exports = Enrollment;
@@ -99,23 +117,16 @@ module.exports = Enrollment;
 
 // // models/Enrollment.js
 // const mongoose = require('mongoose');
-// const Schema = mongoose.Schema;
 
-// /**
-//  * "Professional" Enrollment Schema
-//  * - Payment info
-//  * - Progress tracking
-//  * - Completed status, certificate, etc.
-//  */
-// const enrollmentSchema = new Schema(
+// const enrollmentSchema = mongoose.Schema(
 //   {
 //     user: {
-//       type: Schema.Types.ObjectId,
+//       type: mongoose.Schema.Types.ObjectId,
 //       ref: 'User',
 //       required: true,
 //     },
 //     course: {
-//       type: Schema.Types.ObjectId,
+//       type: mongoose.Schema.Types.ObjectId,
 //       ref: 'Course',
 //       required: true,
 //     },
@@ -123,7 +134,6 @@ module.exports = Enrollment;
 //       type: Date,
 //       default: Date.now,
 //     },
-
 //     // ---- Payment / Transaction Info ----
 //     paymentStatus: {
 //       type: String,
@@ -146,7 +156,6 @@ module.exports = Enrollment;
 //       type: String,
 //       default: '',
 //     },
-
 //     // ---- Progress & Completion ----
 //     progress: {
 //       type: Number,
@@ -164,17 +173,15 @@ module.exports = Enrollment;
 //     completionDate: {
 //       type: Date,
 //     },
-
 //     // ---- Certification ----
 //     certificateUrl: {
 //       type: String,
 //       default: '',
 //     },
-
 //     // ---- Optional Lesson-Level Tracking ----
 //     lessonsProgress: [
 //       {
-//         lessonId: String, // or Schema.Types.ObjectId if each lesson is a separate collection
+//         lessonId: String, // or mongoose.Schema.Types.ObjectId if lessons are in a separate collection
 //         watchedDuration: Number,
 //         completed: {
 //           type: Boolean,
@@ -182,7 +189,6 @@ module.exports = Enrollment;
 //         },
 //       },
 //     ],
-
 //     notes: {
 //       type: String,
 //       default: '',
@@ -196,4 +202,7 @@ module.exports = Enrollment;
 // // Ensure a user cannot enroll in the same course twice
 // enrollmentSchema.index({ user: 1, course: 1 }, { unique: true });
 
-// module.exports = mongoose.model('Enrollment', enrollmentSchema);
+// const Enrollment = mongoose.model('Enrollment', enrollmentSchema);
+// module.exports = Enrollment;
+
+

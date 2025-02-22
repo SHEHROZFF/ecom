@@ -625,7 +625,8 @@ const AICoursesScreen = () => {
 
         const currentPage = isRefresh ? 1 : page;
         const coursesResponse = await fetchCourses(currentPage, PAGE_LIMIT);
-
+        console.log('fetchCourses response', coursesResponse.data);
+        
         if (coursesResponse.success) {
           const newCourses = coursesResponse.data.map((c) => ({
             ...c,

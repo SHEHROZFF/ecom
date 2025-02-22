@@ -10,11 +10,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   SafeAreaView,
+  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ThemeContext } from '../../ThemeContext';
 import { lightTheme, darkTheme } from '../../themes';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import {
   getMyEnrollmentsAPI,
   unenrollFromCourseAPI,
@@ -36,8 +38,7 @@ const MyEnrollmentsScreen = () => {
     const { success, data, message } = await getMyEnrollmentsAPI();
     setLoading(false);
     if (success) {
-      console.log(data);
-      
+      console.log("Enrollments:", data.enrollments);
       setEnrollments(data.enrollments);
     } else {
       Alert.alert('Error', message || 'Could not fetch enrollments.');
@@ -48,40 +49,83 @@ const MyEnrollmentsScreen = () => {
     const { success, message } = await unenrollFromCourseAPI(courseId);
     if (success) {
       Alert.alert('Success', 'You have been unenrolled.');
-      setEnrollments((prev) =>
-        prev.filter((en) => en.course._id !== courseId)
-      );
+      setEnrollments((prev) => prev.filter((en) => en.course._id !== courseId));
     } else {
       Alert.alert('Error', message || 'Failed to unenroll.');
     }
   };
 
   const renderEnrollment = ({ item }) => {
-    const { course, paymentStatus, status, progress } = item;
+    const { course, paymentStatus, status, progress, enrolledAt } = item;
     return (
       <View style={[styles.card, { backgroundColor: currentTheme.cardBackground, borderColor: currentTheme.borderColor }]}>
-        <Text style={[styles.courseTitle, { color: currentTheme.textColor }]}>{course.title}</Text>
-        <Text style={[styles.courseSubInfo, { color: currentTheme.textColor }]}>
-          Instructor: {course.instructor || 'N/A'}
-        </Text>
-        <Text style={[styles.courseSubInfo, { color: currentTheme.textColor }]}>
-          Payment: {paymentStatus} • Status: {status} • Progress: {progress}%
-        </Text>
-        <View style={styles.actionsRow}>
-          <TouchableOpacity
-            style={[styles.button, styles.unenrollButton, { backgroundColor: currentTheme.errorColor || '#E53935' }]}
-            onPress={() => handleUnenroll(course._id)}
-          >
-            <Text style={styles.buttonText}>Unenroll</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.button, styles.detailButton, { backgroundColor: currentTheme.primaryColor || '#1976D2' }]}
-            onPress={() =>
-              navigation.navigate('CourseDetailScreen', { courseId: course._id })
-            }
-          >
-            <Text style={styles.buttonText}>Go to Course</Text>
-          </TouchableOpacity>
+        {/* Card Header: Course Image with Gradient, Title Badge & Enrollment Icon */}
+        {course.image && (
+          <View style={styles.cardHeader}>
+            <Image source={{ uri: course.image }} style={styles.courseImage} resizeMode="cover" />
+            <LinearGradient colors={['rgba(0,0,0,0.6)', 'transparent']} style={styles.headerGradient} />
+            <View style={styles.titleBadge}>
+              <Text style={styles.titleBadgeText} numberOfLines={1}>
+                {course.title}
+              </Text>
+            </View>
+            <View style={styles.enrollmentIcon}>
+              <FontAwesome5 name="user-graduate" size={20} color="#fff" />
+            </View>
+          </View>
+        )}
+        {/* Card Content */}
+        <View style={styles.cardContent}>
+          <View style={styles.infoRow}>
+            <Ionicons name="person" size={16} color={currentTheme.primaryColor} />
+            <Text style={[styles.infoText, { color: currentTheme.textColor, marginLeft: 4 }]}>
+              {course.instructor || 'N/A'}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <MaterialIcons name="payment" size={16} color={currentTheme.primaryColor} />
+            <Text style={[styles.infoText, { color: currentTheme.textColor, marginLeft: 4 }]}>
+              {paymentStatus}
+            </Text>
+            <Text style={[styles.infoText, { color: currentTheme.textColor, marginLeft: 10 }]}>
+              • {status.toUpperCase()}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Ionicons name="trending-up" size={16} color={currentTheme.primaryColor} />
+            <Text style={[styles.infoText, { color: currentTheme.textColor, marginLeft: 4 }]}>
+              Progress: {progress}%
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Ionicons name="time" size={16} color={currentTheme.primaryColor} />
+            <Text style={[styles.infoText, { color: currentTheme.textColor, marginLeft: 4 }]}>
+              Enrolled: {new Date(enrolledAt).toLocaleDateString()}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Ionicons name="document-text" size={16} color={currentTheme.primaryColor} />
+            <Text style={[styles.infoText, { color: currentTheme.textColor, marginLeft: 4 }]}>
+              {course.numberOfLectures} Lectures
+            </Text>
+          </View>
+          {/* Action Buttons */}
+          <View style={styles.actionsRow}>
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: currentTheme.errorColor || '#FF3B30' }]}
+              onPress={() => handleUnenroll(course._id)}
+            >
+              <Ionicons name="trash" size={18} color="#fff" style={{ marginRight: 6 }} />
+              <Text style={styles.buttonText}>Unenroll</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: currentTheme.primaryColor || '#007AFF' }]}
+              onPress={() => navigation.navigate('EnrolledCourseScreen', { courseId: course._id })}
+            >
+              <Ionicons name="book" size={18} color="#fff" style={{ marginRight: 6 }} />
+              <Text style={styles.buttonText}>Go to Course</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     );
@@ -101,9 +145,7 @@ const MyEnrollmentsScreen = () => {
     return (
       <SafeAreaView style={[styles.safeArea, { backgroundColor: currentTheme.backgroundColor }]}>
         <View style={styles.centered}>
-          <Text style={{ color: currentTheme.textColor }}>
-            You are not enrolled in any courses.
-          </Text>
+          <Text style={{ color: currentTheme.textColor }}>You are not enrolled in any courses.</Text>
         </View>
       </SafeAreaView>
     );
@@ -117,7 +159,7 @@ const MyEnrollmentsScreen = () => {
         start={[0, 0]}
         end={[1, 1]}
       >
-        <Text style={[styles.headerTitle, { color: currentTheme.headerTextColor }]}>
+        <Text style={[styles.headerText, { color: currentTheme.headerTextColor }]}>
           My Enrollments
         </Text>
       </LinearGradient>
@@ -138,7 +180,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingVertical: 30,
+    paddingVertical: 15,
     paddingHorizontal: 20,
     alignItems: 'center',
     justifyContent: 'center',
@@ -146,56 +188,110 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 40,
     elevation: 6,
     marginBottom: 20,
+    backgroundColor: '#007AFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
-  headerTitle: {
-    fontSize: 28,
+  headerText: {
+    fontSize: 32,
     fontWeight: '700',
+    color: '#fff',
+    textAlign: 'center',
   },
   listContent: {
     paddingHorizontal: 20,
     paddingBottom: 30,
   },
-  card: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 20,
-    marginBottom: 20,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-  },
-  courseTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  courseSubInfo: {
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    marginTop: 15,
-    justifyContent: 'space-between',
-  },
-  button: {
-    flex: 0.48,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  unenrollButton: {},
-  detailButton: {},
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  card: {
+    borderRadius: 18,
+    borderWidth: 1,
+    overflow: 'hidden',
+    marginBottom: 20,
+    backgroundColor: '#fff',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+  },
+  cardHeader: {
+    width: '100%',
+    height: 180,
+    position: 'relative',
+  },
+  courseImage: {
+    width: '100%',
+    height: '100%',
+  },
+  headerGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+  },
+  titleBadge: {
+    position: 'absolute',
+    bottom: 10,
+    left: 10,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+  },
+  titleBadgeText: {
+    fontSize: 18,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  enrollmentIcon: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: 6,
+    borderRadius: 20,
+  },
+  cardContent: {
+    padding: 20,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 2,
+  },
+  infoText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    marginTop: 20,
+    justifyContent: 'space-between',
+  },
+  button: {
+    flex: 0.48,
+    flexDirection: 'row',
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
