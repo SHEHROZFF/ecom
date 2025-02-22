@@ -655,6 +655,42 @@ export const updateEnrollmentAPI = async (courseId, updates = {}) => {
 };
 
 
+/**
+ * Update lesson progress for a course enrollment.
+ * @param {string} courseId - The ID of the course.
+ * @param {object} progressData - An object with { lessonId, watchedDuration, completed }.
+ * @returns {Promise<object>} The updated enrollment data or an error object.
+ */
+export const updateLessonProgressAPI = async (courseId, progressData = {}) => {
+  try {
+    const token = await getAuthToken();
+    if (!token) throw new Error('No token found. Please log in.');
+
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+
+    const response = await axios.patch(
+      `${API_URL}/enrollments/${courseId}/progress`,
+      progressData,
+      config
+    );
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error(
+      'Update lesson progress error:',
+      error.response?.data?.message || error.message
+    );
+    return {
+      success: false,
+      message:
+        error.response?.data?.message || 'Failed to update lesson progress.',
+    };
+  }
+};
+
+
+
 
 // ----------------------- Export All Functions ----------------------- //
 
@@ -713,6 +749,10 @@ export default {
     enrollInCourseAPI,
     unenrollFromCourseAPI,
     getMyEnrollmentsAPI,
-    updateEnrollmentAPI
+    updateEnrollmentAPI,
+
+    // Update Lesson Progress
+    // updateLessonProgressAPI
+    updateLessonProgressAPI
 
 };
