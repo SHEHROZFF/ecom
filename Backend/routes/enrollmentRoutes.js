@@ -17,7 +17,7 @@ const {
 
 
 // New route for updating lesson progress
-router.patch('/enrollments/:courseId/progress', protect, updateLessonProgress);
+router.patch('/:courseId/progress', protect, updateLessonProgress);
 // ----------------------------------------------------------------------
 //  USER-FOCUSED ENDPOINTS
 // ----------------------------------------------------------------------
