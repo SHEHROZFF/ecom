@@ -11,12 +11,12 @@ const {
 
 router.route('/')
   .get(getAds)
-  .post(protect, admin, createAd);
+  .post(protect,  createAd);
 
 router.route('/:id')
   .get(getAdById)
-  .put(protect, admin, updateAd)
-  .delete(protect, admin, deleteAd);
+  .put(protect, updateAd)
+  .delete(protect,  deleteAd);
 
 module.exports = router;
 
