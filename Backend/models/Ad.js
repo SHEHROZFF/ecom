@@ -18,12 +18,219 @@ const adSchema = mongoose.Schema(
       type: String,
       required: [true, 'Please add a subtitle for the ad.'],
     },
+    description: {
+      type: String,
+      required: [true, 'Please add a description for the ad.'],
+      maxlength: [500, 'Description cannot exceed 500 characters.'],
+    },
+    link: {
+      type: String,
+      required: [true, 'Please add a link to the ad.'],
+      match: [
+        /^(https?:\/\/[^\s$.?#].[^\s]*)$/,
+        'Please enter a valid URL.',
+      ],
+    },
+    category: {
+      type: String,
+      enum: ['New Course', 'Product', 'Sale', 'Promotion', 'Event'],
+      required: [true, 'Please specify the ad category.'],
+    },
+    price: {
+      type: Number,
+      required: false,
+    },
+    startDate: {
+      type: Date,
+      required: true,
+    },
+    endDate: {
+      type: Date,
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ['Active', 'Paused', 'Expired'],
+      default: 'Active',
+    },
+    targetAudience: {
+      type: String,
+      enum: ['Beginner', 'Intermediate', 'Advanced', 'General'],
+      required: false,
+    },
+    ctaText: {
+      type: String,
+      default: 'Learn More',
+    },
+    priority: {
+      type: Number,
+      default: 1,
+    },
+    // New fields for dynamic design and layout
+    cardDesign: {
+      type: String,
+      enum: ['basic', 'modern', 'minimal', 'detailed'],
+      default: 'basic',
+    },
+    layoutHint: {
+      // JSON field to allow custom sizing, spacing, etc.
+      type: Object,
+      default: {},
+    },
+    displayPriority: {
+      // Allows sorting ads on the frontend
+      type: Number,
+      default: 1,
+    },
+    variant: {
+      // For A/B testing or design experiments
+      type: String,
+      default: 'A',
+    },
+    backgroundColor: {
+      type: String,
+      default: '#ffffff',
+    },
+    textColor: {
+      type: String,
+      default: '#000000',
+    },
   },
   { timestamps: true }
 );
 
 const Ad = mongoose.model('Ad', adSchema);
 module.exports = Ad;
+
+
+
+
+
+
+
+
+// const mongoose = require('mongoose');
+
+// const adSchema = mongoose.Schema(
+//   {
+//     image: {
+//       type: String,
+//       required: [true, 'Please add an ad image URL.'],
+//       match: [
+//         /^(https?:\/\/.*\.(?:png|jpg|jpeg|gif|svg|webp))$/i,
+//         'Please enter a valid image URL.',
+//       ],
+//     },
+//     title: {
+//       type: String,
+//       required: [true, 'Please add a title for the ad.'],
+//     },
+//     subtitle: {
+//       type: String,
+//       required: [true, 'Please add a subtitle for the ad.'],
+//     },
+//     description: {
+//       type: String,
+//       required: [true, 'Please add a description for the ad.'],
+//       maxlength: [500, 'Description cannot exceed 500 characters.'],
+//     },
+//     link: {
+//       type: String,
+//       required: [true, 'Please add a link to the ad.'],
+//       match: [
+//         /^(https?:\/\/[^\s$.?#].[^\s]*)$/,
+//         'Please enter a valid URL.',
+//       ],
+//     },
+//     category: {
+//       type: String,
+//       enum: ['New Course', 'Product', 'Sale', 'Promotion', 'Event'],
+//       required: [true, 'Please specify the ad category.'],
+//     },
+//     price: {
+//       type: Number,
+//       required: false,
+//     },
+//     startDate: {
+//       type: Date,
+//       required: true,
+//     },
+//     endDate: {
+//       type: Date,
+//       required: true,
+//     },
+//     status: {
+//       type: String,
+//       enum: ['Active', 'Paused', 'Expired'],
+//       default: 'Active',
+//     },
+//     targetAudience: {
+//       type: String,
+//       enum: ['Beginner', 'Intermediate', 'Advanced', 'General'],
+//       required: false,
+//     },
+//     ctaText: {
+//       type: String,
+//       default: 'Learn More',
+//     },
+//     priority: {
+//       type: Number,
+//       default: 1,
+//     },
+//     // New field for card design
+//     cardDesign: {
+//       type: String,
+//       enum: ['basic', 'modern', 'minimal', 'detailed'], // add as many as you want
+//       default: 'basic',
+//     },
+//     // Optional design properties
+//     backgroundColor: {
+//       type: String,
+//       default: '#ffffff',
+//     },
+//     textColor: {
+//       type: String,
+//       default: '#000000',
+//     },
+//   },
+//   { timestamps: true }
+// );
+
+// const Ad = mongoose.model('Ad', adSchema);
+// module.exports = Ad;
+
+
+
+
+
+
+
+// const mongoose = require('mongoose');
+
+// const adSchema = mongoose.Schema(
+//   {
+//     image: {
+//       type: String,
+//       required: [true, 'Please add an ad image URL.'],
+//       match: [
+//         /^(https?:\/\/.*\.(?:png|jpg|jpeg|gif|svg|webp))$/i,
+//         'Please enter a valid image URL.',
+//       ],
+//     },
+//     title: {
+//       type: String,
+//       required: [true, 'Please add a title for the ad.'],
+//     },
+//     subtitle: {
+//       type: String,
+//       required: [true, 'Please add a subtitle for the ad.'],
+//     },
+//   },
+//   { timestamps: true }
+// );
+
+// const Ad = mongoose.model('Ad', adSchema);
+// module.exports = Ad;
 
 
 

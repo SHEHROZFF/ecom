@@ -18,7 +18,8 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.jpg",
-        "backgroundColor": "#004242"
+        "backgroundColor": "#004242",
+        "softwareKeyboardLayoutMode": "pan"
       },
       "package": "com.yourcompany.taskmaster",
       "versionCode": 2

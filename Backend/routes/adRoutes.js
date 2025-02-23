@@ -9,15 +9,78 @@ const {
   deleteAd,
 } = require('../controllers/adController');
 
-router
-  .route('/')
+router.route('/')
   .get(getAds)
-  .post(protect, createAd);
+  .post(protect, admin, createAd);
 
-router
-  .route('/:id')
+router.route('/:id')
   .get(getAdById)
-  .put(protect, updateAd)
-  .delete(protect,  deleteAd);
+  .put(protect, admin, updateAd)
+  .delete(protect, admin, deleteAd);
 
 module.exports = router;
+
+
+
+
+
+
+
+
+// const express = require('express');
+// const router = express.Router();
+// const { protect, admin } = require('../middleware/authMiddleware');
+// const {
+//   createAd,
+//   getAds,
+//   getAdById,
+//   updateAd,
+//   deleteAd,
+// } = require('../controllers/adController');
+
+// router
+//   .route('/')
+//   .get(getAds)
+//   .post(protect, createAd);
+
+// router
+//   .route('/:id')
+//   .get(getAdById)
+//   .put(protect, updateAd)
+//   .delete(protect, deleteAd);
+
+// module.exports = router;
+
+
+
+
+
+
+
+
+
+
+
+// const express = require('express');
+// const router = express.Router();
+// const { protect, admin } = require('../middleware/authMiddleware');
+// const {
+//   createAd,
+//   getAds,
+//   getAdById,
+//   updateAd,
+//   deleteAd,
+// } = require('../controllers/adController');
+
+// router
+//   .route('/')
+//   .get(getAds)
+//   .post(protect, createAd);
+
+// router
+//   .route('/:id')
+//   .get(getAdById)
+//   .put(protect, updateAd)
+//   .delete(protect,  deleteAd);
+
+// module.exports = router;
