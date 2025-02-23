@@ -12,7 +12,7 @@ import * as Animatable from 'react-native-animatable';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
-// Default styling for categories
+// Default styling for ads (we keep categoryStyles for default images and gradients)
 const categoryStyles = {
   'New Course': {
     gradient: ['rgba(0, 0, 0, 0.4)', 'transparent'],
@@ -41,7 +41,6 @@ const categoryStyles = {
   },
 };
 
-// Animation mapping based on design type
 const animationMapping = {
   basic: 'fadeIn',
   modern: 'slideInRight',
@@ -56,9 +55,9 @@ const AdCard = ({ onPress, currentTheme, adData }) => {
     subtitle = '',
     category = 'New Course',
     cardDesign = 'basic',
-    layoutHint = {}, // custom layout overrides
-    backgroundColor, // custom background
-    textColor, // custom text color
+    layoutHint = {},  // optional layout overrides from the backend
+    backgroundColor,
+    textColor,
   } = adData || {};
 
   const catStyle = categoryStyles[category] || categoryStyles['New Course'];
@@ -101,7 +100,6 @@ const AdCard = ({ onPress, currentTheme, adData }) => {
 const styles = StyleSheet.create({
   adContainer: {
     width: viewportWidth * 0.8,
-    height: 220,
     borderRadius: 15,
     overflow: 'hidden',
     backgroundColor: '#fff',
@@ -158,6 +156,8 @@ const styles = StyleSheet.create({
 });
 
 export default AdCard;
+
+
 
 
 

@@ -15,12 +15,10 @@ router.route('/')
 
 router.route('/:id')
   .get(getAdById)
-  .put(protect, updateAd)
-  .delete(protect,  deleteAd);
+  .put(protect,  updateAd)
+  .delete(protect, deleteAd);
 
 module.exports = router;
-
-
 
 
 

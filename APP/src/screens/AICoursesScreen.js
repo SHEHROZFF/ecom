@@ -288,7 +288,7 @@ const AICoursesScreen = () => {
         currentTheme={currentTheme}
         onAdPress={handleAdPress}
         refreshSignal={adsRefresh}
-        categoryFilter= 'Promotion'
+        categoryFilter= 'New Course'
       />
 
       {/* All Courses title */}

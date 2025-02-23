@@ -31,6 +31,7 @@ const adSchema = mongoose.Schema(
         'Please enter a valid URL.',
       ],
     },
+    // We still keep a category field if needed, but our grouping is by layoutType now
     category: {
       type: String,
       enum: ['New Course', 'Product', 'Sale', 'Promotion', 'Event'],
@@ -38,7 +39,6 @@ const adSchema = mongoose.Schema(
     },
     price: {
       type: Number,
-      required: false,
     },
     startDate: {
       type: Date,
@@ -56,7 +56,6 @@ const adSchema = mongoose.Schema(
     targetAudience: {
       type: String,
       enum: ['Beginner', 'Intermediate', 'Advanced', 'General'],
-      required: false,
     },
     ctaText: {
       type: String,
@@ -66,24 +65,29 @@ const adSchema = mongoose.Schema(
       type: Number,
       default: 1,
     },
-    // New fields for dynamic design and layout
+    // New fields for dynamic UI decisions:
     cardDesign: {
       type: String,
       enum: ['basic', 'modern', 'minimal', 'detailed'],
       default: 'basic',
     },
+    layoutType: {
+      // Use this to group by card height/design—e.g., 'large', 'medium', 'small'
+      type: String,
+      enum: ['large', 'medium', 'small'],
+      default: 'medium',
+    },
     layoutHint: {
-      // JSON field to allow custom sizing, spacing, etc.
+      // JSON field to allow custom layout properties (custom sizes, spacing, etc.)
       type: Object,
       default: {},
     },
     displayPriority: {
-      // Allows sorting ads on the frontend
       type: Number,
       default: 1,
     },
     variant: {
-      // For A/B testing or design experiments
+      // For A/B testing different designs
       type: String,
       default: 'A',
     },
@@ -94,6 +98,15 @@ const adSchema = mongoose.Schema(
     textColor: {
       type: String,
       default: '#000000',
+    },
+    // Optional analytics counters (you can update these as needed)
+    clicks: {
+      type: Number,
+      default: 0,
+    },
+    views: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true }

@@ -21,7 +21,8 @@ const createAd = asyncHandler(async (req, res) => {
     ctaText,
     priority,
     cardDesign,
-    layoutHint,
+    layoutType,    // new field
+    layoutHint,    // new field
     displayPriority,
     variant,
     backgroundColor,
@@ -47,7 +48,8 @@ const createAd = asyncHandler(async (req, res) => {
     ctaText,
     priority,
     cardDesign,
-    layoutHint,
+    layoutType,    // store the layout type
+    layoutHint,    // store custom layout hints
     displayPriority,
     variant,
     backgroundColor,
@@ -59,12 +61,11 @@ const createAd = asyncHandler(async (req, res) => {
 });
 
 /**
- * @desc    Get all ads (optionally filter by active status)
+ * @desc    Get all ads
  * @route   GET /api/ads
  * @access  Public
  */
 const getAds = asyncHandler(async (req, res) => {
-  // Optionally add query filtering here (e.g., only active ads)
   const ads = await Ad.find({});
   res.json(ads);
 });
@@ -104,7 +105,8 @@ const updateAd = asyncHandler(async (req, res) => {
     ctaText,
     priority,
     cardDesign,
-    layoutHint,
+    layoutType,    // new field
+    layoutHint,    // new field
     displayPriority,
     variant,
     backgroundColor,
@@ -127,6 +129,7 @@ const updateAd = asyncHandler(async (req, res) => {
     ad.ctaText = ctaText || ad.ctaText;
     ad.priority = priority || ad.priority;
     ad.cardDesign = cardDesign || ad.cardDesign;
+    ad.layoutType = layoutType || ad.layoutType;
     ad.layoutHint = layoutHint || ad.layoutHint;
     ad.displayPriority = displayPriority || ad.displayPriority;
     ad.variant = variant || ad.variant;
@@ -164,9 +167,6 @@ module.exports = {
   updateAd,
   deleteAd,
 };
-
-
-
 
 
 

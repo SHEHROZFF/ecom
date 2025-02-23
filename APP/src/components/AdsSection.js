@@ -3,8 +3,8 @@ import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import AdsList from './AdsList';
 import { fetchAds } from '../services/api';
 
-// Predefined categories; you might also fetch these dynamically
-const categories = ['New Course', 'Product', 'Sale', 'Promotion', 'Event'];
+// Define the layout types you support
+const layoutTypes = ['large', 'medium', 'small'];
 
 const AdsSection = ({ currentTheme, onAdPress, refreshSignal }) => {
   const [ads, setAds] = useState([]);
@@ -15,7 +15,7 @@ const AdsSection = ({ currentTheme, onAdPress, refreshSignal }) => {
     try {
       const response = await fetchAds();
       if (response?.success) {
-        // Optionally filter active ads based on startDate, endDate, or status
+        // Optionally filter only active ads or do further filtering
         const activeAds = response.data.filter(ad => ad.status === 'Active');
         setAds(activeAds);
       } else {
@@ -43,22 +43,28 @@ const AdsSection = ({ currentTheme, onAdPress, refreshSignal }) => {
 
   if (!ads.length) return null;
 
+  // Group ads by layoutType
+  const groupedAds = layoutTypes.reduce((acc, type) => {
+    acc[type] = ads.filter(ad => ad.layoutType === type);
+    return acc;
+  }, {});
+
   return (
     <View style={styles.sectionWrapper}>
-      {categories.map(cat => {
-        const filteredAds = ads.filter(ad => ad.category === cat);
-        if (!filteredAds.length) return null;
+      {layoutTypes.map(type => {
+        const adsForType = groupedAds[type];
+        if (!adsForType || !adsForType.length) return null;
         return (
-          <View key={cat} style={styles.categorySection}>
+          <View key={type} style={styles.groupSection}>
             <Text style={[styles.sectionTitle, { color: currentTheme.cardTextColor }]}>
-              {cat} Ads
+              {type.toUpperCase()} Ads
             </Text>
             <View style={styles.sectionDivider} />
             <AdsList
-              ads={filteredAds.sort((a, b) => a.displayPriority - b.displayPriority)}
+              ads={adsForType.sort((a, b) => a.displayPriority - b.displayPriority)}
               onAdPress={onAdPress}
               currentTheme={currentTheme}
-              category={cat}
+              layoutType={type}
             />
           </View>
         );
@@ -72,7 +78,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 15,
     marginBottom: 20,
   },
-  categorySection: {
+  groupSection: {
     marginBottom: 25,
   },
   sectionTitle: {
@@ -93,6 +99,9 @@ const styles = StyleSheet.create({
 });
 
 export default AdsSection;
+
+
+
 
 
 

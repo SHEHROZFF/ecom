@@ -6,41 +6,34 @@ import AdCard from './AdCard';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
-// Configuration for different category behaviors
-const categoryCarouselConfig = {
-  'New Course': {
-    mode: 'depth',
-    modeConfig: { depth: 200 },
+// Configuration based on layoutType (card height and carousel behavior)
+const layoutConfig = {
+  large: {
+    height: 300,
     continuousScroll: false,
-  },
-  Product: {
-    mode: 'default',
-    modeConfig: {},
-    continuousScroll: true,
-  },
-  Sale: {
-    mode: 'horizontal-stack',
-    modeConfig: { activeStackScale: 0.85, activeStackOffset: 30 },
-    continuousScroll: false,
-  },
-  Promotion: {
-    mode: 'default',
-    modeConfig: {},
-    continuousScroll: true,
-  },
-  Event: {
     mode: 'tinder',
     modeConfig: { duration: 400 },
+  },
+  medium: {
+    height: 220,
+    continuousScroll: true,
+    mode: 'default',
+    modeConfig: {},
+  },
+  small: {
+    height: 150,
     continuousScroll: false,
+    mode: 'horizontal-stack',
+    modeConfig: { activeStackScale: 0.85, activeStackOffset: 30 },
   },
 };
 
-const AdsList = ({ ads, onAdPress, currentTheme, category }) => {
-  const carouselConfig = categoryCarouselConfig[category] || categoryCarouselConfig['New Course'];
+const AdsList = ({ ads, onAdPress, currentTheme, layoutType }) => {
+  const config = layoutConfig[layoutType] || layoutConfig.medium;
   const scrollX = useSharedValue(0);
 
   useEffect(() => {
-    if (carouselConfig.continuousScroll) {
+    if (config.continuousScroll) {
       scrollX.value = withRepeat(
         withTiming(-viewportWidth, { duration: 7000, easing: Easing.linear }),
         -1,
@@ -50,11 +43,11 @@ const AdsList = ({ ads, onAdPress, currentTheme, category }) => {
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: carouselConfig.continuousScroll ? scrollX.value : 0 }],
+    transform: [{ translateX: config.continuousScroll ? scrollX.value : 0 }],
   }));
 
   const renderItem = ({ item, index }) => (
-    <Animated.View style={[styles.animatedItem, carouselConfig.continuousScroll ? animatedStyle : {}]}>
+    <Animated.View style={[styles.animatedItem, { height: config.height }, config.continuousScroll ? animatedStyle : {}]}>
       <AdCard
         key={item._id || index}
         adData={item}
@@ -66,11 +59,11 @@ const AdsList = ({ ads, onAdPress, currentTheme, category }) => {
 
   return (
     <View style={styles.container}>
-      {carouselConfig.continuousScroll ? (
+      {config.continuousScroll ? (
         // Marquee-style continuous scroll
         <Animated.View style={[styles.marqueeContainer, animatedStyle]}>
           {ads.concat(ads).map((item, index) => (
-            <View key={item._id || index} style={styles.marqueeItem}>
+            <View key={item._id || index} style={[styles.marqueeItem, { height: config.height }]}>
               <AdCard
                 adData={item}
                 onPress={() => onAdPress(item)}
@@ -85,10 +78,10 @@ const AdsList = ({ ads, onAdPress, currentTheme, category }) => {
           data={ads}
           renderItem={renderItem}
           width={viewportWidth * 0.85}
-          height={260}
+          height={config.height}
           loop
-          mode={carouselConfig.mode}
-          modeConfig={carouselConfig.modeConfig}
+          mode={config.mode}
+          modeConfig={config.modeConfig}
           autoPlay
           autoPlayInterval={3000}
           scrollAnimationDuration={800}
@@ -111,7 +104,6 @@ const styles = StyleSheet.create({
   },
   animatedItem: {
     width: viewportWidth * 0.85,
-    height: 260,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -123,17 +115,11 @@ const styles = StyleSheet.create({
   },
   marqueeItem: {
     width: viewportWidth * 0.85,
-    height: 260,
     marginHorizontal: 10,
   },
 });
 
 export default AdsList;
-
-
-
-
-
 
 
 
