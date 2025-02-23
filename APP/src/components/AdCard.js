@@ -14,11 +14,8 @@ const animationMapping = {
 
 const AdCard = ({ onPress, currentTheme, adData }) => {
   const { image, title = 'Check out this ad!', subtitle = '', category = 'General', cardDesign = 'basic', templateId, customStyles } = adData || {};
-  
-  // Map templateId to a prebuilt style object and merge with any custom overrides.
   const baseStyle = templateStyles[templateId] || templateStyles.newCourse;
   const mergedStyle = { ...baseStyle, ...customStyles };
-
   const animationType = animationMapping[cardDesign] || animationMapping.basic;
 
   return (

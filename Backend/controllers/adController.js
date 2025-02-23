@@ -127,13 +127,7 @@ const deleteAd = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = {
-  createAd,
-  getAds,
-  getAdById,
-  updateAd,
-  deleteAd,
-};
+module.exports = { createAd, getAds, getAdById, updateAd, deleteAd };
 
 
 

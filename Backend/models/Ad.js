@@ -9,6 +9,7 @@ const adSchema = mongoose.Schema(
     description: { type: String },
     link: { type: String },
     category: { type: String, required: true },
+    // New field for design templates:
     templateId: {
       type: String,
       required: true,
@@ -24,12 +25,10 @@ const adSchema = mongoose.Schema(
     cardDesign: { type: String, default: 'basic' },
     backgroundColor: { type: String },
     textColor: { type: String },
-    // Optional: any additional custom styles
+    // Optional custom style overrides
     customStyles: { type: Object },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 module.exports = mongoose.model('Ad', adSchema);

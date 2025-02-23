@@ -29,3 +29,5 @@ export const templateStyles = {
     defaultImage: 'https://via.placeholder.com/300x180.png?text=Event',
   },
 };
+
+export default templateStyles;

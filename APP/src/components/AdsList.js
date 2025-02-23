@@ -7,17 +7,14 @@ import AdCard from './AdCard';
 import { templateStyles } from './templateStyles';
 
 const AdsList = ({ ads, onAdPress, currentTheme }) => {
-  // For simplicity, assume ads in this section use the same template.
+  // Assume all ads in the section share the same template.
   const templateId = ads[0]?.templateId || 'newCourse';
   const baseStyle = templateStyles[templateId] || templateStyles.newCourse;
   const cardWidth = baseStyle.cardWidth;
   const cardHeight = baseStyle.cardHeight;
-
-  // If a marquee layout is desired, you can extend your templateStyles with a layoutType.
-  // For now, we assume a carousel layout.
-  const continuousScroll = false;
-
+  const continuousScroll = false; // For simplicity, use carousel layout.
   const scrollX = useSharedValue(0);
+
   useEffect(() => {
     if (continuousScroll) {
       scrollX.value = withRepeat(withTiming(-cardWidth, { duration: 7000, easing: Easing.linear }), -1, false);

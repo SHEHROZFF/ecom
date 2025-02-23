@@ -10,7 +10,6 @@ import { fetchAds, addAd, updateAd, deleteAd } from '../redux/slices/adsSlice';
 const Ads = () => {
   const dispatch = useDispatch();
   const { ads, loading, error } = useSelector((state) => state.ads);
-
   const [showForm, setShowForm] = useState(false);
   const [currentAd, setCurrentAd] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -140,7 +139,9 @@ const Ads = () => {
                 ))}
                 {currentAds.length === 0 && (
                   <tr>
-                    <td colSpan="4" className="py-4 px-6 text-center text-gray-600 dark:text-gray-400">No ads found.</td>
+                    <td colSpan="4" className="py-4 px-6 text-center text-gray-600 dark:text-gray-400">
+                      No ads found.
+                    </td>
                   </tr>
                 )}
               </tbody>
@@ -289,7 +290,9 @@ const Ads = () => {
               </div>
               <div className="flex justify-end mt-6">
                 <button type="button" onClick={() => { setShowForm(false); setCurrentAd(null); formik.resetForm(); }} className="bg-gray-500 text-white px-4 py-2 rounded mr-2 hover:bg-gray-600 transition">Cancel</button>
-                <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">{currentAd ? 'Update' : 'Add'}</button>
+                <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
+                  {currentAd ? 'Update' : 'Add'}
+                </button>
               </div>
             </form>
           </div>
