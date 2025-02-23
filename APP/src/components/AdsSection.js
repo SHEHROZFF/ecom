@@ -3,10 +3,7 @@ import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import AdsList from './AdsList';
 import { fetchAds } from '../services/api';
 
-// Define the layout types you support
-const layoutTypes = ['large', 'medium', 'small'];
-
-const AdsSection = ({ currentTheme, onAdPress, refreshSignal }) => {
+const AdsSection = ({ currentTheme, onAdPress, refreshSignal, categoryFilter }) => {
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -15,9 +12,13 @@ const AdsSection = ({ currentTheme, onAdPress, refreshSignal }) => {
     try {
       const response = await fetchAds();
       if (response?.success) {
-        // Optionally filter only active ads or do further filtering
-        const activeAds = response.data.filter(ad => ad.status === 'Active');
-        setAds(activeAds);
+        // Filter ads based on categoryFilter if provided
+        const filteredAds = Array.isArray(categoryFilter) && categoryFilter.length
+          ? response.data.filter(ad => categoryFilter.includes(ad.category))
+          : categoryFilter
+          ? response.data.filter(ad => ad.category === categoryFilter)
+          : response.data;
+        setAds(filteredAds);
       } else {
         setAds([]);
       }
@@ -27,7 +28,7 @@ const AdsSection = ({ currentTheme, onAdPress, refreshSignal }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [categoryFilter]);
 
   useEffect(() => {
     getAds();
@@ -43,32 +44,13 @@ const AdsSection = ({ currentTheme, onAdPress, refreshSignal }) => {
 
   if (!ads.length) return null;
 
-  // Group ads by layoutType
-  const groupedAds = layoutTypes.reduce((acc, type) => {
-    acc[type] = ads.filter(ad => ad.layoutType === type);
-    return acc;
-  }, {});
-
   return (
     <View style={styles.sectionWrapper}>
-      {layoutTypes.map(type => {
-        const adsForType = groupedAds[type];
-        if (!adsForType || !adsForType.length) return null;
-        return (
-          <View key={type} style={styles.groupSection}>
-            <Text style={[styles.sectionTitle, { color: currentTheme.cardTextColor }]}>
-              {type.toUpperCase()} Ads
-            </Text>
-            <View style={styles.sectionDivider} />
-            <AdsList
-              ads={adsForType.sort((a, b) => a.displayPriority - b.displayPriority)}
-              onAdPress={onAdPress}
-              currentTheme={currentTheme}
-              layoutType={type}
-            />
-          </View>
-        );
-      })}
+      <Text style={[styles.sectionTitle, { color: currentTheme.cardTextColor }]}>
+        Sponsored Ads {categoryFilter ? `- ${Array.isArray(categoryFilter) ? categoryFilter.join(', ') : categoryFilter}` : ''}
+      </Text>
+      <View style={styles.sectionDivider} />
+      <AdsList ads={ads} onAdPress={onAdPress} currentTheme={currentTheme} />
     </View>
   );
 };
@@ -77,9 +59,6 @@ const styles = StyleSheet.create({
   sectionWrapper: {
     marginHorizontal: 15,
     marginBottom: 20,
-  },
-  groupSection: {
-    marginBottom: 25,
   },
   sectionTitle: {
     fontSize: 22,

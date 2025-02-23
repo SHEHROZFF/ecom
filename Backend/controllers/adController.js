@@ -21,12 +21,9 @@ const createAd = asyncHandler(async (req, res) => {
     ctaText,
     priority,
     cardDesign,
-    layoutType,    // new field
-    layoutHint,    // new field
-    displayPriority,
-    variant,
     backgroundColor,
     textColor,
+    styleConfig, // new field for dynamic style configuration
   } = req.body;
 
   if (!image || !title || !subtitle) {
@@ -48,12 +45,9 @@ const createAd = asyncHandler(async (req, res) => {
     ctaText,
     priority,
     cardDesign,
-    layoutType,    // store the layout type
-    layoutHint,    // store custom layout hints
-    displayPriority,
-    variant,
     backgroundColor,
     textColor,
+    styleConfig,
   });
 
   const createdAd = await ad.save();
@@ -67,7 +61,7 @@ const createAd = asyncHandler(async (req, res) => {
  */
 const getAds = asyncHandler(async (req, res) => {
   const ads = await Ad.find({});
-  res.json(ads);
+  res.json({ success: true, data: ads });
 });
 
 /**
@@ -105,12 +99,9 @@ const updateAd = asyncHandler(async (req, res) => {
     ctaText,
     priority,
     cardDesign,
-    layoutType,    // new field
-    layoutHint,    // new field
-    displayPriority,
-    variant,
     backgroundColor,
     textColor,
+    styleConfig,
   } = req.body;
 
   const ad = await Ad.findById(req.params.id);
@@ -129,12 +120,9 @@ const updateAd = asyncHandler(async (req, res) => {
     ad.ctaText = ctaText || ad.ctaText;
     ad.priority = priority || ad.priority;
     ad.cardDesign = cardDesign || ad.cardDesign;
-    ad.layoutType = layoutType || ad.layoutType;
-    ad.layoutHint = layoutHint || ad.layoutHint;
-    ad.displayPriority = displayPriority || ad.displayPriority;
-    ad.variant = variant || ad.variant;
     ad.backgroundColor = backgroundColor || ad.backgroundColor;
     ad.textColor = textColor || ad.textColor;
+    ad.styleConfig = styleConfig || ad.styleConfig;
 
     const updatedAd = await ad.save();
     res.json(updatedAd);

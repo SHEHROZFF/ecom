@@ -1,119 +1,41 @@
+// models/Ad.js
 const mongoose = require('mongoose');
+
+const styleConfigSchema = mongoose.Schema({
+  cardHeight: { type: Number },         // Height in pixels (or relative units)
+  cardWidth: { type: Number },          // Width in pixels (or relative units)
+  gradientColors: { type: [String] },   // Array of gradient color strings
+  badgeColor: { type: String },         // Color for the badge
+  defaultImage: { type: String },       // Fallback image URL
+  layoutType: { type: String, default: 'carousel' } // Options: 'carousel' or 'marquee'
+});
 
 const adSchema = mongoose.Schema(
   {
-    image: {
-      type: String,
-      required: [true, 'Please add an ad image URL.'],
-      match: [
-        /^(https?:\/\/.*\.(?:png|jpg|jpeg|gif|svg|webp))$/i,
-        'Please enter a valid image URL.',
-      ],
-    },
-    title: {
-      type: String,
-      required: [true, 'Please add a title for the ad.'],
-    },
-    subtitle: {
-      type: String,
-      required: [true, 'Please add a subtitle for the ad.'],
-    },
-    description: {
-      type: String,
-      required: [true, 'Please add a description for the ad.'],
-      maxlength: [500, 'Description cannot exceed 500 characters.'],
-    },
-    link: {
-      type: String,
-      required: [true, 'Please add a link to the ad.'],
-      match: [
-        /^(https?:\/\/[^\s$.?#].[^\s]*)$/,
-        'Please enter a valid URL.',
-      ],
-    },
-    // We still keep a category field if needed, but our grouping is by layoutType now
-    category: {
-      type: String,
-      enum: ['New Course', 'Product', 'Sale', 'Promotion', 'Event'],
-      required: [true, 'Please specify the ad category.'],
-    },
-    price: {
-      type: Number,
-    },
-    startDate: {
-      type: Date,
-      required: true,
-    },
-    endDate: {
-      type: Date,
-      required: true,
-    },
-    status: {
-      type: String,
-      enum: ['Active', 'Paused', 'Expired'],
-      default: 'Active',
-    },
-    targetAudience: {
-      type: String,
-      enum: ['Beginner', 'Intermediate', 'Advanced', 'General'],
-    },
-    ctaText: {
-      type: String,
-      default: 'Learn More',
-    },
-    priority: {
-      type: Number,
-      default: 1,
-    },
-    // New fields for dynamic UI decisions:
-    cardDesign: {
-      type: String,
-      enum: ['basic', 'modern', 'minimal', 'detailed'],
-      default: 'basic',
-    },
-    layoutType: {
-      // Use this to group by card height/design—e.g., 'large', 'medium', 'small'
-      type: String,
-      enum: ['large', 'medium', 'small'],
-      default: 'medium',
-    },
-    layoutHint: {
-      // JSON field to allow custom layout properties (custom sizes, spacing, etc.)
-      type: Object,
-      default: {},
-    },
-    displayPriority: {
-      type: Number,
-      default: 1,
-    },
-    variant: {
-      // For A/B testing different designs
-      type: String,
-      default: 'A',
-    },
-    backgroundColor: {
-      type: String,
-      default: '#ffffff',
-    },
-    textColor: {
-      type: String,
-      default: '#000000',
-    },
-    // Optional analytics counters (you can update these as needed)
-    clicks: {
-      type: Number,
-      default: 0,
-    },
-    views: {
-      type: Number,
-      default: 0,
-    },
+    image: { type: String, required: true },
+    title: { type: String, required: true },
+    subtitle: { type: String, required: true },
+    description: { type: String },
+    link: { type: String },
+    category: { type: String, required: true },
+    price: { type: Number },
+    startDate: { type: Date },
+    endDate: { type: Date },
+    targetAudience: { type: String },
+    ctaText: { type: String },
+    priority: { type: Number, default: 0 },
+    cardDesign: { type: String, default: 'basic' },
+    backgroundColor: { type: String },
+    textColor: { type: String },
+    styleConfig: styleConfigSchema, // Embedded dynamic style configuration
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-const Ad = mongoose.model('Ad', adSchema);
-module.exports = Ad;
+module.exports = mongoose.model('Ad', adSchema);
+
 
 
 

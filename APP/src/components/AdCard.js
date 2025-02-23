@@ -12,33 +12,13 @@ import * as Animatable from 'react-native-animatable';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
-// Default styling for ads (we keep categoryStyles for default images and gradients)
-const categoryStyles = {
-  'New Course': {
-    gradient: ['rgba(0, 0, 0, 0.4)', 'transparent'],
-    badgeColor: '#3498db',
-    defaultImage: 'https://via.placeholder.com/300x180.png?text=New+Courses',
-  },
-  Product: {
-    gradient: ['rgba(0, 0, 0, 0.5)', 'transparent'],
-    badgeColor: '#e67e22',
-    defaultImage: 'https://via.placeholder.com/300x180.png?text=Product',
-  },
-  Sale: {
-    gradient: ['rgba(192, 57, 43, 0.6)', 'transparent'],
-    badgeColor: '#c0392b',
-    defaultImage: 'https://via.placeholder.com/300x180.png?text=Sale',
-  },
-  Promotion: {
-    gradient: ['rgba(39, 174, 96, 0.6)', 'transparent'],
-    badgeColor: '#27ae60',
-    defaultImage: 'https://via.placeholder.com/300x180.png?text=Promotion',
-  },
-  Event: {
-    gradient: ['rgba(142, 68, 173, 0.6)', 'transparent'],
-    badgeColor: '#8e44ad',
-    defaultImage: 'https://via.placeholder.com/300x180.png?text=Event',
-  },
+// Default dynamic style configuration
+const defaultStyleConfig = {
+  cardHeight: viewportWidth * 0.5,
+  cardWidth: viewportWidth * 0.8,
+  gradientColors: ['rgba(0, 0, 0, 0.4)', 'transparent'],
+  badgeColor: '#3498db',
+  defaultImage: 'https://via.placeholder.com/300x180.png?text=Ad',
 };
 
 const animationMapping = {
@@ -53,41 +33,41 @@ const AdCard = ({ onPress, currentTheme, adData }) => {
     image,
     title = 'Check out this ad!',
     subtitle = '',
-    category = 'New Course',
+    category = 'General',
     cardDesign = 'basic',
-    layoutHint = {},  // optional layout overrides from the backend
-    backgroundColor,
-    textColor,
+    styleConfig = {},
   } = adData || {};
 
-  const catStyle = categoryStyles[category] || categoryStyles['New Course'];
+  // Merge provided styleConfig with defaults
+  const mergedStyleConfig = { ...defaultStyleConfig, ...styleConfig };
+
   const animationType = animationMapping[cardDesign] || animationMapping.basic;
 
   return (
-    <Animatable.View animation={animationType} duration={800} style={[styles.adContainer, layoutHint, { backgroundColor: backgroundColor || '#fff' }]}>
+    <Animatable.View animation={animationType} duration={800} style={[styles.adContainer, { width: mergedStyleConfig.cardWidth, height: mergedStyleConfig.cardHeight }]}>
       <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.adContainer}>
         <ImageBackground
-          source={{ uri: image || catStyle.defaultImage }}
+          source={{ uri: image || mergedStyleConfig.defaultImage }}
           style={styles.imageBackground}
           imageStyle={styles.imageStyle}
         >
           <LinearGradient
-            colors={catStyle.gradient}
+            colors={mergedStyleConfig.gradientColors}
             start={{ x: 0, y: 1 }}
             end={{ x: 0, y: 0 }}
             style={styles.gradientOverlay}
           >
             <View style={styles.textContainer}>
-              <Text style={[styles.adTitle, { color: textColor || currentTheme?.adTextColor || '#fff' }]}>
+              <Text style={[styles.adTitle, { color: currentTheme?.adTextColor || '#fff' }]}>
                 {title}
               </Text>
               {subtitle ? (
-                <Text style={[styles.adSubtitle, { color: textColor || currentTheme?.adTextColor || '#eee' }]}>
+                <Text style={[styles.adSubtitle, { color: currentTheme?.adTextColor || '#eee' }]}>
                   {subtitle}
                 </Text>
               ) : null}
             </View>
-            <View style={[styles.badge, { backgroundColor: catStyle.badgeColor }]}>
+            <View style={[styles.badge, { backgroundColor: mergedStyleConfig.badgeColor }]}>
               <Text style={styles.badgeText}>{category}</Text>
             </View>
           </LinearGradient>
@@ -99,7 +79,6 @@ const AdCard = ({ onPress, currentTheme, adData }) => {
 
 const styles = StyleSheet.create({
   adContainer: {
-    width: viewportWidth * 0.8,
     borderRadius: 15,
     overflow: 'hidden',
     backgroundColor: '#fff',
