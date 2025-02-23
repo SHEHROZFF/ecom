@@ -1,15 +1,6 @@
 // models/Ad.js
 const mongoose = require('mongoose');
 
-const styleConfigSchema = mongoose.Schema({
-  cardHeight: { type: Number },         // Height in pixels (or relative units)
-  cardWidth: { type: Number },          // Width in pixels (or relative units)
-  gradientColors: { type: [String] },   // Array of gradient color strings
-  badgeColor: { type: String },         // Color for the badge
-  defaultImage: { type: String },       // Fallback image URL
-  layoutType: { type: String, default: 'carousel' } // Options: 'carousel' or 'marquee'
-});
-
 const adSchema = mongoose.Schema(
   {
     image: { type: String, required: true },
@@ -18,6 +9,12 @@ const adSchema = mongoose.Schema(
     description: { type: String },
     link: { type: String },
     category: { type: String, required: true },
+    templateId: {
+      type: String,
+      required: true,
+      enum: ['promo', 'newCourse', 'sale', 'event'],
+      default: 'newCourse',
+    },
     price: { type: Number },
     startDate: { type: Date },
     endDate: { type: Date },
@@ -27,7 +24,8 @@ const adSchema = mongoose.Schema(
     cardDesign: { type: String, default: 'basic' },
     backgroundColor: { type: String },
     textColor: { type: String },
-    styleConfig: styleConfigSchema, // Embedded dynamic style configuration
+    // Optional: any additional custom styles
+    customStyles: { type: Object },
   },
   {
     timestamps: true,

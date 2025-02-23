@@ -1,25 +1,9 @@
+// src/components/AdCard.js
 import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ImageBackground,
-  Dimensions,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ImageBackground } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Animatable from 'react-native-animatable';
-
-const { width: viewportWidth } = Dimensions.get('window');
-
-// Default dynamic style configuration
-const defaultStyleConfig = {
-  cardHeight: viewportWidth * 0.5,
-  cardWidth: viewportWidth * 0.8,
-  gradientColors: ['rgba(0, 0, 0, 0.4)', 'transparent'],
-  badgeColor: '#3498db',
-  defaultImage: 'https://via.placeholder.com/300x180.png?text=Ad',
-};
+import { templateStyles } from './templateStyles';
 
 const animationMapping = {
   basic: 'fadeIn',
@@ -29,45 +13,24 @@ const animationMapping = {
 };
 
 const AdCard = ({ onPress, currentTheme, adData }) => {
-  const {
-    image,
-    title = 'Check out this ad!',
-    subtitle = '',
-    category = 'General',
-    cardDesign = 'basic',
-    styleConfig = {},
-  } = adData || {};
-
-  // Merge provided styleConfig with defaults
-  const mergedStyleConfig = { ...defaultStyleConfig, ...styleConfig };
+  const { image, title = 'Check out this ad!', subtitle = '', category = 'General', cardDesign = 'basic', templateId, customStyles } = adData || {};
+  
+  // Map templateId to a prebuilt style object and merge with any custom overrides.
+  const baseStyle = templateStyles[templateId] || templateStyles.newCourse;
+  const mergedStyle = { ...baseStyle, ...customStyles };
 
   const animationType = animationMapping[cardDesign] || animationMapping.basic;
 
   return (
-    <Animatable.View animation={animationType} duration={800} style={[styles.adContainer, { width: mergedStyleConfig.cardWidth, height: mergedStyleConfig.cardHeight }]}>
-      <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.adContainer}>
-        <ImageBackground
-          source={{ uri: image || mergedStyleConfig.defaultImage }}
-          style={styles.imageBackground}
-          imageStyle={styles.imageStyle}
-        >
-          <LinearGradient
-            colors={mergedStyleConfig.gradientColors}
-            start={{ x: 0, y: 1 }}
-            end={{ x: 0, y: 0 }}
-            style={styles.gradientOverlay}
-          >
+    <Animatable.View animation={animationType} duration={800} style={[styles.adContainer, { width: mergedStyle.cardWidth, height: mergedStyle.cardHeight }]}>
+      <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.touchable}>
+        <ImageBackground source={{ uri: image || mergedStyle.defaultImage }} style={styles.imageBackground} imageStyle={styles.imageStyle}>
+          <LinearGradient colors={mergedStyle.gradientColors} start={{ x: 0, y: 1 }} end={{ x: 0, y: 0 }} style={styles.gradientOverlay}>
             <View style={styles.textContainer}>
-              <Text style={[styles.adTitle, { color: currentTheme?.adTextColor || '#fff' }]}>
-                {title}
-              </Text>
-              {subtitle ? (
-                <Text style={[styles.adSubtitle, { color: currentTheme?.adTextColor || '#eee' }]}>
-                  {subtitle}
-                </Text>
-              ) : null}
+              <Text style={[styles.adTitle, { color: currentTheme?.adTextColor || '#fff' }]}>{title}</Text>
+              {subtitle ? <Text style={[styles.adSubtitle, { color: currentTheme?.adTextColor || '#eee' }]}>{subtitle}</Text> : null}
             </View>
-            <View style={[styles.badge, { backgroundColor: mergedStyleConfig.badgeColor }]}>
+            <View style={[styles.badge, { backgroundColor: mergedStyle.badgeColor }]}>
               <Text style={styles.badgeText}>{category}</Text>
             </View>
           </LinearGradient>
@@ -87,51 +50,29 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowOffset: { width: 0, height: 3 },
     elevation: 5,
+    marginVertical: 10,
   },
-  imageBackground: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  imageStyle: {
-    resizeMode: 'cover',
-  },
-  gradientOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    padding: 15,
-  },
-  textContainer: {
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    borderRadius: 10,
-    padding: 10,
-  },
+  touchable: { flex: 1 },
+  imageBackground: { flex: 1, justifyContent: 'flex-end' },
+  imageStyle: { resizeMode: 'cover' },
+  gradientOverlay: { flex: 1, justifyContent: 'flex-end', padding: 15 },
+  textContainer: { backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 10, padding: 10, marginBottom: 20 },
   adTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
-    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowColor: 'rgba(0,0,0,0.6)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
   },
   adSubtitle: {
-    fontSize: 14,
+    fontSize: 16,
     marginTop: 5,
-    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowColor: 'rgba(0,0,0,0.6)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
-  badge: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
+  badge: { position: 'absolute', top: 10, right: 10, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12 },
+  badgeText: { color: '#fff', fontSize: 13, fontWeight: 'bold' },
 });
 
 export default AdCard;

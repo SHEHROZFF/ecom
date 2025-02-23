@@ -1,11 +1,7 @@
+// controllers/adController.js
 const asyncHandler = require('express-async-handler');
 const Ad = require('../models/Ad');
 
-/**
- * @desc    Create a new ad
- * @route   POST /api/ads
- * @access  Private/Admin
- */
 const createAd = asyncHandler(async (req, res) => {
   const {
     image,
@@ -14,6 +10,7 @@ const createAd = asyncHandler(async (req, res) => {
     description,
     link,
     category,
+    templateId,
     price,
     startDate,
     endDate,
@@ -23,7 +20,7 @@ const createAd = asyncHandler(async (req, res) => {
     cardDesign,
     backgroundColor,
     textColor,
-    styleConfig, // new field for dynamic style configuration
+    customStyles,
   } = req.body;
 
   if (!image || !title || !subtitle) {
@@ -38,6 +35,7 @@ const createAd = asyncHandler(async (req, res) => {
     description,
     link,
     category,
+    templateId,
     price,
     startDate,
     endDate,
@@ -47,28 +45,18 @@ const createAd = asyncHandler(async (req, res) => {
     cardDesign,
     backgroundColor,
     textColor,
-    styleConfig,
+    customStyles,
   });
 
   const createdAd = await ad.save();
   res.status(201).json(createdAd);
 });
 
-/**
- * @desc    Get all ads
- * @route   GET /api/ads
- * @access  Public
- */
 const getAds = asyncHandler(async (req, res) => {
   const ads = await Ad.find({});
   res.json({ success: true, data: ads });
 });
 
-/**
- * @desc    Get a single ad by ID
- * @route   GET /api/ads/:id
- * @access  Public
- */
 const getAdById = asyncHandler(async (req, res) => {
   const ad = await Ad.findById(req.params.id);
   if (ad) {
@@ -79,11 +67,6 @@ const getAdById = asyncHandler(async (req, res) => {
   }
 });
 
-/**
- * @desc    Update an ad
- * @route   PUT /api/ads/:id
- * @access  Private/Admin
- */
 const updateAd = asyncHandler(async (req, res) => {
   const {
     image,
@@ -92,6 +75,7 @@ const updateAd = asyncHandler(async (req, res) => {
     description,
     link,
     category,
+    templateId,
     price,
     startDate,
     endDate,
@@ -101,11 +85,10 @@ const updateAd = asyncHandler(async (req, res) => {
     cardDesign,
     backgroundColor,
     textColor,
-    styleConfig,
+    customStyles,
   } = req.body;
 
   const ad = await Ad.findById(req.params.id);
-
   if (ad) {
     ad.image = image || ad.image;
     ad.title = title || ad.title;
@@ -113,6 +96,7 @@ const updateAd = asyncHandler(async (req, res) => {
     ad.description = description || ad.description;
     ad.link = link || ad.link;
     ad.category = category || ad.category;
+    ad.templateId = templateId || ad.templateId;
     ad.price = price || ad.price;
     ad.startDate = startDate || ad.startDate;
     ad.endDate = endDate || ad.endDate;
@@ -122,7 +106,7 @@ const updateAd = asyncHandler(async (req, res) => {
     ad.cardDesign = cardDesign || ad.cardDesign;
     ad.backgroundColor = backgroundColor || ad.backgroundColor;
     ad.textColor = textColor || ad.textColor;
-    ad.styleConfig = styleConfig || ad.styleConfig;
+    ad.customStyles = customStyles || ad.customStyles;
 
     const updatedAd = await ad.save();
     res.json(updatedAd);
@@ -132,11 +116,6 @@ const updateAd = asyncHandler(async (req, res) => {
   }
 });
 
-/**
- * @desc    Delete an ad
- * @route   DELETE /api/ads/:id
- * @access  Private/Admin
- */
 const deleteAd = asyncHandler(async (req, res) => {
   const ad = await Ad.findById(req.params.id);
   if (ad) {

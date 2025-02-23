@@ -1,13 +1,8 @@
+// routes/adsRoutes.js
 const express = require('express');
 const router = express.Router();
 const { protect, admin } = require('../middleware/authMiddleware');
-const {
-  createAd,
-  getAds,
-  getAdById,
-  updateAd,
-  deleteAd,
-} = require('../controllers/adController');
+const { createAd, getAds, getAdById, updateAd, deleteAd } = require('../controllers/adController');
 
 router.route('/')
   .get(getAds)

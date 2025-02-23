@@ -1,3 +1,4 @@
+// src/components/AdsSection.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import AdsList from './AdsList';
@@ -12,12 +13,14 @@ const AdsSection = ({ currentTheme, onAdPress, refreshSignal, categoryFilter }) 
     try {
       const response = await fetchAds();
       if (response?.success) {
-        // Filter ads based on categoryFilter if provided
-        const filteredAds = Array.isArray(categoryFilter) && categoryFilter.length
-          ? response.data.filter(ad => categoryFilter.includes(ad.category))
-          : categoryFilter
-          ? response.data.filter(ad => ad.category === categoryFilter)
-          : response.data;
+        let filteredAds = response.data;
+        if (categoryFilter) {
+          if (typeof categoryFilter === 'string') {
+            filteredAds = filteredAds.filter(ad => ad.category === categoryFilter);
+          } else if (Array.isArray(categoryFilter)) {
+            filteredAds = filteredAds.filter(ad => categoryFilter.includes(ad.category));
+          }
+        }
         setAds(filteredAds);
       } else {
         setAds([]);
@@ -41,7 +44,6 @@ const AdsSection = ({ currentTheme, onAdPress, refreshSignal, categoryFilter }) 
       </View>
     );
   }
-
   if (!ads.length) return null;
 
   return (
@@ -59,22 +61,17 @@ const styles = StyleSheet.create({
   sectionWrapper: {
     marginHorizontal: 15,
     marginBottom: 20,
+    paddingVertical: 10,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    marginTop: 15,
-  },
-  sectionDivider: {
-    height: 2,
-    backgroundColor: 'rgba(0,0,0,0.1)',
-    marginVertical: 8,
-    borderRadius: 2,
-  },
-  loadingContainer: {
-    marginVertical: 10,
-    alignItems: 'center',
-  },
+  sectionTitle: { fontSize: 24, fontWeight: '800', marginTop: 10, textAlign: 'center' },
+  sectionDivider: { height: 3, backgroundColor: '#00aced', marginVertical: 12, borderRadius: 2, marginHorizontal: 50 },
+  loadingContainer: { marginVertical: 10, alignItems: 'center' },
 });
 
 export default AdsSection;
