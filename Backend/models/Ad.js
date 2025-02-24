@@ -1,4 +1,3 @@
-// models/Ad.js
 const mongoose = require('mongoose');
 
 const adSchema = mongoose.Schema(
@@ -9,7 +8,7 @@ const adSchema = mongoose.Schema(
     description: { type: String },
     link: { type: String },
     category: { type: String, required: true },
-    // New field for design templates:
+    // Field for selecting the design template:
     templateId: {
       type: String,
       required: true,
@@ -25,13 +24,53 @@ const adSchema = mongoose.Schema(
     cardDesign: { type: String, default: 'basic' },
     backgroundColor: { type: String },
     textColor: { type: String },
-    // Optional custom style overrides
+    // Optional custom style overrides for inner styling only
     customStyles: { type: Object },
   },
   { timestamps: true }
 );
 
 module.exports = mongoose.model('Ad', adSchema);
+
+
+
+
+
+
+// // models/Ad.js
+// const mongoose = require('mongoose');
+
+// const adSchema = mongoose.Schema(
+//   {
+//     image: { type: String, required: true },
+//     title: { type: String, required: true },
+//     subtitle: { type: String, required: true },
+//     description: { type: String },
+//     link: { type: String },
+//     category: { type: String, required: true },
+//     // New field for design templates:
+//     templateId: {
+//       type: String,
+//       required: true,
+//       enum: ['promo', 'newCourse', 'sale', 'event'],
+//       default: 'newCourse',
+//     },
+//     price: { type: Number },
+//     startDate: { type: Date },
+//     endDate: { type: Date },
+//     targetAudience: { type: String },
+//     ctaText: { type: String },
+//     priority: { type: Number, default: 0 },
+//     cardDesign: { type: String, default: 'basic' },
+//     backgroundColor: { type: String },
+//     textColor: { type: String },
+//     // Optional custom style overrides
+//     customStyles: { type: Object },
+//   },
+//   { timestamps: true }
+// );
+
+// module.exports = mongoose.model('Ad', adSchema);
 
 
 

@@ -98,7 +98,7 @@ const AICoursesScreen = () => {
 
         const currentPage = isRefresh ? 1 : page;
         const coursesResponse = await fetchCourses(currentPage, PAGE_LIMIT);
-        console.log('fetchCourses response', coursesResponse.data);
+        // console.log('fetchCourses response', coursesResponse.data);
         
         if (coursesResponse.success) {
           const newCourses = coursesResponse.data.map((c) => ({
@@ -288,7 +288,8 @@ const AICoursesScreen = () => {
         currentTheme={currentTheme}
         onAdPress={handleAdPress}
         refreshSignal={adsRefresh}
-        // categoryFilter= 'New Course'
+        // categoryFilter= 'Technology'
+        templateFilter="all"
       />
 
       {/* All Courses title */}
