@@ -1,3 +1,4 @@
+// models/Ad.js
 const mongoose = require('mongoose');
 
 const adSchema = mongoose.Schema(
@@ -8,7 +9,7 @@ const adSchema = mongoose.Schema(
     description: { type: String },
     link: { type: String },
     category: { type: String, required: true },
-    // Field for selecting the design template:
+    // Template for design selection
     templateId: {
       type: String,
       required: true,
@@ -24,7 +25,19 @@ const adSchema = mongoose.Schema(
     cardDesign: { type: String, default: 'basic' },
     backgroundColor: { type: String },
     textColor: { type: String },
-    // Optional custom style overrides for inner styling only
+    // Additional fields for specific templates
+    promoCode: { type: String },             // For promo ads
+    limitedOffer: { type: Boolean },           // For promo ads
+    instructor: { type: String },              // For newCourse ads
+    courseInfo: { type: String },              // For newCourse ads
+    rating: { type: Number },                  // For newCourse ads
+    originalPrice: { type: Number },           // For sale ads
+    salePrice: { type: Number },               // For sale ads
+    discountPercentage: { type: Number },      // For sale ads
+    saleEnds: { type: Date },                  // For sale ads
+    eventDate: { type: Date },                 // For event ads
+    eventLocation: { type: String },           // For event ads
+    // Optional custom style overrides
     customStyles: { type: Object },
   },
   { timestamps: true }

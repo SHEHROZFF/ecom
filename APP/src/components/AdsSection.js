@@ -23,7 +23,7 @@ const AdsSection = ({ currentTheme, onAdPress, refreshSignal, categoryFilter, te
       const response = await fetchAds();
       if (response?.success) {
         // Now we assume API returns ads as an array in response.data directly
-        let fetchedAds = response.data || [];
+        let fetchedAds = response.data.data || [];
         if (categoryFilter) {
           if (typeof categoryFilter === 'string') {
             fetchedAds = fetchedAds.filter(ad => ad.category === categoryFilter);

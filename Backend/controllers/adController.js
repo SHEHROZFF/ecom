@@ -19,6 +19,17 @@ const createAd = asyncHandler(async (req, res) => {
     cardDesign,
     backgroundColor,
     textColor,
+    promoCode,
+    limitedOffer,
+    instructor,
+    courseInfo,
+    rating,
+    originalPrice,
+    salePrice,
+    discountPercentage,
+    saleEnds,
+    eventDate,
+    eventLocation,
     customStyles,
   } = req.body;
 
@@ -44,12 +55,72 @@ const createAd = asyncHandler(async (req, res) => {
     cardDesign,
     backgroundColor,
     textColor,
+    promoCode,
+    limitedOffer,
+    instructor,
+    courseInfo,
+    rating,
+    originalPrice,
+    salePrice,
+    discountPercentage,
+    saleEnds,
+    eventDate,
+    eventLocation,
     customStyles,
   });
 
   const createdAd = await ad.save();
   res.status(201).json(createdAd);
 });
+// const createAd = asyncHandler(async (req, res) => {
+//   const {
+//     image,
+//     title,
+//     subtitle,
+//     description,
+//     link,
+//     category,
+//     templateId,
+//     price,
+//     startDate,
+//     endDate,
+//     targetAudience,
+//     ctaText,
+//     priority,
+//     cardDesign,
+//     backgroundColor,
+//     textColor,
+//     customStyles,
+//   } = req.body;
+
+//   if (!image || !title || !subtitle) {
+//     res.status(400);
+//     throw new Error('Please provide image, title, and subtitle for the ad.');
+//   }
+
+//   const ad = new Ad({
+//     image,
+//     title,
+//     subtitle,
+//     description,
+//     link,
+//     category,
+//     templateId,
+//     price,
+//     startDate,
+//     endDate,
+//     targetAudience,
+//     ctaText,
+//     priority,
+//     cardDesign,
+//     backgroundColor,
+//     textColor,
+//     customStyles,
+//   });
+
+//   const createdAd = await ad.save();
+//   res.status(201).json(createdAd);
+// });
 
 const getAds = asyncHandler(async (req, res) => {
   const ads = await Ad.find({});
@@ -68,6 +139,23 @@ const getAdById = asyncHandler(async (req, res) => {
 
 const updateAd = asyncHandler(async (req, res) => {
   const {
+    // image,
+    // title,
+    // subtitle,
+    // description,
+    // link,
+    // category,
+    // templateId,
+    // price,
+    // startDate,
+    // endDate,
+    // targetAudience,
+    // ctaText,
+    // priority,
+    // cardDesign,
+    // backgroundColor,
+    // textColor,
+    // customStyles,
     image,
     title,
     subtitle,
@@ -84,6 +172,17 @@ const updateAd = asyncHandler(async (req, res) => {
     cardDesign,
     backgroundColor,
     textColor,
+    promoCode,
+    limitedOffer,
+    instructor,
+    courseInfo,
+    rating,
+    originalPrice,
+    salePrice,
+    discountPercentage,
+    saleEnds,
+    eventDate,
+    eventLocation,
     customStyles,
   } = req.body;
 
@@ -106,6 +205,18 @@ const updateAd = asyncHandler(async (req, res) => {
     ad.backgroundColor = backgroundColor || ad.backgroundColor;
     ad.textColor = textColor || ad.textColor;
     ad.customStyles = customStyles || ad.customStyles;
+
+    ad.promoCode = promoCode || ad.promoCode;
+    ad.limitedOffer = limitedOffer || ad.limitedOffer;
+    ad.instructor = instructor || ad.instructor;
+    ad.courseInfo = courseInfo || ad.courseInfo;
+    ad.rating = rating || ad.rating;
+    ad.originalPrice = originalPrice || ad.originalPrice;
+    ad.salePrice = salePrice || ad.salePrice;
+    ad.discountPercentage = discountPercentage || ad.discountPercentage;
+    ad.saleEnds = saleEnds || ad.saleEnds;
+    ad.eventDate = eventDate || ad.eventDate;
+    ad.eventLocation = eventLocation || ad.eventLocation;
 
     const updatedAd = await ad.save();
     res.json(updatedAd);
