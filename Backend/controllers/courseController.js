@@ -165,6 +165,7 @@ const getCourses = asyncHandler(async (req, res) => {
     .select(
       'title description image rating reviews isFeatured videos difficultyLevel language topics totalDuration numberOfLectures category tags requirements whatYouWillLearn'
     )
+    .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
     .lean();
