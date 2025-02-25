@@ -188,15 +188,32 @@ const getFeaturedReels = asyncHandler(async (req, res) => {
   const limit = Number(req.query.limit) || 5;
   const skip = (page - 1) * limit;
 
+  // Sorting by creation date (newest first)
   const reels = await Course.find({ isFeatured: true })
     .select(
       'title shortVideoLink image rating reviews difficultyLevel language topics totalDuration numberOfLectures category tags requirements whatYouWillLearn'
     )
+    .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);
 
   res.json(reels);
 });
+
+// const getFeaturedReels = asyncHandler(async (req, res) => {
+//   const page = Number(req.query.page) || 1;
+//   const limit = Number(req.query.limit) || 5;
+//   const skip = (page - 1) * limit;
+
+//   const reels = await Course.find({ isFeatured: true })
+//     .select(
+//       'title shortVideoLink image rating reviews difficultyLevel language topics totalDuration numberOfLectures category tags requirements whatYouWillLearn'
+//     )
+//     .skip(skip)
+//     .limit(limit);
+
+//   res.json(reels);
+// });
 
 /**
  * @desc    Quick search for courses by title/description

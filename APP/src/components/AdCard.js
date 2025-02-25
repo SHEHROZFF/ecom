@@ -1,4 +1,3 @@
-// src/components/AdCard.js
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ImageBackground } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -6,10 +5,11 @@ import * as Animatable from 'react-native-animatable';
 import { templateStyles } from './templateStyles';
 
 const animationMapping = {
-  basic: 'fadeIn',
-  modern: 'slideInRight',
-  minimal: 'zoomIn',
-  detailed: 'flipInY',
+  promo: 'fadeInDown',
+  newCourse: 'fadeInUp',
+  sale: 'zoomIn',
+  event: 'slideInLeft',
+  default: 'fadeIn',
 };
 
 const AdCard = ({ onPress, currentTheme, adData }) => {
@@ -18,7 +18,6 @@ const AdCard = ({ onPress, currentTheme, adData }) => {
     title = 'Check out this ad!',
     subtitle = '',
     category = 'General',
-    cardDesign = 'basic',
     templateId,
     customStyles,
     promoCode,
@@ -34,7 +33,7 @@ const AdCard = ({ onPress, currentTheme, adData }) => {
     eventLocation,
   } = adData || {};
 
-  // Get structural properties from template and merge inner styles
+  // Merge base template styles with any overrides
   const baseStyle = templateStyles[templateId] || templateStyles.newCourse;
   const structureStyle = {
     cardWidth: baseStyle.cardWidth,
@@ -45,166 +44,349 @@ const AdCard = ({ onPress, currentTheme, adData }) => {
   const innerDefault = baseStyle.inner || {};
   const innerStyles = { ...innerDefault, ...customStyles };
 
-  const animationType = animationMapping[cardDesign] || animationMapping.basic;
+  const animationType = animationMapping[templateId] || animationMapping.default;
 
-  let contentLayout;
-  switch (templateId) {
-    case 'promo':
-      contentLayout = (
-        <View style={styles.contentContainer}>
-          <Text style={[styles.title, { color: innerStyles.textColor, fontSize: innerStyles.fontSizeTitle, fontWeight: innerStyles.fontWeightTitle, textAlign: innerStyles.textAlign }]}>
-            {title}
+  // PROMO LAYOUT
+  if (templateId === 'promo') {
+    return (
+      <>
+        <View style={[styles.categoryBadge, { backgroundColor: innerStyles.badgeColor, top: 15, right: 25, zIndex: 1, transform: [{ rotate: '30deg' }] }]}>
+          <Text style={styles.badgeLabel} allowFontScaling>
+            {category}
           </Text>
-          {subtitle && (
-            <Text style={[styles.subtitle, { color: innerStyles.textColor, fontSize: innerStyles.fontSizeSubtitle, textAlign: innerStyles.textAlign }]}>
-              {subtitle}
-            </Text>
-          )}
-          {promoCode && (
-            <Text style={[styles.detail, { color: innerStyles.textColor, fontSize: innerStyles.fontSizeDetail }]}>
-              Use Code: {promoCode}
-            </Text>
-          )}
-          {limitedOffer && (
-            <Text style={[styles.detail, { color: innerStyles.textColor, fontSize: innerStyles.fontSizeDetail }]}>
-              Limited Time Offer!
-            </Text>
-          )}
         </View>
-      );
-      break;
-    case 'newCourse':
-      contentLayout = (
-        <View style={styles.contentContainer}>
-          <Text style={[styles.title, { color: innerStyles.textColor, fontSize: innerStyles.fontSizeTitle, fontWeight: innerStyles.fontWeightTitle, textAlign: innerStyles.textAlign }]}>
-            {title}
-          </Text>
-          {subtitle && (
-            <Text style={[styles.subtitle, { color: innerStyles.textColor, fontSize: innerStyles.fontSizeSubtitle, textAlign: innerStyles.textAlign }]}>
-              {subtitle}
-            </Text>
-          )}
-          {instructor && (
-            <Text style={[styles.detail, { color: innerStyles.textColor, fontSize: innerStyles.fontSizeDetail }]}>
-              Instructor: {instructor}
-            </Text>
-          )}
-          {courseInfo && (
-            <Text style={[styles.detail, { color: innerStyles.textColor, fontSize: innerStyles.fontSizeDetail }]}>
-              {courseInfo}
-            </Text>
-          )}
-          {rating && (
-            <Text style={[styles.detail, { color: innerStyles.textColor, fontSize: innerStyles.fontSizeDetail }]}>
-              Rating: {rating} / 5
-            </Text>
-          )}
-        </View>
-      );
-      break;
-    case 'sale':
-      contentLayout = (
-        <View style={styles.contentContainer}>
-          <Text style={[styles.title, { color: innerStyles.textColor, fontSize: innerStyles.fontSizeTitle, fontWeight: innerStyles.fontWeightTitle, textAlign: innerStyles.textAlign }]}>
-            {title}
-          </Text>
-          {subtitle && (
-            <Text style={[styles.subtitle, { color: innerStyles.textColor, fontSize: innerStyles.fontSizeSubtitle, textAlign: innerStyles.textAlign }]}>
-              {subtitle}
-            </Text>
-          )}
-          {(originalPrice && salePrice) && (
-            <View style={styles.priceContainer}>
-              <Text style={[styles.originalPrice, { color: innerStyles.textColor, fontSize: innerStyles.fontSizeDetail }]}>
-                ${originalPrice}
-              </Text>
-              <Text style={[styles.salePrice, { color: innerStyles.textColor, fontSize: innerStyles.fontSizeDetail }]}>
-                ${salePrice}
-              </Text>
-            </View>
-          )}
-          {discountPercentage && (
-            <Text style={[styles.detail, { color: innerStyles.textColor, fontSize: innerStyles.fontSizeDetail }]}>
-              Save {discountPercentage}%
-            </Text>
-          )}
-          {saleEnds && (
-            <Text style={[styles.detail, { color: innerStyles.textColor, fontSize: innerStyles.fontSizeDetail }]}>
-              Sale ends: {saleEnds}
-            </Text>
-          )}
-        </View>
-      );
-      break;
-    case 'event':
-      contentLayout = (
-        <View style={styles.contentContainer}>
-          <Text style={[styles.title, { color: innerStyles.textColor, fontSize: innerStyles.fontSizeTitle, fontWeight: innerStyles.fontWeightTitle, textAlign: innerStyles.textAlign }]}>
-            {title}
-          </Text>
-          {subtitle && (
-            <Text style={[styles.subtitle, { color: innerStyles.textColor, fontSize: innerStyles.fontSizeSubtitle, textAlign: innerStyles.textAlign }]}>
-              {subtitle}
-            </Text>
-          )}
-          {eventDate && (
-            <Text style={[styles.detail, { color: innerStyles.textColor, fontSize: innerStyles.fontSizeDetail }]}>
-              Date: {eventDate}
-            </Text>
-          )}
-          {eventLocation && (
-            <Text style={[styles.detail, { color: innerStyles.textColor, fontSize: innerStyles.fontSizeDetail }]}>
-              Location: {eventLocation}
-            </Text>
-          )}
-        </View>
-      );
-      break;
-    default:
-      contentLayout = (
-        <View style={styles.contentContainer}>
-          <Text style={[styles.title, { color: innerStyles.textColor, fontSize: innerStyles.fontSizeTitle, fontWeight: innerStyles.fontWeightTitle, textAlign: innerStyles.textAlign }]}>
-            {title}
-          </Text>
-          {subtitle && (
-            <Text style={[styles.subtitle, { color: innerStyles.textColor, fontSize: innerStyles.fontSizeSubtitle, textAlign: innerStyles.textAlign }]}>
-              {subtitle}
-            </Text>
-          )}
-        </View>
-      );
+        <Animatable.View
+          animation={animationType}
+          duration={900}
+          style={[styles.cardContainer, { width: structureStyle.cardWidth, height: structureStyle.cardHeight, borderColor: structureStyle.borderColor }]}
+        >
+          <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.cardTouchable}>
+            <ImageBackground
+              source={{ uri: image || structureStyle.defaultImage }}
+              style={styles.promoImage}
+              imageStyle={styles.promoImageStyle}
+            >
+              <LinearGradient
+                colors={innerStyles.gradientColors}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[styles.promoOverlay, { padding: innerStyles.padding }]}
+              >
+                <Text
+                  style={[styles.promoTitle, { fontSize: innerStyles.fontSizeTitle || 32, color: innerStyles.textColor || '#fff', transform: [{ rotate: '-5deg' }] }]}
+                  allowFontScaling
+                >
+                  {title.toUpperCase()}
+                </Text>
+                {subtitle ? (
+                  <Text
+                    style={[styles.promoSubtitle, { fontSize: innerStyles.fontSizeSubtitle || 20, color: innerStyles.textColor || '#fff' }]}
+                    allowFontScaling
+                  >
+                    {subtitle}
+                  </Text>
+                ) : null}
+                {promoCode ? (
+                  <View style={styles.promoCodeContainer}>
+                    <Text style={[styles.promoCodeText, { fontSize: innerStyles.fontSizeDetail || 16 }]} allowFontScaling>
+                      {promoCode}
+                    </Text>
+                  </View>
+                ) : null}
+                {limitedOffer ? (
+                  <Text style={[styles.limitedOfferText, { fontSize: innerStyles.fontSizeDetail || 16 }]} allowFontScaling>
+                    Limited Time Offer!
+                  </Text>
+                ) : null}
+              </LinearGradient>
+            </ImageBackground>
+          </TouchableOpacity>
+        </Animatable.View>
+      </>
+    );
   }
 
-  return (
-    <Animatable.View
-      animation={animationType}
-      duration={800}
-      style={[
-        styles.adContainer,
-        {
+  // NEW COURSE LAYOUT (Updated)
+  if (templateId === 'newCourse') {
+    return (
+      <Animatable.View
+        animation={animationType}
+        duration={900}
+        style={[styles.cardContainer, {
           width: structureStyle.cardWidth,
           height: structureStyle.cardHeight,
           borderColor: structureStyle.borderColor,
-        },
-      ]}
+          borderRadius: 14,
+          overflow: 'hidden',
+          elevation: 5,
+        }]}
+      >
+        <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.cardTouchable}>
+          <ImageBackground
+            source={{ uri: image || structureStyle.defaultImage }}
+            style={styles.newCourseImageUpdated}
+            imageStyle={styles.newCourseImageStyleUpdated}
+          >
+            <LinearGradient
+              colors={['rgba(0,0,0,0.8)', 'transparent', 'rgba(0,0,0,0.9)']}
+              style={[styles.newCourseOverlay, { padding: 20, borderRadius: 14 }]}
+            >
+              <View style={styles.newCourseTextContainerUpdated}>
+                <Text
+                  style={[styles.newCourseTitle, {
+                    fontSize: innerStyles.fontSizeTitle + 2,
+                    color: '#fff',
+                    textAlign: 'left',
+                    fontWeight: 'bold',
+                  }]}
+                  numberOfLines={2}
+                  ellipsizeMode="tail"
+                  allowFontScaling
+                >
+                  {title}
+                </Text>
+                {subtitle && (
+                  <Text
+                    style={[styles.newCourseSubtitle, {
+                      fontSize: innerStyles.fontSizeSubtitle,
+                      color: '#ddd',
+                      textAlign: 'left',
+                    }]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    allowFontScaling
+                  >
+                    {subtitle}
+                  </Text>
+                )}
+                {instructor && (
+                  <Text
+                    style={[styles.newCourseInstructor, {
+                      fontSize: innerStyles.fontSizeDetail,
+                      color: '#bbb',
+                      textAlign: 'left',
+                      marginTop: 4,
+                    }]}
+                    allowFontScaling
+                  >
+                    By {instructor}
+                  </Text>
+                )}
+                {courseInfo && (
+                  <Text
+                    style={[styles.newCourseInfo, {
+                      fontSize: innerStyles.fontSizeDetail,
+                      color: '#ccc',
+                      textAlign: 'left',
+                      marginTop: 6,
+                    }]}
+                    allowFontScaling
+                  >
+                    {courseInfo}
+                  </Text>
+                )}
+                {rating && (
+                  <View style={styles.ratingContainer}>
+                    <Text style={[styles.newCourseRating, { fontSize: innerStyles.fontSizeDetail, color: '#ffcc00' }]}>
+                      ⭐ {rating}/5
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </LinearGradient>
+            <View style={[styles.categoryBadge, {    position: 'absolute', 
+                top: 10, 
+                right: 10, 
+                backgroundColor: '#ff3d71', 
+                borderRadius: 20, 
+                paddingVertical: 4, 
+                paddingHorizontal: 12, 
+                shadowColor: '#000',
+                shadowOpacity: 0.3,
+                shadowRadius: 4,
+                elevation: 4,}]}>
+              <Text style={styles.badgeLabel} allowFontScaling>
+                {category}
+              </Text>
+            </View>
+          </ImageBackground>
+        </TouchableOpacity>
+      </Animatable.View>
+    );
+  }
+
+  // EVENT LAYOUT (Updated)
+  if (templateId === 'event') {
+    return (
+      <>
+      <View style={[styles.categoryBadge, { backgroundColor: innerStyles.badgeColor, top: 10, alignItems: 'center', zIndex: 1 }]}>
+        <Text style={styles.badgeLabel} allowFontScaling>
+          {category}
+        </Text>
+      </View>
+      <Animatable.View
+        animation={animationType}
+        duration={900}
+        style={[styles.cardContainer, { width: structureStyle.cardWidth, height: structureStyle.cardHeight, borderColor: structureStyle.borderColor }]}
+      >
+        <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.cardTouchable}>
+          <ImageBackground
+            source={{ uri: image || structureStyle.defaultImage }}
+            style={styles.eventImageUpdated}
+            imageStyle={styles.eventImageStyleUpdated}
+          >
+            <LinearGradient
+              colors={['transparent', 'rgba(0,0,0,0.8)']}
+              style={styles.eventOverlayUpdated}
+            >
+              <View style={styles.eventDetailsUpdated}>
+                <Text
+                  style={[styles.eventTitle, { fontSize: innerStyles.fontSizeTitle || 26, color: innerStyles.textColor || '#fff' }]}
+                  allowFontScaling
+                >
+                  {title}
+                </Text>
+                {subtitle ? (
+                  <Text
+                    style={[styles.eventSubtitle, { fontSize: innerStyles.fontSizeSubtitle || 18, color: innerStyles.textColor || '#fff' }]}
+                    allowFontScaling
+                  >
+                    {subtitle}
+                  </Text>
+                ) : null}
+                {eventDate ? (
+                  <Text
+                    style={[styles.eventDate, { fontSize: innerStyles.fontSizeDetail || 14, color: innerStyles.textColor || '#fff' }]}
+                    allowFontScaling
+                  >
+                    {eventDate}
+                  </Text>
+                ) : null}
+                {eventLocation ? (
+                  <Text
+                    style={[styles.eventLocation, { fontSize: innerStyles.fontSizeDetail || 14, color: innerStyles.textColor || '#fff' }]}
+                    allowFontScaling
+                  >
+                    {eventLocation}
+                  </Text>
+                ) : null}
+              </View>
+            </LinearGradient>
+          </ImageBackground>
+        </TouchableOpacity>
+      </Animatable.View>
+      </>
+    );
+  }
+
+  // SALE LAYOUT
+  if (templateId === 'sale') {
+    return (
+      <>
+        <View style={[styles.categoryBadge, { backgroundColor: innerStyles.badgeColor, left: 15, top: 55, zIndex: 1 }]}>
+          <Text style={styles.badgeLabel} allowFontScaling>
+            {category}
+          </Text>
+        </View>
+        <Animatable.View
+          animation={animationType}
+          duration={900}
+          style={[styles.cardContainer, { width: structureStyle.cardWidth, height: structureStyle.cardHeight, borderColor: structureStyle.borderColor }]}
+        >
+          <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.cardTouchable}>
+            <View style={styles.saleContainer}>
+              <ImageBackground
+                source={{ uri: image || structureStyle.defaultImage }}
+                style={styles.saleImage}
+                imageStyle={styles.saleImageStyle}
+              >
+                <LinearGradient
+                  colors={innerStyles.gradientColors}
+                  start={{ x: 0, y: 1 }}
+                  end={{ x: 0, y: 0 }}
+                  style={[styles.saleImageOverlay, { padding: innerStyles.padding }]}
+                >
+                  <Text
+                    style={[styles.saleTitle, { fontSize: innerStyles.fontSizeTitle || 30, color: innerStyles.textColor || '#fff' }]}
+                    allowFontScaling
+                  >
+                    {title}
+                  </Text>
+                </LinearGradient>
+              </ImageBackground>
+              <View style={styles.saleDetails}>
+                {subtitle ? (
+                  <Text style={[styles.saleSubtitle, { fontSize: innerStyles.fontSizeSubtitle || 20 }]} allowFontScaling>
+                    {subtitle}
+                  </Text>
+                ) : null}
+                {(originalPrice && salePrice) ? (
+                  <View style={styles.salePriceContainer}>
+                    <Text style={[styles.originalPrice, { fontSize: innerStyles.fontSizeDetail || 16 }]} allowFontScaling>
+                      ${originalPrice}
+                    </Text>
+                    <Text style={[styles.salePrice, { fontSize: innerStyles.fontSizeDetail || 16 }]} allowFontScaling>
+                      ${salePrice}
+                    </Text>
+                  </View>
+                ) : null}
+                {discountPercentage ? (
+                  <Text style={[styles.discountText, { fontSize: innerStyles.fontSizeDetail || 16 }]} allowFontScaling>
+                    Save {discountPercentage}%
+                  </Text>
+                ) : null}
+                {saleEnds ? (
+                  <Text style={[styles.saleEndsText, { fontSize: innerStyles.fontSizeDetail || 16 }]} allowFontScaling>
+                    Ends: {saleEnds}
+                  </Text>
+                ) : null}
+              </View>
+            </View>
+          </TouchableOpacity>
+        </Animatable.View>
+      </>
+    );
+  }
+
+  // DEFAULT LAYOUT
+  return (
+    <Animatable.View
+      animation={animationType}
+      duration={900}
+      style={[styles.cardContainer, { width: structureStyle.cardWidth, height: structureStyle.cardHeight, borderColor: structureStyle.borderColor }]}
     >
-      <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.touchable}>
+      <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.cardTouchable}>
         <ImageBackground
           source={{ uri: image || structureStyle.defaultImage }}
-          style={styles.imageBackground}
-          imageStyle={styles.imageStyle}
+          style={styles.defaultImage}
+          imageStyle={styles.defaultImageStyle}
         >
           <LinearGradient
             colors={innerStyles.gradientColors}
             start={{ x: 0, y: 1 }}
             end={{ x: 0, y: 0 }}
-            style={[styles.gradientOverlay, { padding: innerStyles.padding }]}
+            style={[styles.defaultOverlay, { padding: innerStyles.padding }]}
           >
-            {contentLayout}
-            <View style={[styles.badge, { backgroundColor: innerStyles.badgeColor }]}>
-              <Text style={styles.badgeText}>{category}</Text>
-            </View>
+            <Text
+              style={[styles.defaultTitle, { fontSize: innerStyles.fontSizeTitle || 28, color: innerStyles.textColor || '#fff' }]}
+              allowFontScaling
+            >
+              {title}
+            </Text>
+            {subtitle ? (
+              <Text
+                style={[styles.defaultSubtitle, { fontSize: innerStyles.fontSizeSubtitle || 18, color: innerStyles.textColor || '#fff' }]}
+                allowFontScaling
+              >
+                {subtitle}
+              </Text>
+            ) : null}
           </LinearGradient>
+          <View style={[styles.categoryBadge, { backgroundColor: innerStyles.badgeColor }]}>
+            <Text style={styles.badgeLabel} allowFontScaling>
+              {category}
+            </Text>
+          </View>
         </ImageBackground>
       </TouchableOpacity>
     </Animatable.View>
@@ -212,30 +394,148 @@ const AdCard = ({ onPress, currentTheme, adData }) => {
 };
 
 const styles = StyleSheet.create({
-  adContainer: {
-    borderRadius: 15,
+  cardContainer: {
+    borderRadius: 24,
     overflow: 'hidden',
     backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
     shadowColor: '#000',
-    shadowRadius: 6,
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 5,
-    marginVertical: 10,
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
+    marginVertical: 12,
   },
-  touchable: { flex: 1 },
-  imageBackground: { flex: 1, justifyContent: 'flex-end' },
-  imageStyle: { resizeMode: 'cover' },
-  gradientOverlay: { flex: 1, justifyContent: 'flex-end' },
-  contentContainer: { flex: 1, justifyContent: 'center' },
-  title: {},
-  subtitle: { marginTop: 5 },
-  detail: { marginTop: 5 },
-  priceContainer: { flexDirection: 'row', alignItems: 'center', marginTop: 5 },
-  originalPrice: { textDecorationLine: 'line-through', marginRight: 8 },
-  salePrice: { fontWeight: 'bold' },
-  badge: { position: 'absolute', top: 10, right: 10, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14 },
-  badgeText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  cardTouchable: { flex: 1 },
+  // Promo Styles
+  promoImage: { flex: 1 },
+  promoImageStyle: { resizeMode: 'cover' },
+  promoOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.3)' },
+  promoTitle: {
+    fontWeight: 'bold',
+    letterSpacing: 1.5,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+    flexShrink: 1,
+    flexWrap: 'wrap',
+    textAlign: 'center',
+  },
+  promoSubtitle: {
+    marginTop: 10,
+    flexShrink: 1,
+    flexWrap: 'wrap',
+    textAlign: 'center',
+  },
+  promoCodeContainer: { marginTop: 14, backgroundColor: '#fff', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
+  promoCodeText: { fontWeight: 'bold', color: '#000' },
+  limitedOfferText: { marginTop: 10, fontStyle: 'italic' },
+    // Updated New Course Styles (Improved UI)
+    newCourseImageUpdated: { 
+      flex: 1, 
+      justifyContent: 'flex-end',
+      borderRadius: 14,
+    },
+    newCourseImageStyleUpdated: { 
+      resizeMode: 'cover', 
+      borderRadius: 14,
+    },
+    newCourseOverlay: { 
+      ...StyleSheet.absoluteFillObject, 
+      justifyContent: 'flex-end', 
+      padding: 18,
+      borderRadius: 14,
+      backgroundColor: 'rgba(0,0,0,0.1)', // Darker overlay for better contrast
+    },
+    newCourseTextContainerUpdated: { 
+      backgroundColor: 'rgba(0,0,0,0.5)', 
+      borderRadius: 12, 
+      padding: 12,
+    },
+    newCourseTitle: { 
+      fontWeight: 'bold', 
+      fontSize: 18, 
+      color: '#fff', 
+      marginBottom: 6, 
+      flexShrink: 1, 
+      flexWrap: 'wrap' 
+    },
+    newCourseSubtitle: { 
+      marginTop: 4, 
+      fontSize: 14, 
+      color: '#ddd', 
+      flexWrap: 'wrap' 
+    },
+    newCourseInstructor: { 
+      marginTop: 8, 
+      fontSize: 14, 
+      fontStyle: 'italic', 
+      color: '#bbb',
+      flexWrap: 'wrap'
+    },
+    newCourseInfo: { 
+      marginTop: 6, 
+      fontSize: 14, 
+      color: '#ccc', 
+      flexWrap: 'wrap' 
+    },
+    newCourseRating: { 
+      marginTop: 6, 
+      fontSize: 14, 
+      fontWeight: 'bold', 
+      color: '#ffcc00', 
+      flexWrap: 'wrap' 
+    },
+  // Sale Styles
+  saleContainer: { flex: 1, flexDirection: 'row' },
+  saleImage: { width: '55%', height: '100%' },
+  saleImageStyle: { resizeMode: 'cover' },
+  saleImageOverlay: { flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.4)' },
+  saleDetails: { flex: 1, backgroundColor: '#fff', padding: 10, justifyContent: 'center' },
+  saleTitle: { fontWeight: '700', marginBottom: 8, flexShrink: 1, flexWrap: 'wrap', textAlign: 'center' },
+  saleSubtitle: { marginBottom: 10, flexWrap: 'wrap' },
+  salePriceContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+  originalPrice: { textDecorationLine: 'line-through', marginRight: 10, color: '#888' },
+  salePrice: { fontWeight: 'bold', color: '#000', transform: [{ rotate: '-29deg' }], flexWrap: 'wrap', right: 5, bottom: 5 },
+  discountText: { color: '#e53935', fontWeight: '600' },
+  saleEndsText: { color: '#757575', flexWrap: 'wrap' },
+  // Event Styles (Original)
+  eventImage: { flex: 1 },
+  eventImageStyle: { resizeMode: 'cover' },
+  eventOverlay: { flex: 1, justifyContent: 'flex-end', paddingVertical: 16 },
+  eventDetails: { backgroundColor: 'rgba(0,0,0,0.7)', padding: 12, borderTopLeftRadius: 16 },
+  eventTitle: { fontWeight: '800', marginBottom: 4, flexShrink: 1, flexWrap: 'wrap', textAlign: 'center' },
+  eventSubtitle: { marginTop: 4, flexShrink: 1, flexWrap: 'wrap', textAlign: 'center' },
+  eventDate: { marginTop: 6, flexShrink: 1, flexWrap: 'wrap', textAlign: 'center' },
+  eventLocation: { marginTop: 4, flexShrink: 1, flexWrap: 'wrap', textAlign: 'center' },
+  // Updated Event Styles
+  eventImageUpdated: { 
+    flex: 1, 
+    justifyContent: 'flex-end' 
+  },
+  eventImageStyleUpdated: { 
+    resizeMode: 'cover' 
+  },
+  eventOverlayUpdated: { 
+    ...StyleSheet.absoluteFillObject, 
+    justifyContent: 'flex-end', 
+    padding: 16 
+  },
+  eventDetailsUpdated: { 
+    backgroundColor: 'rgba(0,0,0,0.6)', 
+    borderRadius: 10, 
+    padding: 12 
+  },
+  // Default Styles
+  defaultImage: { flex: 1 },
+  defaultImageStyle: { resizeMode: 'cover' },
+  defaultOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.3)' },
+  defaultTitle: { fontWeight: '700', flexShrink: 1, flexWrap: 'wrap', textAlign: 'center' },
+  defaultSubtitle: { marginTop: 6, flexShrink: 1, flexWrap: 'wrap', textAlign: 'center' },
+  // Badge (common)
+  categoryBadge: { position: 'absolute', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 },
+  badgeLabel: { color: '#fff', fontSize: 13, fontWeight: 'bold' },
 });
 
 export default AdCard;
@@ -244,538 +544,4 @@ export default AdCard;
 
 
 
-// // src/components/AdCard.js
-// import React from 'react';
-// import { View, Text, TouchableOpacity, StyleSheet, ImageBackground } from 'react-native';
-// import { LinearGradient } from 'expo-linear-gradient';
-// import * as Animatable from 'react-native-animatable';
-// import { templateStyles } from './templateStyles';
 
-// const animationMapping = {
-//   basic: 'fadeIn',
-//   modern: 'slideInRight',
-//   minimal: 'zoomIn',
-//   detailed: 'flipInY',
-// };
-
-// const AdCard = ({ onPress, currentTheme, adData }) => {
-//   const {
-//     image,
-//     title = 'Check out this ad!',
-//     subtitle = '',
-//     category = 'General',
-//     cardDesign = 'basic',
-//     templateId,
-//     customStyles,
-//     // Additional details for enhanced templates:
-//     promoCode,
-//     limitedOffer,
-//     instructor,
-//     courseInfo,
-//     rating,
-//     originalPrice,
-//     salePrice,
-//     discountPercentage,
-//     saleEnds,
-//     eventDate,
-//     eventLocation,
-//   } = adData || {};
-
-//   const baseStyle = templateStyles[templateId] || templateStyles.newCourse;
-//   const mergedStyle = { ...baseStyle, ...customStyles };
-//   const animationType = animationMapping[cardDesign] || animationMapping.basic;
-
-//   let contentLayout;
-//   switch (templateId) {
-//     case 'promo':
-//       contentLayout = (
-//         <View style={styles.promoTextContainer}>
-//           <Text style={[styles.promoTitle, { color: currentTheme?.adTextColor || '#fff' }]}>{title}</Text>
-//           {subtitle ? (
-//             <Text style={[styles.promoSubtitle, { color: currentTheme?.adTextColor || '#eee' }]}>{subtitle}</Text>
-//           ) : null}
-//           {promoCode ? (
-//             <Text style={[styles.promoDetail, { color: currentTheme?.adTextColor || '#ffeb3b' }]}>
-//               Use Code: {promoCode}
-//             </Text>
-//           ) : null}
-//           {limitedOffer ? (
-//             <Text style={[styles.promoDetail, { color: currentTheme?.adTextColor || '#ff5722' }]}>
-//               Limited Time Offer!
-//             </Text>
-//           ) : null}
-//         </View>
-//       );
-//       break;
-//     case 'newCourse':
-//       contentLayout = (
-//         <View style={styles.newCourseTextContainer}>
-//           <Text style={[styles.newCourseTitle, { color: currentTheme?.adTextColor || '#fff' }]}>{title}</Text>
-//           {subtitle ? (
-//             <Text style={[styles.newCourseSubtitle, { color: currentTheme?.adTextColor || '#eee' }]}>{subtitle}</Text>
-//           ) : null}
-//           {instructor ? (
-//             <Text style={[styles.courseDetail, { color: currentTheme?.adTextColor || '#cddc39' }]}>
-//               Instructor: {instructor}
-//             </Text>
-//           ) : null}
-//           {courseInfo ? (
-//             <Text style={[styles.courseDetail, { color: currentTheme?.adTextColor || '#cddc39' }]}>
-//               {courseInfo}
-//             </Text>
-//           ) : null}
-//           {rating ? (
-//             <Text style={[styles.courseDetail, { color: currentTheme?.adTextColor || '#ffc107' }]}>
-//               Rating: {rating} / 5
-//             </Text>
-//           ) : null}
-//         </View>
-//       );
-//       break;
-//     case 'sale':
-//       contentLayout = (
-//         <View style={styles.saleTextContainer}>
-//           <Text style={[styles.saleTitle, { color: currentTheme?.adTextColor || '#fff' }]}>{title}</Text>
-//           {subtitle ? (
-//             <Text style={[styles.saleSubtitle, { color: currentTheme?.adTextColor || '#eee' }]}>{subtitle}</Text>
-//           ) : null}
-//           {(originalPrice && salePrice) ? (
-//             <View style={styles.priceContainer}>
-//               <Text style={[styles.originalPrice, { color: currentTheme?.adTextColor || '#fff' }]}>
-//                 ${originalPrice}
-//               </Text>
-//               <Text style={[styles.salePrice, { color: currentTheme?.adTextColor || '#ffeb3b' }]}>
-//                 ${salePrice}
-//               </Text>
-//             </View>
-//           ) : null}
-//           {discountPercentage ? (
-//             <Text style={[styles.discountText, { color: currentTheme?.adTextColor || '#ff5722' }]}>
-//               Save {discountPercentage}%
-//             </Text>
-//           ) : null}
-//           {saleEnds ? (
-//             <Text style={[styles.saleEndsText, { color: currentTheme?.adTextColor || '#e91e63' }]}>
-//               Sale ends: {saleEnds}
-//             </Text>
-//           ) : null}
-//         </View>
-//       );
-//       break;
-//     case 'event':
-//       contentLayout = (
-//         <View style={styles.eventTextContainer}>
-//           <Text style={[styles.eventTitle, { color: currentTheme?.adTextColor || '#fff' }]}>{title}</Text>
-//           {subtitle ? (
-//             <Text style={[styles.eventSubtitle, { color: currentTheme?.adTextColor || '#eee' }]}>{subtitle}</Text>
-//           ) : null}
-//           {eventDate ? (
-//             <Text style={[styles.eventDetail, { color: currentTheme?.adTextColor || '#8bc34a' }]}>
-//               Date: {eventDate}
-//             </Text>
-//           ) : null}
-//           {eventLocation ? (
-//             <Text style={[styles.eventDetail, { color: currentTheme?.adTextColor || '#8bc34a' }]}>
-//               Location: {eventLocation}
-//             </Text>
-//           ) : null}
-//         </View>
-//       );
-//       break;
-//     default:
-//       contentLayout = (
-//         <View style={styles.defaultTextContainer}>
-//           <Text style={[styles.defaultTitle, { color: currentTheme?.adTextColor || '#fff' }]}>{title}</Text>
-//           {subtitle ? (
-//             <Text style={[styles.defaultSubtitle, { color: currentTheme?.adTextColor || '#eee' }]}>{subtitle}</Text>
-//           ) : null}
-//         </View>
-//       );
-//   }
-
-//   return (
-//     <Animatable.View
-//       animation={animationType}
-//       duration={800}
-//       style={[
-//         styles.adContainer,
-//         {
-//           width: mergedStyle.cardWidth,
-//           height: mergedStyle.cardHeight,
-//           borderColor: mergedStyle.borderColor,
-//           borderWidth: 1,
-//         },
-//       ]}
-//     >
-//       <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.touchable}>
-//         <ImageBackground
-//           source={{ uri: image || mergedStyle.defaultImage }}
-//           style={styles.imageBackground}
-//           imageStyle={styles.imageStyle}
-//         >
-//           <LinearGradient
-//             colors={mergedStyle.gradientColors}
-//             start={{ x: 0, y: 1 }}
-//             end={{ x: 0, y: 0 }}
-//             style={styles.gradientOverlay}
-//           >
-//             {contentLayout}
-//             <View style={[styles.badge, { backgroundColor: mergedStyle.badgeColor }]}>
-//               <Text style={styles.badgeText}>{category}</Text>
-//             </View>
-//           </LinearGradient>
-//         </ImageBackground>
-//       </TouchableOpacity>
-//     </Animatable.View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   adContainer: {
-//     borderRadius: 15,
-//     overflow: 'hidden',
-//     backgroundColor: '#fff',
-//     shadowColor: '#000',
-//     shadowRadius: 6,
-//     shadowOpacity: 0.2,
-//     shadowOffset: { width: 0, height: 3 },
-//     elevation: 5,
-//     marginVertical: 10,
-//   },
-//   touchable: { flex: 1 },
-//   imageBackground: { flex: 1, justifyContent: 'flex-end' },
-//   imageStyle: { resizeMode: 'cover' },
-//   gradientOverlay: { flex: 1, justifyContent: 'flex-end', padding: 15 },
-//   // Promo layout
-//   promoTextContainer: { alignItems: 'center', justifyContent: 'center', flex: 1 },
-//   promoTitle: { fontSize: 28, fontWeight: '900', textShadowColor: 'rgba(0,0,0,0.8)', textShadowOffset: { width: 0, height: 3 }, textShadowRadius: 5 },
-//   promoSubtitle: { fontSize: 20, marginTop: 5, textShadowColor: 'rgba(0,0,0,0.7)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 4 },
-//   promoDetail: { fontSize: 16, marginTop: 5 },
-//   // New Course layout
-//   newCourseTextContainer: { alignItems: 'flex-start', justifyContent: 'flex-start', flex: 1 },
-//   newCourseTitle: { fontSize: 24, fontWeight: '800', marginBottom: 4 },
-//   newCourseSubtitle: { fontSize: 18, opacity: 0.9 },
-//   courseDetail: { fontSize: 16, marginTop: 4 },
-//   // Sale layout
-//   saleTextContainer: { transform: [{ rotate: '-2deg' }], alignItems: 'center', justifyContent: 'center', flex: 1 },
-//   saleTitle: { fontSize: 26, fontWeight: '900', marginBottom: 4 },
-//   saleSubtitle: { fontSize: 20, opacity: 0.9 },
-//   priceContainer: { flexDirection: 'row', alignItems: 'center', marginTop: 5 },
-//   originalPrice: { fontSize: 16, textDecorationLine: 'line-through', marginRight: 8 },
-//   salePrice: { fontSize: 20, fontWeight: 'bold' },
-//   discountText: { fontSize: 16, marginTop: 5 },
-//   saleEndsText: { fontSize: 14, marginTop: 3, fontStyle: 'italic' },
-//   // Event layout
-//   eventTextContainer: { alignItems: 'center', justifyContent: 'flex-start', flex: 1, paddingTop: 20 },
-//   eventTitle: { fontSize: 26, fontWeight: '800', marginBottom: 4 },
-//   eventSubtitle: { fontSize: 20, opacity: 0.9 },
-//   eventDetail: { fontSize: 16, marginTop: 4 },
-//   // Default layout (fallback)
-//   defaultTextContainer: { alignItems: 'center', justifyContent: 'center', flex: 1 },
-//   defaultTitle: { fontSize: 24, fontWeight: '800' },
-//   defaultSubtitle: { fontSize: 18, opacity: 0.9 },
-//   badge: { position: 'absolute', top: 10, right: 10, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14 },
-//   badgeText: { color: '#fff', fontSize: 14, fontWeight: '700' },
-// });
-
-// export default AdCard;
-
-
-
-
-
-
-
-
-
-// // src/components/AdCard.js
-// import React from 'react';
-// import { View, Text, TouchableOpacity, StyleSheet, ImageBackground } from 'react-native';
-// import { LinearGradient } from 'expo-linear-gradient';
-// import * as Animatable from 'react-native-animatable';
-// import { templateStyles } from './templateStyles';
-
-// const animationMapping = {
-//   basic: 'fadeIn',
-//   modern: 'slideInRight',
-//   minimal: 'zoomIn',
-//   detailed: 'flipInY',
-// };
-
-// const AdCard = ({ onPress, currentTheme, adData }) => {
-//   const {
-//     image,
-//     title = 'Check out this ad!',
-//     subtitle = '',
-//     category = 'General',
-//     cardDesign = 'basic',
-//     templateId,
-//     customStyles,
-//   } = adData || {};
-
-//   const baseStyle = templateStyles[templateId] || templateStyles.newCourse;
-//   const mergedStyle = { ...baseStyle, ...customStyles };
-//   const animationType = animationMapping[cardDesign] || animationMapping.basic;
-
-//   return (
-//     <Animatable.View
-//       animation={animationType}
-//       duration={800}
-//       style={[
-//         styles.adContainer,
-//         {
-//           width: mergedStyle.cardWidth,
-//           height: mergedStyle.cardHeight,
-//           borderColor: mergedStyle.borderColor,
-//           borderWidth: 1,
-//         },
-//       ]}
-//     >
-//       <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.touchable}>
-//         <ImageBackground
-//           source={{ uri: image || mergedStyle.defaultImage }}
-//           style={styles.imageBackground}
-//           imageStyle={styles.imageStyle}
-//         >
-//           <LinearGradient
-//             colors={mergedStyle.gradientColors}
-//             start={{ x: 0, y: 1 }}
-//             end={{ x: 0, y: 0 }}
-//             style={styles.gradientOverlay}
-//           >
-//             <View style={styles.textContainer}>
-//               <Text style={[styles.adTitle, { color: currentTheme?.adTextColor || '#fff' }]}>{title}</Text>
-//               {subtitle ? (
-//                 <Text style={[styles.adSubtitle, { color: currentTheme?.adTextColor || '#eee' }]}>{subtitle}</Text>
-//               ) : null}
-//             </View>
-//             <View style={[styles.badge, { backgroundColor: mergedStyle.badgeColor }]}>
-//               <Text style={styles.badgeText}>{category}</Text>
-//             </View>
-//           </LinearGradient>
-//         </ImageBackground>
-//       </TouchableOpacity>
-//     </Animatable.View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   adContainer: {
-//     borderRadius: 15,
-//     overflow: 'hidden',
-//     backgroundColor: '#fff',
-//     shadowColor: '#000',
-//     shadowRadius: 6,
-//     shadowOpacity: 0.2,
-//     shadowOffset: { width: 0, height: 3 },
-//     elevation: 5,
-//     marginVertical: 10,
-//   },
-//   touchable: { flex: 1 },
-//   imageBackground: { flex: 1, justifyContent: 'flex-end' },
-//   imageStyle: { resizeMode: 'cover' },
-//   gradientOverlay: { flex: 1, justifyContent: 'flex-end', padding: 15 },
-//   textContainer: {
-//     backgroundColor: 'rgba(0,0,0,0.4)',
-//     borderRadius: 10,
-//     padding: 10,
-//     marginBottom: 20,
-//   },
-//   adTitle: {
-//     fontSize: 24,
-//     fontWeight: '800',
-//     textShadowColor: 'rgba(0,0,0,0.7)',
-//     textShadowOffset: { width: 0, height: 2 },
-//     textShadowRadius: 4,
-//   },
-//   adSubtitle: {
-//     fontSize: 18,
-//     marginTop: 5,
-//     textShadowColor: 'rgba(0,0,0,0.7)',
-//     textShadowOffset: { width: 0, height: 2 },
-//     textShadowRadius: 3,
-//   },
-//   badge: {
-//     position: 'absolute',
-//     top: 10,
-//     right: 10,
-//     paddingHorizontal: 12,
-//     paddingVertical: 8,
-//     borderRadius: 14,
-//   },
-//   badgeText: {
-//     color: '#fff',
-//     fontSize: 14,
-//     fontWeight: '700',
-//   },
-// });
-
-// export default AdCard;
-
-
-
-
-
-
-
-
-
-
-// // // src/components/AdCard.js
-// // import React from 'react';
-// // import {
-// //   View,
-// //   Text,
-// //   TouchableOpacity,
-// //   StyleSheet,
-// //   ImageBackground,
-// //   Dimensions,
-// // } from 'react-native';
-// // import { LinearGradient } from 'expo-linear-gradient';
-// // import * as Animatable from 'react-native-animatable';
-
-// // const { width: viewportWidth } = Dimensions.get('window');
-
-// // // Mapping for category-based styling
-// // const categoryStyles = {
-// //   'New Course': {
-// //     gradient: ['rgba(0, 0, 0, 0.4)', 'transparent'],
-// //     badgeColor: '#3498db',
-// //     defaultImage: 'https://via.placeholder.com/300x180.png?text=New+Courses',
-// //   },
-// //   Product: {
-// //     gradient: ['rgba(0, 0, 0, 0.5)', 'transparent'],
-// //     badgeColor: '#e67e22',
-// //     defaultImage: 'https://via.placeholder.com/300x180.png?text=Product',
-// //   },
-// //   Sale: {
-// //     gradient: ['rgba(192, 57, 43, 0.6)', 'transparent'],
-// //     badgeColor: '#c0392b',
-// //     defaultImage: 'https://via.placeholder.com/300x180.png?text=Sale',
-// //   },
-// //   Promotion: {
-// //     gradient: ['rgba(39, 174, 96, 0.6)', 'transparent'],
-// //     badgeColor: '#27ae60',
-// //     defaultImage: 'https://via.placeholder.com/300x180.png?text=Promotion',
-// //   },
-// //   Event: {
-// //     gradient: ['rgba(142, 68, 173, 0.6)', 'transparent'],
-// //     badgeColor: '#8e44ad',
-// //     defaultImage: 'https://via.placeholder.com/300x180.png?text=Event',
-// //   },
-// // };
-
-// // // Mapping for design-level animations
-// // const animationMapping = {
-// //   basic: 'fadeIn',
-// //   modern: 'slideInRight',
-// //   minimal: 'zoomIn',
-// //   detailed: 'flipInY',
-// // };
-
-// // const AdCard = ({ onPress, currentTheme, adData }) => {
-// //   const {
-// //     image,
-// //     title = 'Check out this ad!',
-// //     subtitle = '',
-// //     category = 'New Course',
-// //     cardDesign = 'basic',
-// //   } = adData || {};
-
-// //   const catStyle = categoryStyles[category] || categoryStyles['New Course'];
-// //   const animationType = animationMapping[cardDesign] || animationMapping.basic;
-
-// //   return (
-// //     <Animatable.View animation={animationType} duration={800} style={styles.adContainer}>
-// //       <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.adContainer}>
-// //         <ImageBackground
-// //           source={{ uri: image || catStyle.defaultImage }}
-// //           style={styles.imageBackground}
-// //           imageStyle={styles.imageStyle}
-// //         >
-// //           <LinearGradient
-// //             colors={catStyle.gradient}
-// //             start={{ x: 0, y: 1 }}
-// //             end={{ x: 0, y: 0 }}
-// //             style={styles.gradientOverlay}
-// //           >
-// //             <View style={styles.textContainer}>
-// //               <Text style={[styles.adTitle, { color: currentTheme?.adTextColor || '#fff' }]}>
-// //                 {title}
-// //               </Text>
-// //               {subtitle ? (
-// //                 <Text style={[styles.adSubtitle, { color: currentTheme?.adTextColor || '#eee' }]}>
-// //                   {subtitle}
-// //                 </Text>
-// //               ) : null}
-// //             </View>
-// //             <View style={[styles.badge, { backgroundColor: catStyle.badgeColor }]}>
-// //               <Text style={styles.badgeText}>{category}</Text>
-// //             </View>
-// //           </LinearGradient>
-// //         </ImageBackground>
-// //       </TouchableOpacity>
-// //     </Animatable.View>
-// //   );
-// // };
-
-// // const styles = StyleSheet.create({
-// //   adContainer: {
-// //     width: viewportWidth * 0.8,
-// //     height: 220,
-// //     borderRadius: 15,
-// //     overflow: 'hidden',
-// //     backgroundColor: '#fff',
-// //     shadowColor: '#000',
-// //     shadowRadius: 6,
-// //     shadowOpacity: 0.15,
-// //     shadowOffset: { width: 0, height: 3 },
-// //     elevation: 5,
-// //   },
-// //   imageBackground: {
-// //     flex: 1,
-// //     justifyContent: 'flex-end',
-// //   },
-// //   imageStyle: {
-// //     resizeMode: 'cover',
-// //   },
-// //   gradientOverlay: {
-// //     flex: 1,
-// //     justifyContent: 'flex-end',
-// //     padding: 15,
-// //   },
-// //   textContainer: {
-// //     backgroundColor: 'rgba(0,0,0,0.3)',
-// //     borderRadius: 10,
-// //     padding: 10,
-// //   },
-// //   adTitle: {
-// //     fontSize: 20,
-// //     fontWeight: '700',
-// //     textShadowColor: 'rgba(0,0,0,0.5)',
-// //     textShadowOffset: { width: 0, height: 1 },
-// //     textShadowRadius: 3,
-// //   },
-// //   adSubtitle: {
-// //     fontSize: 14,
-// //     marginTop: 5,
-// //     textShadowColor: 'rgba(0,0,0,0.5)',
-// //     textShadowOffset: { width: 0, height: 1 },
-// //     textShadowRadius: 2,
-// //   },
-// //   badge: {
-// //     position: 'absolute',
-// //     top: 10,
-// //     right: 10,
-// //     paddingHorizontal: 8,
-// //     paddingVertical: 4,
-// //     borderRadius: 12,
-// //   },
-// //   badgeText: {
-// //     color: '#fff',
-// //     fontSize: 12,
-// //     fontWeight: 'bold',
-// //   },
-// // });
-
-// // export default AdCard;

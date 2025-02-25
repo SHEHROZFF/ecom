@@ -289,7 +289,7 @@ const AICoursesScreen = () => {
         onAdPress={handleAdPress}
         refreshSignal={adsRefresh}
         // categoryFilter= 'Technology'
-        templateFilter="all"
+        templateFilter="newCourse"
       />
 
       {/* All Courses title */}
@@ -587,7 +587,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 22,
     fontWeight: '700',
-    marginTop: 15,
+    // marginTop: 15,
   },
   sectionDivider: {
     height: 2,

@@ -1,6 +1,5 @@
-// src/components/AdsSection.js
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
 import AdsList from './AdsList';
 import { fetchAds } from '../services/api';
 
@@ -22,7 +21,6 @@ const AdsSection = ({ currentTheme, onAdPress, refreshSignal, categoryFilter, te
     try {
       const response = await fetchAds();
       if (response?.success) {
-        // Now we assume API returns ads as an array in response.data directly
         let fetchedAds = response.data.data || [];
         if (categoryFilter) {
           if (typeof categoryFilter === 'string') {
@@ -64,15 +62,11 @@ const AdsSection = ({ currentTheme, onAdPress, refreshSignal, categoryFilter, te
     <View style={styles.sectionWrapper}>
       {Object.keys(adsToShow).map((templateKey) => (
         <View key={templateKey} style={styles.templateGroup}>
-          <Text style={[styles.groupHeader, { color: currentTheme.cardTextColor }]}>
-            {templateKey.charAt(0).toUpperCase() + templateKey.slice(1)} Ads
-          </Text>
+           <Text style={[styles.groupHeader, { color: currentTheme.cardTextColor }]}>
+             {templateKey.charAt(0).toUpperCase() + templateKey.slice(1)} Ads
+           </Text>
           <View style={styles.sectionDivider} />
-          <AdsList
-            ads={adsToShow[templateKey]}
-            onAdPress={onAdPress}
-            currentTheme={currentTheme}
-          />
+          <AdsList ads={adsToShow[templateKey]} onAdPress={onAdPress} currentTheme={currentTheme} />
         </View>
       ))}
     </View>
@@ -82,16 +76,12 @@ const AdsSection = ({ currentTheme, onAdPress, refreshSignal, categoryFilter, te
 const styles = StyleSheet.create({
   sectionWrapper: {
     marginHorizontal: 15,
-    marginBottom: 20,
-    paddingVertical: 15,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 4,
+    // marginBottom: 20,
+    paddingVertical: 30,
+    borderRadius: 20,
   },
-  templateGroup: { marginBottom: 25 },
+  templateGroup: { marginBottom: 30 },
+    // templateGroup: { marginBottom: 25 },
   groupHeader: {
     fontSize: 26,
     fontWeight: '800',
@@ -105,13 +95,10 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     marginHorizontal: 50,
   },
-  loadingContainer: { marginVertical: 10, alignItems: 'center' },
+  loadingContainer: { marginVertical: 20, alignItems: 'center' },
 });
 
 export default AdsSection;
-
-
-
 
 
 // // src/components/AdsSection.js
