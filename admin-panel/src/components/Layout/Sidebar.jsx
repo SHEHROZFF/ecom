@@ -11,7 +11,8 @@ import {
   FaHome,
   FaEdit,
   FaBook,
-  FaBullhorn, // New icon for Ads
+  FaBullhorn,
+  FaFileContract, // New icon for Ads
 } from 'react-icons/fa';
 
 const Sidebar = () => {
@@ -28,7 +29,8 @@ const Sidebar = () => {
     { name: 'Courses', icon: <FaBook className="h-6 w-6" />, path: '/courses' },
     { name: 'Ads', icon: <FaBullhorn className="h-6 w-6" />, path: '/ads' },
     { name: 'Theme Settings', icon: <FaEdit className="h-6 w-6" />, path: '/theme' },
-    { name: 'Enrollments', icon: <FaClipboardList className="h-6 w-6" />, path: '/enrollments' }, 
+    { name: 'Enrollments', icon: <FaClipboardList className="h-6 w-6" />, path: '/enrollments' },
+    { name: 'Policies', icon: <FaFileContract className="h-6 w-6" />, path: '/policies' }, 
   ];
 
   const toggleSidebar = () => {

@@ -9,6 +9,7 @@ import themeReducer from './slices/themeSlice';
 import coursesReducer from './slices/coursesSlice';
 import adsReducer from './slices/adsSlice';
 import enrollmentsReducer from './slices/enrollmentsSlice'; // <-- import
+import policyReducer from './slices/policiesSlice';
 
 const store = configureStore({
   reducer: {
@@ -21,6 +22,7 @@ const store = configureStore({
     courses: coursesReducer,
     ads: adsReducer,
     enrollments: enrollmentsReducer, // <-- add here
+    policies: policyReducer
   },
   devTools: process.env.NODE_ENV !== 'production',
 });

@@ -65,6 +65,7 @@ import ThemeSettings from './pages/ThemeSettings';
 import Courses from './pages/Courses';
 import Ads from './pages/Ads';
 import Enrollments from './pages/Enrollments';
+import Policies from './pages/Policies';
 import { useSelector } from 'react-redux';
 
 
@@ -107,6 +108,7 @@ const App = () => {
           <Route path="/courses" element={<Courses />} />
           <Route path="/ads" element={<Ads />} />
           <Route path="/enrollments" element={<Enrollments />} />
+          <Route path="/policies" element={<Policies />} />
         </Route>
 
         {/* Fallback Route */}
