@@ -5,6 +5,9 @@ import { useNavigation } from '@react-navigation/native';
 
 function CourseCard({ course, cardWidth, currentTheme }) {
   const navigation = useNavigation();
+  // console.log("coursedsadsad",course);
+  console.log( course.price, course.salePrice,course.saleEnabled);
+  
 
   const renderRating = useCallback((rating) => {
     const stars = [];
@@ -38,6 +41,18 @@ function CourseCard({ course, cardWidth, currentTheme }) {
     return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
   };
 
+  // Check if price and salePrice are defined and are numbers
+  const hasRegularPrice = typeof course.price === 'number';
+  const hasSalePrice = course.saleEnabled && typeof course.salePrice === 'number';
+
+  
+  // Calculate discount percentage if sale is enabled and both price values exist
+  const discountPercentage =
+    hasSalePrice && hasRegularPrice
+      ? Math.round((1 - course.salePrice / course.price) * 100)
+      : 0;
+ 
+  
   return (
     <View style={[styles.card, { backgroundColor: currentTheme.cardBackground, width: cardWidth }]}>
       <TouchableOpacity activeOpacity={0.8} style={styles.cardTouchable} onPress={handleDetail}>
@@ -55,6 +70,13 @@ function CourseCard({ course, cardWidth, currentTheme }) {
           <View style={styles.durationBadge}>
             <Ionicons name="time-outline" size={12} color="#fff" />
             <Text style={styles.durationText}>{formatDuration(course.totalDuration)}</Text>
+          </View>
+        )}
+
+        {/* Sale Tag */}
+        {course.saleEnabled && discountPercentage > 0 && (
+          <View style={styles.saleTag}>
+            <Text style={styles.saleText}>SALE {discountPercentage}% OFF</Text>
           </View>
         )}
 
@@ -145,6 +167,21 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontWeight: '500',
   },
+  saleTag: {
+    position: 'absolute',
+    top: 10,
+    left: '50%',
+    transform: [{ translateX: -50 }],
+    backgroundColor: '#E53935',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  saleText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
   cardContent: {
     padding: 12,
   },
@@ -188,6 +225,206 @@ const styles = StyleSheet.create({
 });
 
 export default memo(CourseCard);
+
+
+
+
+
+
+
+
+
+
+// import React, { memo, useCallback } from 'react';
+// import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+// import { Ionicons } from '@expo/vector-icons';
+// import { useNavigation } from '@react-navigation/native';
+
+// function CourseCard({ course, cardWidth, currentTheme }) {
+//   const navigation = useNavigation();
+
+//   const renderRating = useCallback((rating) => {
+//     const stars = [];
+//     for (let i = 1; i <= 5; i++) {
+//       stars.push(
+//         <Ionicons
+//           key={i}
+//           name={i <= Math.floor(rating) ? 'star' : 'star-outline'}
+//           size={16}
+//           color="#FFD700"
+//           style={{ marginRight: 2 }}
+//         />
+//       );
+//     }
+//     return stars;
+//   }, []);
+
+//   const handleEnroll = useCallback(() => {
+//     navigation.navigate('PurchaseScreen', { courseId: course._id });
+//   }, [course._id, navigation]);
+
+//   const handleDetail = useCallback(() => {
+//     navigation.navigate('CourseDetailScreen', { courseId: course._id });
+//   }, [course._id, navigation]);
+
+//   // Helper to convert seconds into a "hh:mm" format
+//   const formatDuration = (minutes) => {
+//     // const minutes = Math.floor(seconds / 60);
+//     const hrs = Math.floor(minutes / 60);
+//     const mins = minutes % 60;
+//     return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
+//   };
+
+//   return (
+//     <View style={[styles.card, { backgroundColor: currentTheme.cardBackground, width: cardWidth }]}>
+//       <TouchableOpacity activeOpacity={0.8} style={styles.cardTouchable} onPress={handleDetail}>
+//         <Image source={{ uri: course.image }} style={styles.cardImage} resizeMode="cover" />
+
+//         {/* Category Badge */}
+//         {course.category && (
+//           <View style={styles.badgeContainer}>
+//             <Text style={styles.badgeText}>{course.category}</Text>
+//           </View>
+//         )}
+
+//         {/* Total Duration Badge */}
+//         {course.totalDuration && (
+//           <View style={styles.durationBadge}>
+//             <Ionicons name="time-outline" size={12} color="#fff" />
+//             <Text style={styles.durationText}>{formatDuration(course.totalDuration)}</Text>
+//           </View>
+//         )}
+
+//         <View style={styles.cardContent}>
+//           <Text style={[styles.cardTitle, { color: currentTheme.cardTextColor }]} numberOfLines={1}>
+//             {course.title}
+//           </Text>
+//           <Text style={[styles.cardDescription, { color: currentTheme.textColor }]} numberOfLines={2}>
+//             {course.description}
+//           </Text>
+//           <View style={styles.detailRow}>
+//             {renderRating(course.rating)}
+//             <Text style={[styles.reviewCount, { color: currentTheme.textColor }]}>
+//               ({course.reviews})
+//             </Text>
+//           </View>
+//           <View style={styles.detailRow}>
+//             {course.difficultyLevel && (
+//               <Text style={[styles.detailText, { color: currentTheme.textColor }]}>
+//                 {course.difficultyLevel}
+//               </Text>
+//             )}
+//             {course.numberOfLectures && (
+//               <Text style={[styles.detailText, { color: currentTheme.textColor }]}>
+//                 • {course.numberOfLectures} Lectures
+//               </Text>
+//             )}
+//           </View>
+//         </View>
+//       </TouchableOpacity>
+
+//       <TouchableOpacity
+//         style={[styles.enrollButton, { backgroundColor: currentTheme.primaryColor }]}
+//         onPress={handleEnroll}
+//       >
+//         <Text style={styles.enrollButtonText}>Enroll Now</Text>
+//       </TouchableOpacity>
+//     </View>
+//   );
+// }
+
+// const styles = StyleSheet.create({
+//   card: {
+//     borderRadius: 15,
+//     margin: 10,
+//     elevation: 5,
+//     overflow: 'hidden',
+//     shadowColor: '#000',
+//     shadowOpacity: 0.15,
+//     shadowRadius: 8,
+//     shadowOffset: { width: 0, height: 3 },
+//   },
+//   cardTouchable: {
+//     flex: 1,
+//   },
+//   cardImage: {
+//     width: '100%',
+//     height: 150,
+//   },
+//   badgeContainer: {
+//     position: 'absolute',
+//     top: 10,
+//     left: 10,
+//     backgroundColor: 'rgba(0,0,0,0.6)',
+//     borderRadius: 5,
+//     paddingHorizontal: 8,
+//     paddingVertical: 4,
+//   },
+//   badgeText: {
+//     color: '#fff',
+//     fontSize: 12,
+//     fontWeight: '600',
+//   },
+//   durationBadge: {
+//     position: 'absolute',
+//     top: 10,
+//     right: 10,
+//     backgroundColor: 'rgba(0,0,0,0.75)',
+//     borderRadius: 15,
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     paddingHorizontal: 6,
+//     paddingVertical: 4,
+//   },
+//   durationText: {
+//     color: '#fff',
+//     fontSize: 12,
+//     marginLeft: 4,
+//     fontWeight: '500',
+//   },
+//   cardContent: {
+//     padding: 12,
+//   },
+//   cardTitle: {
+//     fontSize: 18,
+//     fontWeight: '700',
+//   },
+//   cardDescription: {
+//     fontSize: 14,
+//     marginTop: 6,
+//     lineHeight: 20,
+//   },
+//   reviewCount: {
+//     fontSize: 12,
+//     marginLeft: 4,
+//   },
+//   detailRow: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     marginTop: 4,
+//   },
+//   detailText: {
+//     fontSize: 12,
+//     fontWeight: '500',
+//     marginRight: 8,
+//   },
+//   enrollButton: {
+//     position: 'absolute',
+//     bottom: 10,
+//     right: 10,
+//     paddingVertical: 10,
+//     paddingHorizontal: 20,
+//     borderRadius: 20,
+//     elevation: 4,
+//   },
+//   enrollButtonText: {
+//     color: '#fff',
+//     fontSize: 14,
+//     fontWeight: '600',
+//   },
+// });
+
+// export default memo(CourseCard);
 
 
 

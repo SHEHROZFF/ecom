@@ -171,7 +171,7 @@ const getCourses = asyncHandler(async (req, res) => {
   const courses = await Course.find({})
     .populate('videos')
     .select(
-      'title description image rating reviews isFeatured videos difficultyLevel language topics totalDuration numberOfLectures category tags requirements whatYouWillLearn saleEnabled salePrice'
+      'title description image rating reviews isFeatured videos difficultyLevel language topics totalDuration numberOfLectures category tags requirements whatYouWillLearn saleEnabled salePrice price'
     )
     .sort({ createdAt: -1 })
     .skip(skip)

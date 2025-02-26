@@ -21,7 +21,7 @@ const AdsList = ({ ads, onAdPress, currentTheme }) => {
 
   // Determine template type from first ad (default to newCourse)
   const templateId = ads[0]?.templateId || 'newCourse';
-  console.log(ads.length, templateId);
+  // console.log(ads.length, templateId);
 
   let carouselConfigCustom = {};
   let continuousScroll = false;

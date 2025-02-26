@@ -289,10 +289,10 @@ export const addOrUpdateReview = async (reviewableId,reviewableType, rating, com
  */
 export const getProductReviewsAPI = async (reviewableId, reviewableType) => {
   try {
-    console.log("getProductReviewsAPI",reviewableId,reviewableType);
+    // console.log("getProductReviewsAPI",reviewableId,reviewableType);
     
     const response = await axios.get(`${API_URL}/reviews/${reviewableType}/${reviewableId}`);
-    console.log(response);
+    // console.log(response);
 
     return { success: true, data: response.data };
   } catch (error) {
@@ -391,7 +391,7 @@ export const getMyOrders = async () => {
  */
 export const fetchPaymentIntent = async (totalPrice) => {
   try {
-    console.log("totalPrice",totalPrice);
+    // console.log("totalPrice",totalPrice);
     
     const token = await getAuthToken();
     if (!token) {
@@ -411,7 +411,7 @@ export const fetchPaymentIntent = async (totalPrice) => {
     
 
     const { clientSecret } = await response.json();
-    console.log(clientSecret);
+    // console.log(clientSecret);
     
     return clientSecret;
   } catch (error) {
@@ -455,13 +455,13 @@ export const verifyAuthToken = async () => {
  */
 export const changeUserPassword = async (oldPassword, newPassword) => {
   try {
-    console.log("changeUserPassword",oldPassword,newPassword);
+    // console.log("changeUserPassword",oldPassword,newPassword);
     
     const token = await getAuthToken();
     if (!token) {
       throw new Error('No authentication token found.');
     }
-console.log("token",token);
+// console.log("token",token);
 
     const config = {
       headers: {
@@ -469,7 +469,7 @@ console.log("token",token);
         Authorization: `Bearer ${token}`,
       },
     };
-console.log("config",config);
+// console.log("config",config);
 
     // Adjust the endpoint and payload according to your backend API
     const response = await axios.post(
@@ -477,7 +477,7 @@ console.log("config",config);
       { oldPassword, newPassword },
       config
     );
-    console.log("response",response);
+    // console.log("response",response);
     
 
     return { success: true, data: response.data };
@@ -499,7 +499,7 @@ export const fetchCourses = async (page = 1, limit = 10) => {
     const token = await getAuthToken();
     const config = { headers: { Authorization: `Bearer ${token}` } };
     const response = await axios.get(`${API_URL}/courses?page=${page}&limit=${limit}`, config);
-    console.log("response",response.data);
+    // console.log("response",response.data);
     
     return { success: true, data: response.data };
   } catch (error) {
@@ -545,16 +545,16 @@ export const searchCoursesAPI = async (query) => {
   try {
     const token = await getAuthToken();
     const config = { headers: { Authorization: `Bearer ${token}` } };
-    console.log("query",encodeURIComponent(query));
+    // console.log("query",encodeURIComponent(query));
     
 
     // encodeURI the query to be safe
     const response = await axios.get(`${API_URL}/courses/search?query=${encodeURIComponent(query)}`, config);
-    console.log("response",response);
+    // console.log("response",response);
     
     return { success: true, data: response.data };
   } catch (error) {
-    console.log("error",error);
+    // console.log("error",error);
     console.error('Search Courses error:', error.response?.data?.message || error.message);
     return { success: false, message: 'Failed to search courses.' };
   }
@@ -569,7 +569,7 @@ export const fetchCourseById = async (courseId) => {
     const config = { headers: { Authorization: `Bearer ${token}` } };
     
     const response = await axios.get(`${API_URL}/courses/${courseId}`, config);
-    console.log("response",response.data);
+    // console.log("response",response.data);
     
     return { success: true, data: response.data };
   } catch (error) {
