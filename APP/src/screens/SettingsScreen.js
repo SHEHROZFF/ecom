@@ -62,7 +62,8 @@ const SettingsScreen = () => {
   // Handlers
   const toggleNotifications = () => setIsNotificationsEnabled((prev) => !prev);
   const handleToggleTheme = () => toggleTheme();
-  const handleNavigate = (screen) => navigation.navigate(screen);
+  const handleNavigate = (screen) => navigation.navigate('AICourses', { screen: screen });
+
   const handleLogout = async () => {
     const response = await logout();
     // Optionally navigate to Login or display an alert

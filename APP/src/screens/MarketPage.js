@@ -71,7 +71,14 @@ const MarketPage = () => {
   const [adsRefresh, setAdsRefresh] = useState(0);
 
   const handleAdPress = useCallback((ad) => {
-    Alert.alert('Ad Pressed', ad.title);
+    // console.log('handleAdPress', ad.adProdtype);  
+    
+    if (ad.adProdtype === 'Course') {
+      navigation.navigate('CourseDetailScreen', { courseId: ad.adProdId });
+    } else {
+      navigation.navigate('ProductPage', { productId: ad.adProdId });
+    }
+    
   }, []);
 
   // Fetch All Products

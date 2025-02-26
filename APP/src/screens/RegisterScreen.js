@@ -22,6 +22,7 @@ import { ThemeContext } from '../../ThemeContext';
 import { lightTheme, darkTheme } from '../../themes';
 import CustomAlert from '../components/CustomAlert'; // Import CustomAlert
 import { UserContext } from '../contexts/UserContext';
+import LegalLinksPopup from '../components/LegalLinksPopup';
 const { width, height } = Dimensions.get('window');
 
 const RegisterScreen = () => {
@@ -432,17 +433,29 @@ const RegisterScreen = () => {
               </Text>
             </TouchableOpacity>
           </View>
+          <View style={styles.legalContainer}>
+            <LegalLinksPopup
+              // fetchContent={null} // or your fetch function
+              staticContent="<p>Your legal content goes here. Replace this with actual content.</p>"
+              themeStyles={{
+                cardBackground: currentTheme.cardBackground,
+                textColor: currentTheme.textColor,
+                primaryColor: currentTheme.primaryColor,
+              }}
+              headerBackground={[currentTheme.primaryColor, currentTheme.secondaryColor]}
+              textStyle={{ color: currentTheme.placeholderTextColor }}
+            />
+          </View>
+          {/* CustomAlert Component */}
+          <CustomAlert
+            visible={alertVisible}
+            title={alertTitle}
+            message={alertMessage}
+            icon={alertIcon}
+            onClose={() => setAlertVisible(false)}
+            buttons={alertButtons}
+          />
         </View>
-
-        {/* CustomAlert Component */}
-        <CustomAlert
-          visible={alertVisible}
-          title={alertTitle}
-          message={alertMessage}
-          icon={alertIcon}
-          onClose={() => setAlertVisible(false)}
-          buttons={alertButtons}
-        />
       </KeyboardAvoidingView>
     </LinearGradient>
   );
@@ -544,6 +557,11 @@ const styles = StyleSheet.create({
   loginText: {
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  legalContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
   },
 });
 

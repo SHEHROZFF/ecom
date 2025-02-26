@@ -255,9 +255,14 @@ const AICoursesScreen = () => {
 
   // UI Handler for ads
   const handleAdPress = useCallback((ad) => {
-console.log('handleAdPress', ad);
-
-    // navigation.navigate('CourseDetailScreen', { courseId: ad.courseId });
+    // console.log('handleAdPress', ad.adProdtype);  
+    
+    if (ad.adProdtype === 'Course') {
+      navigation.navigate('CourseDetailScreen', { courseId: ad.adProdId });
+    } else {
+      navigation.navigate('ProductPage', { productId: ad.adProdId });
+    }
+    
   }, []);
 
   // Render items

@@ -21,6 +21,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ThemeContext } from '../../ThemeContext';
 import { lightTheme, darkTheme } from '../../themes';
 import CustomAlert from '../components/CustomAlert'; // Import CustomAlert
+import LegalLinksPopup from '../components/LegalLinksPopup';
 
 const { width, height } = Dimensions.get('window');
 
@@ -317,7 +318,19 @@ const NewPasswordScreen = () => {
             Back to Login
           </Text>
         </TouchableOpacity>
-
+        <View style={styles.legalContainer}>
+            <LegalLinksPopup
+              // fetchContent={null} // or your fetch function
+              staticContent="<p>Your legal content goes here. Replace this with actual content.</p>"
+              themeStyles={{
+                cardBackground: currentTheme.cardBackground,
+                textColor: currentTheme.textColor,
+                primaryColor: currentTheme.primaryColor,
+              }}
+              headerBackground={[currentTheme.primaryColor, currentTheme.secondaryColor]}
+              textStyle={{ color: currentTheme.placeholderTextColor }}
+            />
+          </View>
         {/* CustomAlert Component */}
         <CustomAlert
           visible={alertVisible}
@@ -434,6 +447,11 @@ const styles = StyleSheet.create({
   backToLoginText: {
     fontSize: 16,
     textDecorationLine: 'underline',
+  },
+  legalContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
   },
 });
 

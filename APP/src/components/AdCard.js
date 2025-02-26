@@ -32,8 +32,7 @@ const AdCard = ({ onPress, currentTheme, adData }) => {
     saleEnds,
     eventDate,
     eventLocation,
-    textColor,
-    backgroundColor
+    // saleEnabled,
   } = adData || {};
 
   // Merge base template styles with any overrides

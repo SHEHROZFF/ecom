@@ -381,6 +381,7 @@ import { lightTheme, darkTheme } from '../../themes';
 // Import the CustomAlert component
 import CustomAlert from '../components/CustomAlert';
 import { UserContext, UserProvider } from '../contexts/UserContext';
+import LegalLinksPopup from '../components/LegalLinksPopup';
 
 const { width, height } = Dimensions.get('window');
 
@@ -602,7 +603,7 @@ const LoginScreen = () => {
               </Text>
             </TouchableOpacity>
           </View>
-          <View style={styles.legalContainer}>
+          {/* <View style={styles.legalContainer}>
             <TouchableOpacity onPress={() => navigation.navigate('PrivacyPolicy')}>
               <Text style={[styles.legalText, { color: currentTheme.placeholderTextColor }]}>
                 Privacy Policy
@@ -614,6 +615,19 @@ const LoginScreen = () => {
                 Terms of Use
               </Text>
             </TouchableOpacity>
+          </View> */}
+          <View style={styles.legalContainer}>
+            <LegalLinksPopup
+              // fetchContent={null} // or your fetch function
+              staticContent="<p>Your legal content goes here. Replace this with actual content.</p>"
+              themeStyles={{
+                cardBackground: currentTheme.cardBackground,
+                textColor: currentTheme.textColor,
+                primaryColor: currentTheme.primaryColor,
+              }}
+              headerBackground={[currentTheme.primaryColor, currentTheme.secondaryColor]}
+              textStyle={{ color: currentTheme.placeholderTextColor }}
+            />
           </View>
           {/* CustomAlert Component */}
           <CustomAlert

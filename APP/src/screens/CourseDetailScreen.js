@@ -635,6 +635,8 @@ const styles = StyleSheet.create({
   detailsContainer: {
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
     padding: 20,
     marginHorizontal: -20,
     marginBottom: 24,
