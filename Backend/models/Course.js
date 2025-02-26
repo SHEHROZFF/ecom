@@ -91,6 +91,16 @@ const courseSchema = mongoose.Schema(
       type: [String],
       default: [],
     },
+    saleEnabled: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    salePrice: {
+      type: Number,
+      required: false,
+      min: [0, 'Sale price must be a positive number.'],
+    },
   },
   { timestamps: true }
 );

@@ -28,6 +28,7 @@ import { CartContext } from '../contexts/CartContext';
 import { FavouritesContext } from '../contexts/FavouritesContext';
 import CustomHeader from '../components/CustomHeader';
 import CustomAlert from '../components/CustomAlert';
+import AdsSection from '../components/AdsSection';
 
 import { fetchProducts } from '../services/api';
 
@@ -65,6 +66,13 @@ const MarketPage = () => {
 
   // For responsive columns
   const { width } = useWindowDimensions();
+
+  // ----------------------- Ads Refresh Signal -----------------------
+  const [adsRefresh, setAdsRefresh] = useState(0);
+
+  const handleAdPress = useCallback((ad) => {
+    Alert.alert('Ad Pressed', ad.title);
+  }, []);
 
   // Fetch All Products
   const fetchAllProducts = async (isRefreshing = false) => {
@@ -215,7 +223,7 @@ const MarketPage = () => {
       <View style={[styles.card, { backgroundColor: currentTheme.cardBackground, width: getCardWidth() }]}>
         {/* Touchable area for details */}
         <TouchableOpacity
-          onPress={() => navigation.navigate('ProductPage', { item })}
+          onPress={() => navigation.navigate('ProductPage', { productId: item._id })}
           activeOpacity={0.8}
           style={styles.cardTouchable}
         >
@@ -382,6 +390,20 @@ const MarketPage = () => {
             numColumns === 1 && styles.singleColumnContent,
             { paddingBottom: 100 }
           ]}
+          ListHeaderComponent={() => (
+            <>
+              {/* Your AdsSection now scrolls with the products */}
+              <View style={{ marginTop: -30 }} />
+                <AdsSection
+                  currentTheme={currentTheme}
+                  onAdPress={handleAdPress}
+                  refreshSignal={adsRefresh}
+                  templateFilter="sale"
+                />
+              <View />
+              {/* You can add additional header content here if needed */}
+            </>
+          )}
           ListEmptyComponent={
             !loading && (
               <View style={styles.emptyContainer}>
@@ -640,7 +662,7 @@ const styles = StyleSheet.create({
   // Empty List
   emptyContainer: {
     alignItems: 'center',
-    marginTop: 50,
+    // marginTop: 50,
   },
   emptyText: {
     fontSize: 18,

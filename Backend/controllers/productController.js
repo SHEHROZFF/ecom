@@ -9,11 +9,20 @@ const fetchProducts = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, count: products.length, data: products });
 });
 
+const getProductById = asyncHandler(async (req, res) => { 
+  const product = await Product.findById(req.params.id);
+  if (!product) {
+    res.status(404);
+    throw new Error('Product not found');
+  }
+  res.status(200).json({ success: true, data: product });
+});
+
 // @desc    Add a new product/exam
 // @route   POST /api/products
 // @access  Private/Admin
 const addProduct = asyncHandler(async (req, res) => {
-  const { name, subjectName, subjectCode, price, image, description, type, pdfLink } = req.body;
+  const { name, subjectName, subjectCode, price, image, description, type, pdfLink, saleEnabled, salePrice } = req.body;
 
   // Create new product
   const product = await Product.create({
@@ -25,6 +34,8 @@ const addProduct = asyncHandler(async (req, res) => {
     description,
     type,
     pdfLink,
+    saleEnabled,
+    salePrice,
   });
 
   res.status(201).json({ success: true, data: product });
@@ -35,7 +46,7 @@ const addProduct = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 const updateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { name, subjectName, subjectCode, price, image, description, type, pdfLink } = req.body;
+  const { name, subjectName, subjectCode, price, image, description, type, pdfLink, saleEnabled, salePrice } = req.body;
 
   // Find product by ID
   const product = await Product.findById(id);
@@ -54,6 +65,8 @@ const updateProduct = asyncHandler(async (req, res) => {
   product.description = description || product.description;
   product.type = type || product.type;
   product.pdfLink = pdfLink || product.pdfLink;
+  product.saleEnabled = saleEnabled || product.saleEnabled;
+  product.salePrice = salePrice || product.salePrice;
 
   const updatedProduct = await product.save();
 
@@ -83,6 +96,7 @@ module.exports = {
   addProduct,
   updateProduct,
   deleteProduct,
+  getProductById
 };
 
 

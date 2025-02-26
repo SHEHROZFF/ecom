@@ -31,6 +31,8 @@ const createAd = asyncHandler(async (req, res) => {
     eventDate,
     eventLocation,
     customStyles,
+    adProdtype,
+    adProdId,
   } = req.body;
 
   if (!image || !title || !subtitle) {
@@ -67,6 +69,8 @@ const createAd = asyncHandler(async (req, res) => {
     eventDate,
     eventLocation,
     customStyles,
+    adProdtype,
+    adProdId,
   });
 
   const createdAd = await ad.save();
@@ -184,6 +188,8 @@ const updateAd = asyncHandler(async (req, res) => {
     eventDate,
     eventLocation,
     customStyles,
+    adProdtype,
+    adProdId,
   } = req.body;
 
   const ad = await Ad.findById(req.params.id);
@@ -218,6 +224,9 @@ const updateAd = asyncHandler(async (req, res) => {
     ad.eventDate = eventDate || ad.eventDate;
     ad.eventLocation = eventLocation || ad.eventLocation;
 
+    ad.adProdtype = adProdtype || ad.adProdtype;
+    ad.adProdId = adProdId || ad.adProdId;
+
     const updatedAd = await ad.save();
     res.json(updatedAd);
   } else {
@@ -229,7 +238,7 @@ const updateAd = asyncHandler(async (req, res) => {
 const deleteAd = asyncHandler(async (req, res) => {
   const ad = await Ad.findById(req.params.id);
   if (ad) {
-    await ad.remove();
+    await ad.deleteOne();
     res.json({ message: 'Ad removed successfully' });
   } else {
     res.status(404);

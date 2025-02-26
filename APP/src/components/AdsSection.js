@@ -62,10 +62,10 @@ const AdsSection = ({ currentTheme, onAdPress, refreshSignal, categoryFilter, te
     <View style={styles.sectionWrapper}>
       {Object.keys(adsToShow).map((templateKey) => (
         <View key={templateKey} style={styles.templateGroup}>
-           <Text style={[styles.groupHeader, { color: currentTheme.cardTextColor }]}>
+           {/* <Text style={[styles.groupHeader, { color: currentTheme.cardTextColor }]}>
              {templateKey.charAt(0).toUpperCase() + templateKey.slice(1)} Ads
-           </Text>
-          <View style={styles.sectionDivider} />
+           </Text> */}
+          {/* <View style={styles.sectionDivider} /> */}
           <AdsList ads={adsToShow[templateKey]} onAdPress={onAdPress} currentTheme={currentTheme} />
         </View>
       ))}
@@ -77,23 +77,23 @@ const styles = StyleSheet.create({
   sectionWrapper: {
     marginHorizontal: 15,
     // marginBottom: 20,
-    paddingVertical: 30,
+    paddingVertical: 15,
     borderRadius: 20,
   },
-  templateGroup: { marginBottom: 30 },
+  // templateGroup: { marginBottom: 30 },
     // templateGroup: { marginBottom: 25 },
   groupHeader: {
     fontSize: 26,
     fontWeight: '800',
-    marginBottom: 5,
+    // marginBottom: 5,
     textAlign: 'center',
   },
   sectionDivider: {
     height: 4,
     backgroundColor: '#00aced',
-    marginVertical: 10,
+    // marginVertical: 10,
     borderRadius: 3,
-    marginHorizontal: 50,
+    marginHorizontal: 100,
   },
   loadingContainer: { marginVertical: 20, alignItems: 'center' },
 });

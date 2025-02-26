@@ -7,15 +7,23 @@ import { FaEdit } from 'react-icons/fa';
 import { Transition } from '@headlessui/react';
 import { fetchPolicy, updatePolicy } from '../redux/slices/policiesSlice';
 
+const sections = [
+  { id: 'privacy', label: 'Privacy Policy' },
+  { id: 'terms', label: 'Terms of Use' },
+  { id: 'contact', label: 'Contact Us' },
+  { id: 'about', label: 'About Us' },
+  { id: 'faq', label: 'FAQ' },
+];
+
 const Policies = () => {
   const dispatch = useDispatch();
   const { policy, loading, error } = useSelector((state) => state.policies);
   const [showForm, setShowForm] = useState(false);
-  const [policyType, setPolicyType] = useState('privacy'); // toggle between privacy/terms
+  const [activeSection, setActiveSection] = useState('privacy'); // default to Privacy Policy
 
   useEffect(() => {
-    dispatch(fetchPolicy(policyType));
-  }, [dispatch, policyType]);
+    dispatch(fetchPolicy(activeSection));
+  }, [dispatch, activeSection]);
 
   const formik = useFormik({
     enableReinitialize: true,
@@ -25,7 +33,7 @@ const Policies = () => {
     }),
     onSubmit: async (values) => {
       try {
-        await dispatch(updatePolicy({ type: policyType, content: values.content }));
+        await dispatch(updatePolicy({ type: activeSection, content: values.content }));
         setShowForm(false);
       } catch (err) {
         console.error('Update policy error:', err);
@@ -36,37 +44,49 @@ const Policies = () => {
   return (
     <div className="p-6 bg-gray-100 dark:bg-gray-900 min-h-screen">
       <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-white">
-        {policyType === 'privacy' ? 'Privacy Policy' : 'Terms of Use'} Management
+        {sections.find((s) => s.id === activeSection)?.label} Management
       </h2>
-      {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
-      <div className="mb-4">
-        <button
-          onClick={() => setPolicyType('privacy')}
-          className={`mr-2 px-4 py-2 rounded ${policyType === 'privacy' ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}
-        >
-          Privacy Policy
-        </button>
-        <button
-          onClick={() => setPolicyType('terms')}
-          className={`px-4 py-2 rounded ${policyType === 'terms' ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}
-        >
-          Terms of Use
-        </button>
+      {error && (
+        <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
+          {error}
+        </div>
+      )}
+
+      {/* Navigation Tabs */}
+      <div className="mb-6 flex flex-wrap gap-2">
+        {sections.map((section) => (
+          <button
+            key={section.id}
+            onClick={() => setActiveSection(section.id)}
+            className={`px-4 py-2 rounded transition ${
+              activeSection === section.id
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-300 text-gray-800 hover:bg-gray-400'
+            }`}
+          >
+            {section.label}
+          </button>
+        ))}
       </div>
+
       {loading ? (
-        <div className="text-gray-800 dark:text-gray-200">Loading...</div>
+        <div className="text-gray-800 dark:text-gray-200">Loading content...</div>
       ) : (
-        <div className="bg-white dark:bg-gray-800 p-4 rounded shadow-md">
-          <pre className="whitespace-pre-wrap text-gray-800 dark:text-gray-200">{policy?.content}</pre>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md">
+          <pre className="whitespace-pre-wrap text-gray-800 dark:text-gray-200">
+            {policy?.content || 'No content available. Time to add some juicy details!'}
+          </pre>
           <button
             onClick={() => setShowForm(true)}
             className="mt-4 flex items-center text-blue-500 hover:text-blue-700"
-            aria-label="Edit Policy"
+            aria-label="Edit Content"
           >
             <FaEdit className="mr-1" /> Edit
           </button>
         </div>
       )}
+
+      {/* Edit Form Modal */}
       <Transition
         show={showForm}
         enter="transition ease-out duration-300 transform"
@@ -76,10 +96,13 @@ const Policies = () => {
         leaveFrom="opacity-100 scale-100"
         leaveTo="opacity-0 scale-95"
       >
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" role="dialog">
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+          role="dialog"
+        >
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-2xl w-full max-w-3xl mx-4">
             <h3 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
-              Edit {policyType === 'privacy' ? 'Privacy Policy' : 'Terms of Use'}
+              Edit {sections.find((s) => s.id === activeSection)?.label}
             </h3>
             <form onSubmit={formik.handleSubmit}>
               <textarea
@@ -89,7 +112,7 @@ const Policies = () => {
                 value={formik.values.content}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                placeholder="Enter policy content..."
+                placeholder="Enter content..."
               />
               {formik.touched.content && formik.errors.content && (
                 <div className="text-red-500 text-sm mt-1">{formik.errors.content}</div>
@@ -102,7 +125,10 @@ const Policies = () => {
                 >
                   Cancel
                 </button>
-                <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
+                <button
+                  type="submit"
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+                >
                   Save
                 </button>
               </div>

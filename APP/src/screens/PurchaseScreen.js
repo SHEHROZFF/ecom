@@ -177,17 +177,16 @@ const PurchaseScreen = () => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.mainContent}>
-          {/* Ads Section moved to the top */}
-          <View style={styles.adsWrapper}>
+
+
+          {/* Course Card */}
+          <View style={[styles.cardContainer, { backgroundColor: currentTheme.cardBackground, shadowColor: currentTheme.shadowColor }]}>
             <AdsSection 
               currentTheme={currentTheme} 
               onAdPress={handleAdPress} 
               refreshSignal={0} 
+              templateFilter='newCourse'
             />
-          </View>
-
-          {/* Course Card */}
-          <View style={[styles.cardContainer, { backgroundColor: currentTheme.cardBackground, shadowColor: currentTheme.shadowColor }]}>
             {image && (
               <Image
                 source={{ uri: image }}
@@ -225,6 +224,15 @@ const PurchaseScreen = () => {
               </LinearGradient>
             </TouchableOpacity>
           </View>
+
+          <View style={styles.adsWrapper} />
+          <AdsSection 
+              currentTheme={currentTheme} 
+              onAdPress={handleAdPress} 
+              refreshSignal={0} 
+              templateFilter='sale'
+            />
+            <View />
           
           {/* Alternate Back Button */}
           {/* <TouchableOpacity 
@@ -288,9 +296,9 @@ const styles = StyleSheet.create({
   // Ads wrapper
   adsWrapper: {
     width: '100%',
-    marginVertical: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    marginVertical: -40,
+    // borderBottomWidth: 1,
+    // borderBottomColor: '#ccc',
     paddingBottom: 20,
   },
   // Card container styles

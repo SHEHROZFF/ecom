@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ImageBackground } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Animatable from 'react-native-animatable';
-import { templateStyles } from './templateStyles';
+import { useResponsiveTemplateStyles } from './templateStyles';
 
 const animationMapping = {
   promo: 'fadeInDown',
@@ -13,6 +13,7 @@ const animationMapping = {
 };
 
 const AdCard = ({ onPress, currentTheme, adData }) => {
+  const templateStyles = useResponsiveTemplateStyles(currentTheme);
   const {
     image,
     title = 'Check out this ad!',
@@ -52,7 +53,7 @@ const AdCard = ({ onPress, currentTheme, adData }) => {
   if (templateId === 'promo') {
     return (
       <>
-        <View style={[styles.categoryBadge, { backgroundColor: innerStyles.badgeColor, top: 15, right: 25, zIndex: 1, transform: [{ rotate: '30deg' }] }]}>
+        <View style={[styles.categoryBadge, { backgroundColor: innerStyles.badgeColor, top: 15, right: -10, zIndex: 1, transform: [{ rotate: '30deg' }] }]}>
           <Text style={styles.badgeLabel} allowFontScaling>
             {category}
           </Text>
@@ -111,109 +112,114 @@ const AdCard = ({ onPress, currentTheme, adData }) => {
   // NEW COURSE LAYOUT (Updated)
   if (templateId === 'newCourse') {
     return (
-      <Animatable.View
-        animation={animationType}
-        duration={900}
-        style={[styles.cardContainer, {
-          width: structureStyle.cardWidth,
-          height: structureStyle.cardHeight,
-          borderColor: structureStyle.borderColor,
-          borderRadius: 14,
-          overflow: 'hidden',
-          elevation: 5,
-        }]}
-      >
-        <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.cardTouchable}>
-          <ImageBackground
-            source={{ uri: image || structureStyle.defaultImage }}
-            style={styles.newCourseImageUpdated}
-            imageStyle={styles.newCourseImageStyleUpdated}
-          >
-            <LinearGradient
-              colors={['rgba(0,0,0,0.8)', 'transparent', 'rgba(0,0,0,0.9)']}
-              style={[styles.newCourseOverlay, { padding: 20, borderRadius: 14 }]}
+      <>
+        <View style={[styles.categoryBadge, {    position: 'absolute', 
+            bottom: 120, 
+            right: -20, 
+            zIndex: 1,
+            transform: [{ rotate: '90deg' }],
+            backgroundColor: innerStyles.badgeColor, 
+            borderRadius: 20, 
+            paddingVertical: 4, 
+            paddingHorizontal: 12, 
+            shadowColor: '#000',
+            shadowOpacity: 0.3,
+            shadowRadius: 4,
+            elevation: 4,}]}>
+          <Text style={styles.badgeLabel} allowFontScaling>
+            {category}
+          </Text>
+        </View>
+        <Animatable.View
+          animation={animationType}
+          duration={900}
+          style={[styles.cardContainer, {
+            width: structureStyle.cardWidth,
+            height: structureStyle.cardHeight,
+            borderColor: structureStyle.borderColor,
+            borderRadius: 14,
+            overflow: 'hidden',
+            elevation: 5,
+            backgroundColor:innerStyles.gradientColors[0],
+          }]}
+        >
+          <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.cardTouchable}>
+            <ImageBackground
+              source={{ uri: image || structureStyle.defaultImage }}
+              style={styles.newCourseImageUpdated}
+              imageStyle={styles.newCourseImageStyleUpdated}
             >
-              <View style={styles.newCourseTextContainerUpdated}>
-                <Text
-                  style={[styles.newCourseTitle, {
-                    fontSize: innerStyles.fontSizeTitle + 2,
-                    color: '#fff',
-                    textAlign: 'left',
-                    fontWeight: 'bold',
-                  }]}
-                  numberOfLines={2}
-                  ellipsizeMode="tail"
-                  allowFontScaling
-                >
-                  {title}
-                </Text>
-                {subtitle && (
+              <LinearGradient
+                colors={['rgba(0,0,0,0.8)', 'transparent', 'rgba(0,0,0,0.9)']}
+                style={[styles.newCourseOverlay, { padding: 20, borderRadius: 14 }]}
+              >
+                <View style={styles.newCourseTextContainerUpdated}>
                   <Text
-                    style={[styles.newCourseSubtitle, {
-                      fontSize: innerStyles.fontSizeSubtitle,
-                      color: '#ddd',
+                    style={[styles.newCourseTitle, {
+                      fontSize: innerStyles.fontSizeTitle + 2,
+                      color: '#fff',
                       textAlign: 'left',
+                      fontWeight: 'bold',
                     }]}
-                    numberOfLines={1}
+                    numberOfLines={2}
                     ellipsizeMode="tail"
                     allowFontScaling
                   >
-                    {subtitle}
+                    {title}
                   </Text>
-                )}
-                {instructor && (
-                  <Text
-                    style={[styles.newCourseInstructor, {
-                      fontSize: innerStyles.fontSizeDetail,
-                      color: '#bbb',
-                      textAlign: 'left',
-                      marginTop: 4,
-                    }]}
-                    allowFontScaling
-                  >
-                    By {instructor}
-                  </Text>
-                )}
-                {courseInfo && (
-                  <Text
-                    style={[styles.newCourseInfo, {
-                      fontSize: innerStyles.fontSizeDetail,
-                      color: '#ccc',
-                      textAlign: 'left',
-                      marginTop: 6,
-                    }]}
-                    allowFontScaling
-                  >
-                    {courseInfo}
-                  </Text>
-                )}
-                {rating && (
-                  <View style={styles.ratingContainer}>
-                    <Text style={[styles.newCourseRating, { fontSize: innerStyles.fontSizeDetail, color: '#ffcc00' }]}>
-                      ⭐ {rating}/5
+                  {subtitle && (
+                    <Text
+                      style={[styles.newCourseSubtitle, {
+                        fontSize: innerStyles.fontSizeSubtitle,
+                        color: '#ddd',
+                        textAlign: 'left',
+                      }]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                      allowFontScaling
+                    >
+                      {subtitle}
                     </Text>
-                  </View>
-                )}
-              </View>
-            </LinearGradient>
-            <View style={[styles.categoryBadge, {    position: 'absolute', 
-                top: 10, 
-                right: 10, 
-                backgroundColor: '#ff3d71', 
-                borderRadius: 20, 
-                paddingVertical: 4, 
-                paddingHorizontal: 12, 
-                shadowColor: '#000',
-                shadowOpacity: 0.3,
-                shadowRadius: 4,
-                elevation: 4,}]}>
-              <Text style={styles.badgeLabel} allowFontScaling>
-                {category}
-              </Text>
-            </View>
-          </ImageBackground>
-        </TouchableOpacity>
-      </Animatable.View>
+                  )}
+                  {instructor && (
+                    <Text
+                      style={[styles.newCourseInstructor, {
+                        fontSize: innerStyles.fontSizeDetail,
+                        color: '#bbb',
+                        textAlign: 'left',
+                        marginTop: 4,
+                      }]}
+                      allowFontScaling
+                    >
+                      By {instructor}
+                    </Text>
+                  )}
+                  {courseInfo && (
+                    <Text
+                      style={[styles.newCourseInfo, {
+                        fontSize: innerStyles.fontSizeDetail,
+                        color: '#ccc',
+                        textAlign: 'left',
+                        marginTop: 6,
+                      }]}
+                      allowFontScaling
+                    >
+                      {courseInfo}
+                    </Text>
+                  )}
+                  {rating && (
+                    <View style={styles.ratingContainer}>
+                      <Text style={[styles.newCourseRating, { fontSize: innerStyles.fontSizeDetail, color: '#ffcc00' }]}>
+                        ⭐ {rating}/5
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </LinearGradient>
+            </ImageBackground>
+          </TouchableOpacity>
+        </Animatable.View>
+      </>
     );
   }
 
@@ -285,7 +291,7 @@ const AdCard = ({ onPress, currentTheme, adData }) => {
   if (templateId === 'sale') {
     return (
       <>
-        <View style={[styles.categoryBadge, { backgroundColor: innerStyles.badgeColor, left: 15, top: 55, zIndex: 1 }]}>
+        <View style={[styles.categoryBadge, { backgroundColor: innerStyles.badgeColor, left: 1, top: 45, zIndex: 1 }]}>
           <Text style={styles.badgeLabel} allowFontScaling>
             {category}
           </Text>
@@ -423,6 +429,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     flexWrap: 'wrap',
     textAlign: 'center',
+    top: 15,
   },
   promoSubtitle: {
     marginTop: 10,

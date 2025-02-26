@@ -37,6 +37,8 @@ export const updateAd = createAsyncThunk(
   async ({ id, adData }, thunkAPI) => {
     try {
       const response = await axiosInstance.put(`/api/ads/${id}`, adData);
+      console.log("Update response:", response);
+      
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(

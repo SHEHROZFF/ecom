@@ -1,86 +1,187 @@
-export const templateStyles = {
-  promo: {
-    cardHeight: 230,
-    cardWidth: 300,
-    gradientColors: ['#FF416C', '#FF4B2B'], // Bold, neon vibes
-    badgeColor: '#FF4B2B',
-    defaultImage: 'https://via.placeholder.com/360x320.png?text=Promotion',
-    borderColor: '#FF416C',
-    carousel: { mode: 'default', continuousScroll: true },
-    inner: {
-      gradientColors: ['rgba(255,65,108,0.95)', 'rgba(255,75,43,0.85)'],
+// templateStyles.js
+import { useWindowDimensions } from 'react-native';
+
+export const useResponsiveTemplateStyles = () => {
+  const { width } = useWindowDimensions();
+  const guidelineBaseWidth = 400; // Your design baseline width
+  const scale = width / guidelineBaseWidth;
+
+  return {
+    promo: {
+      cardHeight: 250 * scale,
+      cardWidth: 320 * scale,
+      gradientColors: ['#FF416C', '#FF4B2B'], // Bold, neon vibes
       badgeColor: '#FF4B2B',
-      textColor: '#ffffff',
-      fontSizeTitle: 28,
-      fontWeightTitle: '900',
-      fontSizeSubtitle: 20,
-      fontSizeDetail: 18,
-      textAlign: 'center',
-      padding: 20,
+      defaultImage: `https://via.placeholder.com/${Math.round(360 * scale)}x${Math.round(320 * scale)}.png?text=Promotion`,
+      borderColor: '#FF416C',
+      carousel: { mode: 'default', continuousScroll: true },
+      inner: {
+        gradientColors: ['rgba(255,65,108,0.95)', 'rgba(255,75,43,0.85)'],
+        badgeColor: '#FF4B2B',
+        textColor: '#ffffff',
+        // Optionally scale fonts if you want proportional text sizes
+        fontSizeTitle: 28 * scale,
+        fontWeightTitle: '900',
+        fontSizeSubtitle: 20 * scale,
+        fontSizeDetail: 18 * scale,
+        textAlign: 'center',
+        padding: 20 * scale,
+      },
     },
-  },
-  newCourse: {
-    cardHeight: 250,
-    cardWidth: 280,
-    gradientColors: ['#00c6ff', '#0072ff'], // Cool and sleek
-    badgeColor: '#0072ff',
-    defaultImage: 'https://via.placeholder.com/340x280.png?text=New+Course',
-    borderColor: '#00c6ff',
-    // Updated carousel config with a custom blowing stack effect:
-    carousel: { mode: 'stack', continuousScroll: false, modeConfig: { rotation: 10, scale: 0.85, offset: 20 } },
-    inner: {
-      gradientColors: ['rgba(0,198,255,0.95)', 'rgba(0,114,255,0.85)'],
+    newCourse: {
+      cardHeight: 250 * scale,
+      cardWidth: 280 * scale,
+      gradientColors: ['#00c6ff', '#0072ff'], // Cool and sleek
       badgeColor: '#0072ff',
-      textColor: '#ffffff',
-      fontSizeTitle: 22,
-      fontWeightTitle: '800',
-      fontSizeSubtitle: 18,
-      fontSizeDetail: 16,
-      textAlign: 'left',
-      padding: 18,
+      defaultImage: `https://via.placeholder.com/${Math.round(340 * scale)}x${Math.round(280 * scale)}.png?text=New+Course`,
+      borderColor: '#00c6ff',
+      // Scale the carousel offset as well
+      carousel: { mode: 'stack', continuousScroll: false, modeConfig: { rotation: 10, scale: 0.85, offset: 20 * scale } },
+      inner: {
+        gradientColors: ['rgba(0,198,255,0.95)', 'rgba(0,114,255,0.85)'],
+        badgeColor: '#0072ff',
+        textColor: '#ffffff',
+        fontSizeTitle: 22 * scale,
+        fontWeightTitle: '800',
+        fontSizeSubtitle: 18 * scale,
+        fontSizeDetail: 16 * scale,
+        textAlign: 'left',
+        padding: 18 * scale,
+      },
     },
-  },
-  sale: {
-    cardHeight: 200,
-    cardWidth: 300,
-    gradientColors: ['#F7971E', '#FFD200'], // Energetic and vibrant
-    badgeColor: '#F7971E',
-    defaultImage: 'https://via.placeholder.com/350x300.png?text=Sale',
-    borderColor: '#FFD200',
-    carousel: { mode: 'horizontal-stack', continuousScroll: false, modeConfig: { activeStackScale: 0.85, activeStackOffset: 30 } },
-    inner: {
-      gradientColors: ['rgba(247,151,30,0.95)', 'rgba(255,210,0,0.85)'],
+    sale: {
+      cardHeight: 200 * scale,
+      cardWidth: 325 * scale,
+      gradientColors: ['#F7971E', '#FFD200'], // Energetic and vibrant
       badgeColor: '#F7971E',
-      textColor: '#ffffff',
-      fontSizeTitle: 26,
-      fontWeightTitle: '900',
-      fontSizeSubtitle: 20,
-      fontSizeDetail: 16,
-      textAlign: 'center',
-      padding: 20,
+      defaultImage: `https://via.placeholder.com/${Math.round(350 * scale)}x${Math.round(300 * scale)}.png?text=Sale`,
+      borderColor: '#FFD200',
+      carousel: { mode: 'horizontal-stack', continuousScroll: false, modeConfig: { activeStackScale: 0.85, activeStackOffset: 30 * scale } },
+      inner: {
+        gradientColors: ['rgba(247,151,30,0.95)', 'rgba(255,210,0,0.85)'],
+        badgeColor: '#F7971E',
+        textColor: '#ffffff',
+        fontSizeTitle: 26 * scale,
+        fontWeightTitle: '900',
+        fontSizeSubtitle: 20 * scale,
+        fontSizeDetail: 16 * scale,
+        textAlign: 'center',
+        padding: 20 * scale,
+      },
     },
-  },
-  event: {
-    cardHeight: 250,
-    cardWidth: 290,
-    gradientColors: ['#8E2DE2', '#4A00E0'], // Cinematic, deep purples
-    badgeColor: '#8E2DE2',
-    defaultImage: 'https://via.placeholder.com/380x340.png?text=Event',
-    borderColor: '#4A00E0',
-    carousel: { mode: 'tinder', continuousScroll: false, modeConfig: { duration: 400 } },
-    inner: {
-      gradientColors: ['rgba(142,45,226,0.95)', 'rgba(74,0,224,0.85)'],
+    event: {
+      cardHeight: 250 * scale,
+      cardWidth: 290 * scale,
+      gradientColors: ['#8E2DE2', '#4A00E0'], // Cinematic, deep purples
       badgeColor: '#8E2DE2',
-      textColor: '#ffffff',
-      fontSizeTitle: 26,
-      fontWeightTitle: '800',
-      fontSizeSubtitle: 20,
-      fontSizeDetail: 16,
-      textAlign: 'center',
-      padding: 20,
+      defaultImage: `https://via.placeholder.com/${Math.round(380 * scale)}x${Math.round(340 * scale)}.png?text=Event`,
+      borderColor: '#4A00E0',
+      carousel: { mode: 'tinder', continuousScroll: false, modeConfig: { duration: 400 } },
+      inner: {
+        gradientColors: ['rgba(142,45,226,0.95)', 'rgba(74,0,224,0.85)'],
+        badgeColor: '#8E2DE2',
+        textColor: '#ffffff',
+        fontSizeTitle: 26 * scale,
+        fontWeightTitle: '800',
+        fontSizeSubtitle: 20 * scale,
+        fontSizeDetail: 16 * scale,
+        textAlign: 'center',
+        padding: 20 * scale,
+      },
     },
-  },
+  };
 };
+
+
+
+
+
+
+
+
+// export const templateStyles = {
+//   promo: {
+//     cardHeight: 230,
+//     cardWidth: 300,
+//     gradientColors: ['#FF416C', '#FF4B2B'], // Bold, neon vibes
+//     badgeColor: '#FF4B2B',
+//     defaultImage: 'https://via.placeholder.com/360x320.png?text=Promotion',
+//     borderColor: '#FF416C',
+//     carousel: { mode: 'default', continuousScroll: true },
+//     inner: {
+//       gradientColors: ['rgba(255,65,108,0.95)', 'rgba(255,75,43,0.85)'],
+//       badgeColor: '#FF4B2B',
+//       textColor: '#ffffff',
+//       fontSizeTitle: 28,
+//       fontWeightTitle: '900',
+//       fontSizeSubtitle: 20,
+//       fontSizeDetail: 18,
+//       textAlign: 'center',
+//       padding: 20,
+//     },
+//   },
+//   newCourse: {
+//     cardHeight: 250,
+//     cardWidth: 280,
+//     gradientColors: ['#00c6ff', '#0072ff'], // Cool and sleek
+//     badgeColor: '#0072ff',
+//     defaultImage: 'https://via.placeholder.com/340x280.png?text=New+Course',
+//     borderColor: '#00c6ff',
+//     // Updated carousel config with a custom blowing stack effect:
+//     carousel: { mode: 'stack', continuousScroll: false, modeConfig: { rotation: 10, scale: 0.85, offset: 20 } },
+//     inner: {
+//       gradientColors: ['rgba(0,198,255,0.95)', 'rgba(0,114,255,0.85)'],
+//       badgeColor: '#0072ff',
+//       textColor: '#ffffff',
+//       fontSizeTitle: 22,
+//       fontWeightTitle: '800',
+//       fontSizeSubtitle: 18,
+//       fontSizeDetail: 16,
+//       textAlign: 'left',
+//       padding: 18,
+//     },
+//   },
+//   sale: {
+//     cardHeight: 200,
+//     cardWidth: 300,
+//     gradientColors: ['#F7971E', '#FFD200'], // Energetic and vibrant
+//     badgeColor: '#F7971E',
+//     defaultImage: 'https://via.placeholder.com/350x300.png?text=Sale',
+//     borderColor: '#FFD200',
+//     carousel: { mode: 'horizontal-stack', continuousScroll: false, modeConfig: { activeStackScale: 0.85, activeStackOffset: 30 } },
+//     inner: {
+//       gradientColors: ['rgba(247,151,30,0.95)', 'rgba(255,210,0,0.85)'],
+//       badgeColor: '#F7971E',
+//       textColor: '#ffffff',
+//       fontSizeTitle: 26,
+//       fontWeightTitle: '900',
+//       fontSizeSubtitle: 20,
+//       fontSizeDetail: 16,
+//       textAlign: 'center',
+//       padding: 20,
+//     },
+//   },
+//   event: {
+//     cardHeight: 250,
+//     cardWidth: 290,
+//     gradientColors: ['#8E2DE2', '#4A00E0'], // Cinematic, deep purples
+//     badgeColor: '#8E2DE2',
+//     defaultImage: 'https://via.placeholder.com/380x340.png?text=Event',
+//     borderColor: '#4A00E0',
+//     carousel: { mode: 'tinder', continuousScroll: false, modeConfig: { duration: 400 } },
+//     inner: {
+//       gradientColors: ['rgba(142,45,226,0.95)', 'rgba(74,0,224,0.85)'],
+//       badgeColor: '#8E2DE2',
+//       textColor: '#ffffff',
+//       fontSizeTitle: 26,
+//       fontWeightTitle: '800',
+//       fontSizeSubtitle: 20,
+//       fontSizeDetail: 16,
+//       textAlign: 'center',
+//       padding: 20,
+//     },
+//   },
+// };
 
 
 

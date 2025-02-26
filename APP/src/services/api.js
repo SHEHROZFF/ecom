@@ -236,6 +236,16 @@ export const getTopProducts = async () => {
   }
 };
 
+export const getProductById = async (productId) => {
+  try {
+    const response = await axios.get(`${API_URL}/products/${productId}`);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Get Product by ID error:', error.response?.data?.message || error.message);
+    return { success: false, message: error.response?.data?.message || 'Failed to fetch product.' };
+  }
+}
+
 // ----------------------- Review Functions ----------------------- //
 
 /**
@@ -689,6 +699,15 @@ export const updateLessonProgressAPI = async (courseId, progressData = {}) => {
   }
 };
 
+export const fetchPolicy = async (type) => {
+  try {
+    const response = await axios.get(`${API_URL}/policies/${type}`);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Fetch Policy error:', error.response?.data?.message || error.message);
+    return { success: false, message: error.response?.data?.message || 'Failed to fetch policy.' };
+  }
+};
 
 
 
@@ -709,6 +728,7 @@ export default {
   fetchProducts,
   getProductDetails,
   getTopProducts,
+  getProductById,
 
   // Reviews
   addOrUpdateReview,
@@ -753,6 +773,9 @@ export default {
 
     // Update Lesson Progress
     // updateLessonProgressAPI
-    updateLessonProgressAPI
+    updateLessonProgressAPI,
+
+    // Fetch Policy
+    fetchPolicy
 
 };

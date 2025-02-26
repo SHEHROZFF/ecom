@@ -30,6 +30,8 @@ const createCourse = asyncHandler(async (req, res) => {
     tags,
     requirements,
     whatYouWillLearn,
+    saleEnabled,
+    salePrice,
   } = req.body;
 
   // Basic required fields check
@@ -61,6 +63,8 @@ const createCourse = asyncHandler(async (req, res) => {
     tags: tags || [],
     requirements: requirements || [],
     whatYouWillLearn: whatYouWillLearn || [],
+    saleEnabled: saleEnabled || false,
+    salePrice: salePrice || 0,
   });
 
   // Save course first to obtain its _id
@@ -107,6 +111,8 @@ const createFeaturedCourse = asyncHandler(async (req, res) => {
     tags,
     requirements,
     whatYouWillLearn,
+    saleEnabled,
+    salePrice,  
   } = req.body;
 
   if (!title || !description || !instructor || !price || !image) {
@@ -133,6 +139,8 @@ const createFeaturedCourse = asyncHandler(async (req, res) => {
     tags: tags || [],
     requirements: requirements || [],
     whatYouWillLearn: whatYouWillLearn || [],
+    saleEnabled: saleEnabled || false,
+    salePrice: salePrice || 0,
   });
 
   course = await course.save();
@@ -163,7 +171,7 @@ const getCourses = asyncHandler(async (req, res) => {
   const courses = await Course.find({})
     .populate('videos')
     .select(
-      'title description image rating reviews isFeatured videos difficultyLevel language topics totalDuration numberOfLectures category tags requirements whatYouWillLearn'
+      'title description image rating reviews isFeatured videos difficultyLevel language topics totalDuration numberOfLectures category tags requirements whatYouWillLearn saleEnabled salePrice'
     )
     .sort({ createdAt: -1 })
     .skip(skip)
@@ -192,7 +200,7 @@ const getFeaturedReels = asyncHandler(async (req, res) => {
   // Sorting by creation date (newest first)
   const reels = await Course.find({ isFeatured: true })
     .select(
-      'title shortVideoLink image rating reviews difficultyLevel language topics totalDuration numberOfLectures category tags requirements whatYouWillLearn'
+      'title shortVideoLink image rating reviews difficultyLevel language topics totalDuration numberOfLectures category tags requirements whatYouWillLearn saleEnabled salePrice'
     )
     .sort({ createdAt: -1 })
     .skip(skip)
@@ -235,7 +243,7 @@ const searchCourses = asyncHandler(async (req, res) => {
   };
 
   const suggestions = await Course.find(filter).select(
-    'title description image rating reviews isFeatured shortVideoLink'
+    'title description image rating reviews isFeatured shortVideoLink saleEnabled salePrice'
   );
 
   res.json(suggestions);
@@ -283,6 +291,8 @@ const updateCourse = asyncHandler(async (req, res) => {
     tags,
     requirements,
     whatYouWillLearn,
+    saleEnabled,
+    salePrice,
   } = req.body;
 
   let course = await Course.findById(req.params.id);
@@ -311,6 +321,9 @@ const updateCourse = asyncHandler(async (req, res) => {
   course.tags = tags ?? course.tags;
   course.requirements = requirements ?? course.requirements;
   course.whatYouWillLearn = whatYouWillLearn ?? course.whatYouWillLearn;
+
+  course.saleEnabled = saleEnabled !== undefined ? saleEnabled : course.saleEnabled;
+  course.salePrice = salePrice !== undefined ? salePrice : course.salePrice;
 
   // If videos are provided, replace the current video documents
   if (videos !== undefined) {
