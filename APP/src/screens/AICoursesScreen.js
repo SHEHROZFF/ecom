@@ -337,7 +337,7 @@ const AICoursesScreen = () => {
             // Add only new unique courses
             setCourses((prev) => {
               const existingIds = new Set(prev.map((item) => item.id));
-              const filtered = newCourses.filter((item) => !existingIds.has(item.id));
+              const filtered = newCourses.filter((item) => !existingIds.has(item._id.toString()));
               return [...prev, ...filtered];
             });
             setPage(currentPage + 1);
