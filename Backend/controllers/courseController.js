@@ -174,7 +174,7 @@ const getCourses = asyncHandler(async (req, res) => {
       'title description image rating reviews isFeatured videos difficultyLevel language topics totalDuration numberOfLectures category tags requirements whatYouWillLearn saleEnabled salePrice price'
     )
     .sort({ createdAt: -1 })
-    // .skip(skip)
+    .skip(skip)
     .limit(limit)
     .lean();
 
@@ -203,7 +203,7 @@ const getFeaturedReels = asyncHandler(async (req, res) => {
       'title shortVideoLink image rating reviews difficultyLevel language topics totalDuration numberOfLectures category tags requirements whatYouWillLearn saleEnabled salePrice'
     )
     .sort({ createdAt: -1 })
-    // .skip(skip)
+    .skip(skip)
     .limit(limit);
 
   res.json(reels);
