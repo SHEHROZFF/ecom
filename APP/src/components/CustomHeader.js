@@ -17,6 +17,9 @@ const CustomHeader = ({ userProfileImage = DEFAULT_PROFILE_IMAGE, username = 'Jo
   const { cartItems } = useContext(CartContext);
   const navigation = useNavigation();
   const { user } = useContext(UserContext);
+
+  // console.log("userheader:", user);
+  
   
   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
 
@@ -35,7 +38,7 @@ const CustomHeader = ({ userProfileImage = DEFAULT_PROFILE_IMAGE, username = 'Jo
         accessibilityRole="button"
       >
         <Image
-          source={{ uri: user.data.profileImage || DEFAULT_PROFILE_IMAGE }}
+          source={{ uri: user.profileImage || DEFAULT_PROFILE_IMAGE }}
           style={[styles.profileImage, { borderColor: currentTheme.borderColor }]}
           accessibilityLabel={`${username}'s profile picture`}
           onError={(e) => {
@@ -43,7 +46,7 @@ const CustomHeader = ({ userProfileImage = DEFAULT_PROFILE_IMAGE, username = 'Jo
           }}
         />
         <Text style={[styles.username, { color: currentTheme.headerTextColor }]}>
-          {user.data.name}
+          {user.name}
         </Text>
       </TouchableOpacity>
 
@@ -188,7 +191,7 @@ export default CustomHeader;
 //         accessibilityRole="button"
 //       >
 //         <Image
-//           source={{ uri: user.data.profileImage || DEFAULT_PROFILE_IMAGE }}
+//           source={{ uri: user.profileImage || DEFAULT_PROFILE_IMAGE }}
 //           style={[
 //             styles.profileImage,
 //             { borderColor: currentTheme.borderColor },
@@ -199,7 +202,7 @@ export default CustomHeader;
 //           }}
 //         />
 //         <Text style={[styles.username, { color: currentTheme.headerTextColor }]}>
-//           {user.data.name}
+//           {user.name}
 //         </Text>
 //       </TouchableOpacity>
 

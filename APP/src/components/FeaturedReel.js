@@ -235,13 +235,24 @@ function FeaturedReel({ currentTheme }) {
                 </Text>
               )}
             </ScrollView>
-            <TouchableOpacity 
+            {/* <TouchableOpacity 
               style={styles.enrollButton}
               onPress={() =>
                 navigation.navigate('PurchaseScreen', { courseId: item.id })
               }
             >
               <Text style={styles.enrollButtonText}>Enroll Now</Text>
+            </TouchableOpacity> */}
+            <TouchableOpacity
+              style={styles.enrollButton}
+              onPress={() => navigation.navigate('PurchaseScreen', { courseId: item.id })}
+            >
+              <LinearGradient
+                colors={['#F7B733', '#FC4A1A']}
+                style={styles.enrollButtonBg}
+              >
+                <Text style={styles.enrollButtonText}>Enroll Now</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </View>
@@ -517,17 +528,34 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   // Enroll Button Footer
+  // enrollButton: {
+  //   backgroundColor: '#4CAF50',
+  //   paddingVertical: 12,
+  //   borderRadius: 8,
+  //   alignItems: 'center',
+  //   marginTop: 10,
+  // },
+  // enrollButtonText: {
+  //   color: '#fff',
+  //   fontWeight: '600',
+  //   fontSize: 16,
+  // },
   enrollButton: {
-    backgroundColor: '#4CAF50',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
     marginTop: 10,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  enrollButtonBg: {
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: 8,
   },
   enrollButtonText: {
     color: '#fff',
     fontWeight: '600',
     fontSize: 16,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   // Enhanced Loading More Overlay
   loadingMoreOverlay: {

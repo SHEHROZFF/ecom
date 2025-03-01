@@ -436,6 +436,7 @@ export const verifyAuthToken = async () => {
         Authorization: `Bearer ${token}`,
       },
     });
+console.log("response verify",response.data.success);
 
     return response.data.success;
   } catch (error) {

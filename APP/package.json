@@ -16,6 +16,7 @@
     "@react-navigation/bottom-tabs": "^6.6.1",
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/stack": "^6.4.1",
+    "@reduxjs/toolkit": "^2.6.0",
     "@stripe/stripe-react-native": "^0.40.0",
     "axios": "^1.7.7",
     "expo": "~51.0.28",
@@ -27,6 +28,7 @@
     "expo-sharing": "~12.0.1",
     "expo-status-bar": "~1.12.1",
     "lodash": "^4.17.21",
+    "lottie-react-native": "^6.7.2",
     "nativewind": "^4.1.20",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -46,6 +48,7 @@
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.19.10",
     "react-native-webview": "13.8.6",
+    "react-redux": "^9.2.0",
     "tailwindcss-react-native": "^1.7.10"
   },
   "devDependencies": {

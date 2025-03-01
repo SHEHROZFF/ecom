@@ -11,6 +11,7 @@ import {
   SafeAreaView,
   Animated,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -62,10 +63,16 @@ const SettingsScreen = () => {
   // Handlers
   const toggleNotifications = () => setIsNotificationsEnabled((prev) => !prev);
   const handleToggleTheme = () => toggleTheme();
-  const handleNavigate = (screen) => navigation.navigate('AICourses', { screen: screen });
+  const handleNavigate = (screen,stack) => navigation.navigate(stack, { screen: screen });
 
   const handleLogout = async () => {
     const response = await logout();
+    console.log("responselogout",response);
+    if(!response){
+      Alert.alert('Logout Failed', 'Please try again.');
+    }
+    // navigation.navigate('Login');
+    
     // Optionally navigate to Login or display an alert
   };
   const handleAboutUsPress = () => setAboutUsVisible(true);
@@ -135,7 +142,7 @@ const SettingsScreen = () => {
           <TouchableOpacity
             style={[styles.card, { borderColor: currentTheme.borderColor }]}
             activeOpacity={0.8}
-            onPress={() => handleNavigate('ChangePassword')}
+            onPress={() => handleNavigate('ChangePassword', 'Market')}
           >
             <View style={styles.cardRow}>
               <Ionicons name="lock-closed" size={24} color={currentTheme.primaryColor} style={styles.icon} />
@@ -150,7 +157,7 @@ const SettingsScreen = () => {
           <TouchableOpacity
             style={[styles.card, { borderColor: currentTheme.borderColor }]}
             activeOpacity={0.8}
-            onPress={() => handleNavigate('MyEnrollmentsScreen')}
+            onPress={() => handleNavigate('MyEnrollmentsScreen', 'AICourses')}
           >
             <View style={styles.cardRow}>
               <Ionicons name="school" size={24} color={currentTheme.primaryColor} style={styles.icon} />

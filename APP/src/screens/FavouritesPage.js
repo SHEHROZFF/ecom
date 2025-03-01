@@ -1,5 +1,4 @@
 // src/screens/FavouritesPage.js
-
 import React, { useContext, useEffect, useState } from 'react';
 import {
   View,
@@ -25,14 +24,11 @@ const { width } = Dimensions.get('window');
 
 const FavouritesPage = () => {
   const navigation = useNavigation();
-
-  // Theme
   const { theme } = useContext(ThemeContext);
   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
 
   // Favourites
-  const { favouriteItems, removeFromFavourites, clearFavourites } =
-    useContext(FavouritesContext);
+  const { favouriteItems, removeFromFavourites, clearFavourites } = useContext(FavouritesContext);
 
   // CustomAlert
   const [alertVisible, setAlertVisible] = useState(false);
@@ -51,14 +47,16 @@ const FavouritesPage = () => {
     <View style={[styles.itemContainer, { backgroundColor: currentTheme.cardBackground }]}>
       <Image source={{ uri: item.image }} style={styles.itemImage} />
       <View style={styles.itemDetails}>
-        <Text style={[styles.itemName, { color: currentTheme.cardTextColor }]}>{item.examName}</Text>
-        <Text style={[styles.itemSubtitle, { color: currentTheme.textColor }]}>
+        <Text style={[styles.itemName, { color: currentTheme.cardTextColor }]} numberOfLines={1}>
+          {item.examName || item.name}
+        </Text>
+        <Text style={[styles.itemSubtitle, { color: currentTheme.textColor }]} numberOfLines={1}>
           {item.subjectName} ({item.subjectCode})
         </Text>
       </View>
       <TouchableOpacity
         onPress={() => removeFromFavourites(item._id)}
-        accessibilityLabel={`Remove ${item.examName} from favourites`}
+        accessibilityLabel={`Remove ${item.examName || item.name} from favourites`}
       >
         <Ionicons name="heart-dislike-outline" size={24} color="#E53935" />
       </TouchableOpacity>
@@ -89,7 +87,8 @@ const FavouritesPage = () => {
         backgroundColor={currentTheme.headerBackground[1]}
         barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
       />
-      {/* Unified Curved Header */}
+
+      {/* Curved Gradient Header */}
       <LinearGradient
         colors={currentTheme.headerBackground}
         style={styles.header}
@@ -101,17 +100,17 @@ const FavouritesPage = () => {
             Your Favourites
           </Text>
           <Text style={[styles.headerSubtitle, { color: currentTheme.headerTextColor }]}>
-            Browse your favourite items
+            Browse your saved items
           </Text>
         </View>
       </LinearGradient>
 
-      {/* Favourites List with Footer as part of scroll */}
+      {/* Favourites List */}
       <FlatList
         data={favouriteItems}
         keyExtractor={(item) => item._id.toString()}
         renderItem={renderItem}
-        contentContainerStyle={[styles.listContent, { paddingBottom: 100 }]} // extra bottom padding
+        contentContainerStyle={[styles.listContent, { paddingBottom: 100 }]}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="heart-outline" size={80} color={currentTheme.placeholderTextColor} />
@@ -120,6 +119,7 @@ const FavouritesPage = () => {
             </Text>
           </View>
         }
+        // Footer with Clear button
         ListFooterComponent={
           favouriteItems.length > 0 && (
             <View style={styles.footer}>
@@ -127,9 +127,7 @@ const FavouritesPage = () => {
                 style={[styles.clearButton, { backgroundColor: currentTheme.primaryColor }]}
                 onPress={handleClearFavourites}
               >
-                <Text style={[styles.clearButtonText, { color: '#FFFFFF' }]}>
-                  Clear Favourites
-                </Text>
+                <Text style={[styles.clearButtonText, { color: '#FFFFFF' }]}>Clear Favourites</Text>
               </TouchableOpacity>
             </View>
           )
@@ -148,53 +146,305 @@ const FavouritesPage = () => {
   );
 };
 
+export default FavouritesPage;
+
 const styles = StyleSheet.create({
-  safeArea: { flex: 1 },
+  safeArea: {
+    flex: 1,
+  },
   header: {
     width: '100%',
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 4,
+    marginBottom: 15,
+    alignItems: 'center',
   },
-  headerTitleContainer: { alignItems: 'center' },
-  headerTitle: { fontSize: 22, fontWeight: '700' },
-  headerSubtitle: { fontSize: 14, marginTop: 4 },
-  listContent: { padding: 20, paddingBottom: 100 },
+  headerTitleContainer: {
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 26,
+    fontWeight: '800',
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  listContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
   itemContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
+    padding: 12,
     marginBottom: 15,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E0E0E0',
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.07,
     shadowRadius: 2,
   },
-  itemImage: { width: 60, height: 60, borderRadius: 10, marginRight: 10 },
-  itemDetails: { flex: 1 },
-  itemName: { fontSize: 16, fontWeight: 'bold' },
-  itemSubtitle: { fontSize: 14, marginTop: 2 },
-  footer: { marginTop: 20, alignItems: 'center' },
-  clearButton: { paddingVertical: 10, paddingHorizontal: 20, borderRadius: 30 },
-  clearButtonText: { fontSize: 16, fontWeight: 'bold' },
-  emptyContainer: { alignItems: 'center', marginTop: 50 },
-  emptyText: { fontSize: 16, marginTop: 15, textAlign: 'center' },
+  itemImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    marginRight: 12,
+  },
+  itemDetails: {
+    flex: 1,
+    marginRight: 10,
+  },
+  itemName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  itemSubtitle: {
+    fontSize: 14,
+    marginTop: 2,
+  },
+  footer: {
+    marginTop: 15,
+    alignItems: 'center',
+  },
+  clearButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 30,
+    elevation: 3,
+  },
+  clearButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    marginTop: 40,
+  },
+  emptyText: {
+    fontSize: 16,
+    marginTop: 15,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+  },
 });
 
-export default FavouritesPage;
+
+
+
+
+
+
+
+
+// // src/screens/FavouritesPage.js
+
+// import React, { useContext, useEffect, useState } from 'react';
+// import {
+//   View,
+//   Text,
+//   FlatList,
+//   Image,
+//   TouchableOpacity,
+//   StyleSheet,
+//   Dimensions,
+//   StatusBar,
+//   SafeAreaView,
+// } from 'react-native';
+// import { Ionicons } from '@expo/vector-icons';
+// import { useNavigation } from '@react-navigation/native';
+// import { LinearGradient } from 'expo-linear-gradient';
+
+// import { ThemeContext } from '../../ThemeContext';
+// import { lightTheme, darkTheme } from '../../themes';
+// import { FavouritesContext } from '../contexts/FavouritesContext';
+// import CustomAlert from '../components/CustomAlert';
+
+// const { width } = Dimensions.get('window');
+
+// const FavouritesPage = () => {
+//   const navigation = useNavigation();
+
+//   // Theme
+//   const { theme } = useContext(ThemeContext);
+//   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
+
+//   // Favourites
+//   const { favouriteItems, removeFromFavourites, clearFavourites } =
+//     useContext(FavouritesContext);
+
+//   // CustomAlert
+//   const [alertVisible, setAlertVisible] = useState(false);
+//   const [alertTitle, setAlertTitle] = useState('');
+//   const [alertMessage, setAlertMessage] = useState('');
+//   const [alertIcon, setAlertIcon] = useState('');
+//   const [alertButtons, setAlertButtons] = useState([]);
+
+//   // Hide header
+//   useEffect(() => {
+//     navigation.setOptions({ headerShown: false });
+//   }, [navigation]);
+
+//   // Render single favourite item
+//   const renderItem = ({ item }) => (
+//     <View style={[styles.itemContainer, { backgroundColor: currentTheme.cardBackground }]}>
+//       <Image source={{ uri: item.image }} style={styles.itemImage} />
+//       <View style={styles.itemDetails}>
+//         <Text style={[styles.itemName, { color: currentTheme.cardTextColor }]}>{item.examName}</Text>
+//         <Text style={[styles.itemSubtitle, { color: currentTheme.textColor }]}>
+//           {item.subjectName} ({item.subjectCode})
+//         </Text>
+//       </View>
+//       <TouchableOpacity
+//         onPress={() => removeFromFavourites(item._id)}
+//         accessibilityLabel={`Remove ${item.examName} from favourites`}
+//       >
+//         <Ionicons name="heart-dislike-outline" size={24} color="#E53935" />
+//       </TouchableOpacity>
+//     </View>
+//   );
+
+//   // Clear all favourites
+//   const handleClearFavourites = () => {
+//     setAlertTitle('Clear Favourites');
+//     setAlertMessage('Are you sure you want to clear all favourite items?');
+//     setAlertIcon('heart-dislike-outline');
+//     setAlertButtons([
+//       { text: 'Cancel', onPress: () => setAlertVisible(false), backgroundColor: '#AAAAAA' },
+//       {
+//         text: 'Yes',
+//         onPress: () => {
+//           clearFavourites();
+//           setAlertVisible(false);
+//         },
+//       },
+//     ]);
+//     setAlertVisible(true);
+//   };
+
+//   return (
+//     <SafeAreaView style={[styles.safeArea, { backgroundColor: currentTheme.backgroundColor }]}>
+//       <StatusBar
+//         backgroundColor={currentTheme.headerBackground[1]}
+//         barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
+//       />
+//       {/* Unified Curved Header */}
+//       <LinearGradient
+//         colors={currentTheme.headerBackground}
+//         style={styles.header}
+//         start={[0, 0]}
+//         end={[0, 1]}
+//       >
+//         <View style={styles.headerTitleContainer}>
+//           <Text style={[styles.headerTitle, { color: currentTheme.headerTextColor }]}>
+//             Your Favourites
+//           </Text>
+//           <Text style={[styles.headerSubtitle, { color: currentTheme.headerTextColor }]}>
+//             Browse your favourite items
+//           </Text>
+//         </View>
+//       </LinearGradient>
+
+//       {/* Favourites List with Footer as part of scroll */}
+//       <FlatList
+//         data={favouriteItems}
+//         keyExtractor={(item) => item._id.toString()}
+//         renderItem={renderItem}
+//         contentContainerStyle={[styles.listContent, { paddingBottom: 100 }]} // extra bottom padding
+//         ListEmptyComponent={
+//           <View style={styles.emptyContainer}>
+//             <Ionicons name="heart-outline" size={80} color={currentTheme.placeholderTextColor} />
+//             <Text style={[styles.emptyText, { color: currentTheme.textColor }]}>
+//               You have no favourite items.
+//             </Text>
+//           </View>
+//         }
+//         ListFooterComponent={
+//           favouriteItems.length > 0 && (
+//             <View style={styles.footer}>
+//               <TouchableOpacity
+//                 style={[styles.clearButton, { backgroundColor: currentTheme.primaryColor }]}
+//                 onPress={handleClearFavourites}
+//               >
+//                 <Text style={[styles.clearButtonText, { color: '#FFFFFF' }]}>
+//                   Clear Favourites
+//                 </Text>
+//               </TouchableOpacity>
+//             </View>
+//           )
+//         }
+//       />
+
+//       <CustomAlert
+//         visible={alertVisible}
+//         title={alertTitle}
+//         message={alertMessage}
+//         onClose={() => setAlertVisible(false)}
+//         icon={alertIcon}
+//         buttons={alertButtons}
+//       />
+//     </SafeAreaView>
+//   );
+// };
+
+// const styles = StyleSheet.create({
+//   safeArea: { flex: 1 },
+//   header: {
+//     width: '100%',
+//     paddingVertical: 8,
+//     paddingHorizontal: 15,
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     justifyContent: 'center',
+//     borderBottomLeftRadius: 30,
+//     borderBottomRightRadius: 30,
+//     elevation: 4,
+//     shadowColor: '#000',
+//     shadowOffset: { width: 0, height: 3 },
+//     shadowOpacity: 0.3,
+//     shadowRadius: 4,
+//   },
+//   headerTitleContainer: { alignItems: 'center' },
+//   headerTitle: { fontSize: 22, fontWeight: '700' },
+//   headerSubtitle: { fontSize: 14, marginTop: 4 },
+//   listContent: { padding: 20, paddingBottom: 100 },
+//   itemContainer: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     padding: 10,
+//     marginBottom: 15,
+//     borderRadius: 10,
+//     borderWidth: 1,
+//     borderColor: '#E0E0E0',
+//     elevation: 2,
+//     shadowColor: '#000',
+//     shadowOffset: { width: 0, height: 1 },
+//     shadowOpacity: 0.1,
+//     shadowRadius: 2,
+//   },
+//   itemImage: { width: 60, height: 60, borderRadius: 10, marginRight: 10 },
+//   itemDetails: { flex: 1 },
+//   itemName: { fontSize: 16, fontWeight: 'bold' },
+//   itemSubtitle: { fontSize: 14, marginTop: 2 },
+//   footer: { marginTop: 20, alignItems: 'center' },
+//   clearButton: { paddingVertical: 10, paddingHorizontal: 20, borderRadius: 30 },
+//   clearButtonText: { fontSize: 16, fontWeight: 'bold' },
+//   emptyContainer: { alignItems: 'center', marginTop: 50 },
+//   emptyText: { fontSize: 16, marginTop: 15, textAlign: 'center' },
+// });
+
+// export default FavouritesPage;
 
 
 

@@ -118,7 +118,7 @@ const Ads = () => {
         const customStyles = { ...values.customStyles };
         if (typeof customStyles.gradientColors === 'string') {
           customStyles.gradientColors = customStyles.gradientColors
-            .split(',')
+            .split(';')
             .map((c) => c.trim());
         }
         const adData = { ...values, customStyles };
@@ -595,7 +595,7 @@ const Ads = () => {
                 <h4 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Custom Styles</h4>
                 <div>
                   <label className="block text-gray-700 dark:text-gray-200">
-                    Gradient Colors (comma separated)
+                    Gradient Colors (';' separated)
                   </label>
                   <input
                     type="text"

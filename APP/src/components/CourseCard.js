@@ -1,13 +1,11 @@
-import React, { memo, useCallback } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import React, { memo, useCallback, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, Image, StyleSheet, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 function CourseCard({ course, cardWidth, currentTheme }) {
   const navigation = useNavigation();
-  // console.log("coursedsadsad",course);
-  console.log( course.price, course.salePrice,course.saleEnabled);
-  
 
   const renderRating = useCallback((rating) => {
     const stars = [];
@@ -33,7 +31,6 @@ function CourseCard({ course, cardWidth, currentTheme }) {
     navigation.navigate('CourseDetailScreen', { courseId: course._id });
   }, [course._id, navigation]);
 
-  // Helper to convert seconds into a "hh:mm" format
   const formatDuration = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const hrs = Math.floor(minutes / 60);
@@ -41,18 +38,37 @@ function CourseCard({ course, cardWidth, currentTheme }) {
     return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
   };
 
-  // Check if price and salePrice are defined and are numbers
   const hasRegularPrice = typeof course.price === 'number';
   const hasSalePrice = course.saleEnabled && typeof course.salePrice === 'number';
-
-  
-  // Calculate discount percentage if sale is enabled and both price values exist
   const discountPercentage =
     hasSalePrice && hasRegularPrice
       ? Math.round((1 - course.salePrice / course.price) * 100)
       : 0;
- 
-  
+
+  // Swing animation for the tag (imitating a hanging tag)
+  const swingAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(swingAnim, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(swingAnim, {
+          toValue: -1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, [swingAnim]);
+
+  const swing = swingAnim.interpolate({
+    inputRange: [-1, 1],
+    outputRange: ['-7deg', '7deg'],
+  });
+
   return (
     <View style={[styles.card, { backgroundColor: currentTheme.cardBackground, width: cardWidth }]}>
       <TouchableOpacity activeOpacity={0.8} style={styles.cardTouchable} onPress={handleDetail}>
@@ -65,7 +81,7 @@ function CourseCard({ course, cardWidth, currentTheme }) {
           </View>
         )}
 
-        {/* Total Duration Badge */}
+        {/* Duration Badge */}
         {course.totalDuration && (
           <View style={styles.durationBadge}>
             <Ionicons name="time-outline" size={12} color="#fff" />
@@ -73,10 +89,22 @@ function CourseCard({ course, cardWidth, currentTheme }) {
           </View>
         )}
 
-        {/* Sale Tag */}
+        {/* Enhanced Realistic Sale Tag with Hanging Chain */}
         {course.saleEnabled && discountPercentage > 0 && (
-          <View style={styles.saleTag}>
-            <Text style={styles.saleText}>SALE {discountPercentage}% OFF</Text>
+          <View style={styles.saleContainer}>
+            <Animated.View style={[styles.saleTag, { transform: [{ rotate: swing }] }]}>
+              <LinearGradient
+                colors={['#ff4d4d', '#e60000']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.saleGradient}
+              >
+                {/* Tag hole for the chain */}
+                <View style={styles.hole} />
+                <Text style={styles.saleText}>SALE {discountPercentage}% OFF</Text>
+              </LinearGradient>
+            </Animated.View>
+            {/* <View style={styles.chain} /> */}
           </View>
         )}
 
@@ -167,20 +195,53 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontWeight: '500',
   },
-  saleTag: {
+  saleContainer: {
     position: 'absolute',
-    top: 10,
+    top: 100,
+    left: 10,
+    alignItems: 'center',
+  },
+  saleTag: {
+    // Container for the swinging animation
+  },
+  saleGradient: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 3,
+    elevation: 4,
+  },
+  hole: {
+    position: 'absolute',
+    top: -6,
     left: '50%',
-    transform: [{ translateX: -50 }],
-    backgroundColor: '#E53935',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
+    marginLeft: -6,
+    width: 12,
+    height: 12,
+    backgroundColor: '#fff',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#ccc',
   },
   saleText: {
     color: '#fff',
     fontSize: 12,
     fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  chain: {
+    marginTop: 2,
+    width: 2,
+    height: 30,
+    borderWidth: 2,
+    borderColor: '#000',
+    borderStyle: 'dotted',
   },
   cardContent: {
     padding: 12,
@@ -225,11 +286,6 @@ const styles = StyleSheet.create({
 });
 
 export default memo(CourseCard);
-
-
-
-
-
 
 
 

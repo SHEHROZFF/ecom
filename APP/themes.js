@@ -22,6 +22,8 @@ export const lightTheme = {
   priceColor: '#FF6F61', // Coral Pink for Price Tags for Visibility
   headerTextColor: '#FFFFFF', // Crisp White Text for the Header
   arrowColor: '#FFFFFF', // White Arrows for Standout Contrast
+  aiheader: ['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.5)'],
+  marketheader: ['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.5)']
 };
 
 export const darkTheme = {
@@ -46,6 +48,8 @@ export const darkTheme = {
   priceColor: '#FF6F61', // Coral Pink for Price Tags
   headerTextColor: '#E5E5E5', // Subtle Gray Text for the Header
   arrowColor: '#8E44AD', // Rich Purple for Arrows
+  aiheader: ['rgba(102, 126, 234, 0.6)', 'rgba(100, 182, 255, 0.6)'],
+  marketheader: ['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.5)']
 };
 
 // export const darkTheme = {

@@ -4,6 +4,8 @@ import { CartProvider } from './src/contexts/CartContext';
 import { FavouritesProvider } from './src/contexts/FavouritesContext';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import { UserProvider as UserContextProvider } from './src/contexts/UserContext';
+import store from './src/store';
+import { Provider } from 'react-redux';
 
 // Import Environment Variables (Uncomment if using Expo's dotenv setup)
 // import { PUBLISH_STRIPE_KEY } from '@env'; 
@@ -15,15 +17,17 @@ const App = () => {
   'pk_test_51OXlAIAZK57wNYnQJNfcmMNa4p9xI681KyECP5FC3n2GZ9bMcUo0dB7gVOwNeIIYkAuQbnI5pPGuOJNZxyMbySZd00naBObXrO';
 
   return (
-    <StripeProvider publishableKey={stripeKey}>
-      <UserContextProvider>
-        <FavouritesProvider>
-          <CartProvider>
-            <AppNavigator />
-          </CartProvider>
-        </FavouritesProvider>
-      </UserContextProvider>
-    </StripeProvider>
+    <Provider store={store}>
+      <StripeProvider publishableKey={stripeKey}>
+        <UserContextProvider>
+          <FavouritesProvider>
+            <CartProvider>
+              <AppNavigator />
+            </CartProvider>
+          </FavouritesProvider>
+        </UserContextProvider>
+      </StripeProvider>
+    </Provider>
   );
 };
 
