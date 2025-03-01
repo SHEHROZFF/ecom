@@ -16,7 +16,7 @@ export const fetchCoursesThunk = createAsyncThunk(
       if (!response.success) {
         return rejectWithValue(response.message);
       }
-      console.log('responsecourse',response);
+      // console.log('responsecourse',response);
       
       return response; // e.g. { courses: [...], pagination: {...} }
     } catch (error) {
@@ -63,7 +63,7 @@ export const searchCoursesThunk = createAsyncThunk(
       if (!response.success) {
         return rejectWithValue(response.message);
       }
-      return response.data; // e.g. { courses: [...] }
+      return response; // e.g. { courses: [...] }
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -75,7 +75,7 @@ export const fetchCourseByIdThunk = createAsyncThunk(
   async (courseId, { rejectWithValue }) => {
     try {
       const response = await fetchCourseById(courseId);
-      console.log('byidthunk',response);
+      // console.log('byidthunk',response);
       
       if (!response.success) {
         return rejectWithValue(response.message);

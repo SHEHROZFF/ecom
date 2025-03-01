@@ -76,7 +76,7 @@ export const updateLessonProgressThunk = createAsyncThunk(
       if (!response.success) {
         return rejectWithValue(response.message);
       }
-      return response.data; // e.g. updated enrollment
+      return response; // e.g. updated enrollment
     } catch (error) {
       return rejectWithValue(error.message);
     }

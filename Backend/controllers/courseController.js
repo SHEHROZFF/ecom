@@ -202,7 +202,7 @@ const getFeaturedReels = asyncHandler(async (req, res) => {
     .select(
       'title shortVideoLink image rating reviews difficultyLevel language topics totalDuration numberOfLectures category tags requirements whatYouWillLearn saleEnabled salePrice'
     )
-    .sort({ createdAt: -1 })
+    // .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);
 
