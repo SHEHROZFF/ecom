@@ -29,7 +29,8 @@ export const fetchReviews = createAsyncThunk(
       if (!response.success) {
         return rejectWithValue(response.message);
       }
-      return response.data; // e.g. { reviews: [...] }
+      
+      return response; // e.g. { reviews: [...] }
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -89,7 +90,7 @@ const reviewSlice = createSlice({
       .addCase(fetchReviews.fulfilled, (state, action) => {
         state.loading = false;
         // Might be { reviews: [...] }
-        state.reviews = action.payload.reviews || [];
+        state.reviews = action.payload.data || [];
       })
       .addCase(fetchReviews.rejected, (state, action) => {
         state.loading = false;

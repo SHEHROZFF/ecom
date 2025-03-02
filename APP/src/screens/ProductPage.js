@@ -174,12 +174,15 @@ const ProductPage = () => {
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: currentTheme.backgroundColor }]}>
       <StatusBar
-        backgroundColor={currentTheme.headerBackground[1]}
+        backgroundColor={currentTheme.headerBackground[0]}
         barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
       />
-
-      {/* Hero-Style Gradient Header */}
-      <LinearGradient colors={currentTheme.headerBackground || ['#667EEA', '#64B6FF']} style={styles.header}>
+      <LinearGradient
+        colors={currentTheme.headerBackground}
+        style={styles.header}
+        start={[0, 0]}
+        end={[0, 1]}
+      >
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}

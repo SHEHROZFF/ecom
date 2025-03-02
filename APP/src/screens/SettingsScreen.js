@@ -12,6 +12,7 @@ import {
   Animated,
   Dimensions,
   Alert,
+  StatusBar
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -21,8 +22,9 @@ import { ThemeContext } from '../../ThemeContext';
 import { lightTheme, darkTheme } from '../../themes';
 import { UserContext } from '../contexts/UserContext';
 import DynamicContentPopup from '../components/DynamicContentPopup';
-import { fetchPolicy } from '../services/api';
-
+// import { fetchPolicy } from '../services/api';
+import { useDispatch } from 'react-redux';
+import { fetchPolicyThunk } from '../store/slices/policySlice';
 const { width, height } = Dimensions.get('window');
 
 const aboutUsContent = `
@@ -45,6 +47,7 @@ Reach us at Idri.gueye@gmail.com.
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
 
   // Theme & Auth
   const { theme, toggleTheme } = useContext(ThemeContext);
@@ -78,20 +81,28 @@ const SettingsScreen = () => {
   const handleAboutUsPress = () => setAboutUsVisible(true);
   const closeAboutUsModal = () => setAboutUsVisible(false);
 
+  const fetchContentWithRedux = (type) => {
+    return dispatch(fetchPolicyThunk(type)).unwrap();
+  };
+
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: currentTheme.backgroundColor }]}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {/* Bold, Modern Header */}
+        <StatusBar
+        backgroundColor={currentTheme.headerBackground[0]}
+        barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
+        />
         <LinearGradient
           colors={currentTheme.headerBackground}
-          style={styles.uniqueHeader}
+          style={styles.header}
           start={[0, 0]}
-          end={[1, 1]}
+          end={[0, 1]}
         >
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color={currentTheme.headerTextColor} />
           </TouchableOpacity>
-          <Text style={[styles.uniqueHeaderTitle, { color: currentTheme.headerTextColor }]}>
+          <Text style={[styles.headerTitle, { color: currentTheme.headerTextColor }]}>
             App Settings
           </Text>
         </LinearGradient>
@@ -203,7 +214,7 @@ const SettingsScreen = () => {
         headerBackground={currentTheme.headerBackground}
         headerTextColor={currentTheme.headerTextColor}
         staticContent={aboutUsContent}
-        fetchContent={fetchPolicy}
+        fetchContent={fetchContentWithRedux}
       />
     </SafeAreaView>
   );
@@ -218,20 +229,26 @@ const styles = StyleSheet.create({
   scrollContainer: {
     paddingBottom: 30,
   },
-  uniqueHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
-    elevation: 6,
+  header: {
+    width: '100%',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    marginBottom: 25,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    marginBottom: 15,
+    alignItems: 'center',
+  },
+  headerTitleContainer: {
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 26,
+    fontWeight: '800',
   },
   backButton: {
     position: 'absolute',
@@ -239,10 +256,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 20,
   },
-  uniqueHeaderTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-  },
+
   cardsContainer: {
     marginHorizontal: 20,
   },

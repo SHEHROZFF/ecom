@@ -33,7 +33,7 @@ export const fetchFeaturedReelsThunk = createAsyncThunk(
       if (!response.success) {
         return rejectWithValue(response.message);
       }
-      return response.data; // e.g. { reels: [...] }
+      return response; // e.g. { reels: [...] }
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -48,6 +48,8 @@ export const fetchAdsThunk = createAsyncThunk(
       if (!response.success) {
         return rejectWithValue(response.message);
       }
+      // console.log('responseads', response);
+      
       return response.data; // e.g. { ads: [...] }
     } catch (error) {
       return rejectWithValue(error.message);
@@ -127,7 +129,7 @@ const courseSlice = createSlice({
       })
       .addCase(fetchFeaturedReelsThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.featuredReels = action.payload.reels || [];
+        state.featuredReels = action.payload.data || [];
       })
       .addCase(fetchFeaturedReelsThunk.rejected, (state, action) => {
         state.loading = false;
@@ -140,7 +142,7 @@ const courseSlice = createSlice({
       })
       .addCase(fetchAdsThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.ads = action.payload.ads || [];
+        state.ads = action.payload.data || [];
       })
       .addCase(fetchAdsThunk.rejected, (state, action) => {
         state.loading = false;

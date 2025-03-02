@@ -8,6 +8,7 @@ import {
   ScrollView,
   SafeAreaView,
   Dimensions,
+  StatusBar
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,13 +16,16 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ThemeContext } from '../../ThemeContext';
 import { lightTheme, darkTheme } from '../../themes';
 import DynamicContentPopup from '../components/DynamicContentPopup';
-import { fetchPolicy } from '../services/api';
+// import { fetchPolicy } from '../services/api';
+import { useDispatch } from 'react-redux';
+import { fetchPolicyThunk } from '../store/slices/policySlice';
 
 const { width, height } = Dimensions.get('window');
 
 const HelpScreen = () => {
   const { theme } = useContext(ThemeContext);
   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
+  const dispatch = useDispatch();
 
   // State for dynamic content popup (for FAQ, Contact, Terms & Privacy)
   const [policyPopupVisible, setPolicyPopupVisible] = useState(false);
@@ -47,20 +51,28 @@ const HelpScreen = () => {
     setPolicyPopupVisible(true);
   };
 
+  const fetchContentWithRedux = (type) => {
+    return dispatch(fetchPolicyThunk(type)).unwrap();
+  };
+
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: currentTheme.backgroundColor }]}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <StatusBar
+          backgroundColor={currentTheme.headerBackground[0]}
+          barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
+        />
         <LinearGradient
           colors={currentTheme.headerBackground}
-          style={styles.uniqueHeader}
+          style={styles.header}
           start={[0, 0]}
-          end={[1, 1]}
+          end={[0, 1]}
         >
-          <Text style={[styles.uniqueHeaderTitle, { color: currentTheme.headerTextColor }]}>
+          <Text style={[styles.headerTitle, { color: currentTheme.headerTextColor }]}>
             Help & Support
           </Text>
         </LinearGradient>
 
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.cardsContainer}>
           <TouchableOpacity
             style={[styles.card, { borderColor: currentTheme.borderColor }]}
@@ -126,7 +138,7 @@ const HelpScreen = () => {
         themeStyles={currentTheme}
         headerBackground={currentTheme.headerBackground}
         headerTextColor={currentTheme.headerTextColor}
-        fetchContent={fetchPolicy}
+        fetchContent={fetchContentWithRedux}
       />
     </SafeAreaView>
   );
@@ -141,24 +153,26 @@ const styles = StyleSheet.create({
   scrollContainer: {
     paddingBottom: 30,
   },
-  uniqueHeader: {
+  header: {
     width: '100%',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
-    elevation: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    marginBottom: 25,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    marginBottom: 15,
+    alignItems: 'center',
   },
-  uniqueHeaderTitle: {
-    fontSize: 28,
-    fontWeight: '700',
+  headerTitleContainer: {
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 26,
+    fontWeight: '800',
   },
   cardsContainer: {
     marginHorizontal: 20,

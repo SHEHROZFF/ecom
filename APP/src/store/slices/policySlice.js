@@ -10,7 +10,9 @@ export const fetchPolicyThunk = createAsyncThunk(
       if (!response.success) {
         return rejectWithValue(response.message);
       }
-      return response.data; // e.g. { policy: "..." }
+      console.log('responsepolicy', response);
+      
+      return response; // e.g. { policy: "..." }
     } catch (error) {
       return rejectWithValue(error.message);
     }

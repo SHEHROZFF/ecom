@@ -84,11 +84,9 @@ const FavouritesPage = () => {
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: currentTheme.backgroundColor }]}>
       <StatusBar
-        backgroundColor={currentTheme.headerBackground[1]}
+        backgroundColor={currentTheme.headerBackground[0]}
         barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
       />
-
-      {/* Curved Gradient Header */}
       <LinearGradient
         colors={currentTheme.headerBackground}
         style={styles.header}

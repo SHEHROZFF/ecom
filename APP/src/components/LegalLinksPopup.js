@@ -1,8 +1,10 @@
 // src/components/LegalLinksPopup.js
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import DynamicContentPopup from './DynamicContentPopup';
-import { fetchPolicy } from '../services/api';
+// import { fetchPolicy } from '../services/api';
+import { fetchPolicyThunk } from '../store/slices/policySlice';
+import { useDispatch } from 'react-redux';
 
 const LegalLinksPopup = ({
   textStyle = {},
@@ -17,6 +19,13 @@ const LegalLinksPopup = ({
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupType, setPopupType] = useState('');
 
+  const dispatch = useDispatch();
+
+  const fetchContentWithRedux = useCallback(
+    (type) => dispatch(fetchPolicyThunk(type)).unwrap(),
+    [dispatch]
+  );
+  
   const openPopup = (type) => {
     setPopupType(type);
     setPopupVisible(true);
@@ -47,7 +56,7 @@ const LegalLinksPopup = ({
         themeStyles={themeStyles}
         headerBackground={headerBackground}
         headerTextColor={headerTextColor}
-        fetchContent={fetchPolicy}
+        fetchContent={fetchContentWithRedux}
       />
     </View>
   );
@@ -59,6 +68,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   linkText: {
+    fontWeight: 'bold',
     fontSize: 12,
   },
   separator: {

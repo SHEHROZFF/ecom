@@ -28,7 +28,9 @@ export const fetchMyOrders = createAsyncThunk(
       if (!response.success) {
         return rejectWithValue(response.message);
       }
-      return response.data; // e.g. { orders: [...] }
+      console.log('responseorder', response);
+      
+      return response; // e.g. { orders: [...] }
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -71,7 +73,7 @@ const orderSlice = createSlice({
       })
       .addCase(fetchMyOrders.fulfilled, (state, action) => {
         state.loading = false;
-        state.myOrders = action.payload.orders || [];
+        state.myOrders = action.payload.data || [];
       })
       .addCase(fetchMyOrders.rejected, (state, action) => {
         state.loading = false;

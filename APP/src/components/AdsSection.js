@@ -1,11 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import AdsList from './AdsList';
-import { fetchAds } from '../services/api';
+// Removed direct API import
+// import { fetchAds } from '../services/api';
+import { useDispatch } from 'react-redux';
+import { fetchAdsThunk } from '../store/slices/courseSlice';
 
-const AdsSection = ({ currentTheme, onAdPress, refreshSignal, categoryFilter, templateFilter = 'all' }) => {
+const AdsSection = ({ currentTheme, onAdPress, refreshSignal, categoryFilter, templateFilter = 'all',marginV }) => {
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(false);
+  
+  const dispatch = useDispatch();
 
   // Group ads by templateId
   const groupAdsByTemplate = (adsArray) =>
@@ -19,27 +24,25 @@ const AdsSection = ({ currentTheme, onAdPress, refreshSignal, categoryFilter, te
   const getAds = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetchAds();
-      if (response?.success) {
-        let fetchedAds = response.data.data || [];
-        if (categoryFilter) {
-          if (typeof categoryFilter === 'string') {
-            fetchedAds = fetchedAds.filter(ad => ad.category === categoryFilter);
-          } else if (Array.isArray(categoryFilter)) {
-            fetchedAds = fetchedAds.filter(ad => categoryFilter.includes(ad.category));
-          }
+      const result = await dispatch(fetchAdsThunk()).unwrap();
+      let fetchedAds = result.data || [];
+      console.log("ads",result);
+      
+      if (categoryFilter) {
+        if (typeof categoryFilter === 'string') {
+          fetchedAds = fetchedAds.filter(ad => ad.category === categoryFilter);
+        } else if (Array.isArray(categoryFilter)) {
+          fetchedAds = fetchedAds.filter(ad => categoryFilter.includes(ad.category));
         }
-        setAds(fetchedAds);
-      } else {
-        setAds([]);
       }
+      setAds(fetchedAds);
     } catch (error) {
       console.error('Ads fetch error', error);
       setAds([]);
     } finally {
       setLoading(false);
     }
-  }, [categoryFilter]);
+  }, [categoryFilter, dispatch]);
 
   useEffect(() => {
     getAds();
@@ -59,13 +62,9 @@ const AdsSection = ({ currentTheme, onAdPress, refreshSignal, categoryFilter, te
     : { [templateFilter]: ads.filter(ad => ad.templateId === templateFilter) };
 
   return (
-    <View style={styles.sectionWrapper}>
+    <View style={[styles.sectionWrapper,{marginVertical:marginV}]}>
       {Object.keys(adsToShow).map((templateKey) => (
         <View key={templateKey} style={styles.templateGroup}>
-           {/* <Text style={[styles.groupHeader, { color: currentTheme.cardTextColor }]}>
-             {templateKey.charAt(0).toUpperCase() + templateKey.slice(1)} Ads
-           </Text> */}
-          {/* <View style={styles.sectionDivider} /> */}
           <AdsList ads={adsToShow[templateKey]} onAdPress={onAdPress} currentTheme={currentTheme} />
         </View>
       ))}
@@ -76,29 +75,140 @@ const AdsSection = ({ currentTheme, onAdPress, refreshSignal, categoryFilter, te
 const styles = StyleSheet.create({
   sectionWrapper: {
     marginHorizontal: 15,
-    // marginBottom: 20,
-    paddingVertical: 15,
+    // paddingVertical: 15,
     borderRadius: 20,
   },
-  // templateGroup: { marginBottom: 30 },
-    // templateGroup: { marginBottom: 25 },
+  // Uncomment and adjust the templateGroup style if needed
+  // templateGroup: { marginBottom: 25 },
   groupHeader: {
     fontSize: 26,
     fontWeight: '800',
-    // marginBottom: 5,
     textAlign: 'center',
   },
   sectionDivider: {
     height: 4,
     backgroundColor: '#00aced',
-    // marginVertical: 10,
     borderRadius: 3,
     marginHorizontal: 100,
   },
-  loadingContainer: { marginVertical: 20, alignItems: 'center' },
+  loadingContainer: {
+    marginVertical: 20,
+    alignItems: 'center',
+  },
 });
 
 export default AdsSection;
+
+
+
+
+
+
+
+
+
+
+// import React, { useState, useEffect, useCallback } from 'react';
+// import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
+// import AdsList from './AdsList';
+// import { fetchAds } from '../services/api';
+
+// const AdsSection = ({ currentTheme, onAdPress, refreshSignal, categoryFilter, templateFilter = 'all' }) => {
+//   const [ads, setAds] = useState([]);
+//   const [loading, setLoading] = useState(false);
+
+//   // Group ads by templateId
+//   const groupAdsByTemplate = (adsArray) =>
+//     adsArray.reduce((groups, ad) => {
+//       const key = ad.templateId || 'newCourse';
+//       if (!groups[key]) groups[key] = [];
+//       groups[key].push(ad);
+//       return groups;
+//     }, {});
+
+//   const getAds = useCallback(async () => {
+//     setLoading(true);
+//     try {
+//       const response = await fetchAds();
+//       if (response?.success) {
+//         let fetchedAds = response.data.data || [];
+//         if (categoryFilter) {
+//           if (typeof categoryFilter === 'string') {
+//             fetchedAds = fetchedAds.filter(ad => ad.category === categoryFilter);
+//           } else if (Array.isArray(categoryFilter)) {
+//             fetchedAds = fetchedAds.filter(ad => categoryFilter.includes(ad.category));
+//           }
+//         }
+//         setAds(fetchedAds);
+//       } else {
+//         setAds([]);
+//       }
+//     } catch (error) {
+//       console.error('Ads fetch error', error);
+//       setAds([]);
+//     } finally {
+//       setLoading(false);
+//     }
+//   }, [categoryFilter]);
+
+//   useEffect(() => {
+//     getAds();
+//   }, [getAds, refreshSignal]);
+
+//   if (loading) {
+//     return (
+//       <View style={styles.loadingContainer}>
+//         <ActivityIndicator size="small" color={currentTheme.primaryColor} />
+//       </View>
+//     );
+//   }
+//   if (!ads.length) return null;
+
+//   const adsToShow = templateFilter === 'all'
+//     ? groupAdsByTemplate(ads)
+//     : { [templateFilter]: ads.filter(ad => ad.templateId === templateFilter) };
+
+//   return (
+//     <View style={styles.sectionWrapper}>
+//       {Object.keys(adsToShow).map((templateKey) => (
+//         <View key={templateKey} style={styles.templateGroup}>
+//            {/* <Text style={[styles.groupHeader, { color: currentTheme.cardTextColor }]}>
+//              {templateKey.charAt(0).toUpperCase() + templateKey.slice(1)} Ads
+//            </Text> */}
+//           {/* <View style={styles.sectionDivider} /> */}
+//           <AdsList ads={adsToShow[templateKey]} onAdPress={onAdPress} currentTheme={currentTheme} />
+//         </View>
+//       ))}
+//     </View>
+//   );
+// };
+
+// const styles = StyleSheet.create({
+//   sectionWrapper: {
+//     marginHorizontal: 15,
+//     // marginBottom: 20,
+//     paddingVertical: 15,
+//     borderRadius: 20,
+//   },
+//   // templateGroup: { marginBottom: 30 },
+//     // templateGroup: { marginBottom: 25 },
+//   groupHeader: {
+//     fontSize: 26,
+//     fontWeight: '800',
+//     // marginBottom: 5,
+//     textAlign: 'center',
+//   },
+//   sectionDivider: {
+//     height: 4,
+//     backgroundColor: '#00aced',
+//     // marginVertical: 10,
+//     borderRadius: 3,
+//     marginHorizontal: 100,
+//   },
+//   loadingContainer: { marginVertical: 20, alignItems: 'center' },
+// });
+
+// export default AdsSection;
 
 
 // // src/components/AdsSection.js

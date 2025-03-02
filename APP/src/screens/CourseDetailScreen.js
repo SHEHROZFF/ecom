@@ -221,13 +221,22 @@ const CourseDetailScreen = () => {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: currentTheme.backgroundColor }]}>
-      <StatusBar
-        backgroundColor={currentTheme.headerBackground[1]}
+      {/* <StatusBar
+        backgroundColor={currentTheme.headerBackground[0]}
         barStyle={currentTheme.statusBarStyle}
+      /> */}
+      <StatusBar
+        backgroundColor={currentTheme.headerBackground[0]}
+        barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
       />
-
       {/* Enhanced Hero Header */}
-      <LinearGradient colors={currentTheme.headerBackground} style={styles.header}>
+      <LinearGradient
+        colors={currentTheme.headerBackground}
+        style={styles.header}
+        start={[0, 0]}
+        end={[0, 1]}
+      >
+      {/* <LinearGradient colors={currentTheme.headerBackground} style={styles.header}> */}
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={currentTheme.headerTextColor} />
         </TouchableOpacity>

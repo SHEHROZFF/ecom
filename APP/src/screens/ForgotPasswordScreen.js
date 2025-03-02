@@ -1,7 +1,7 @@
-// src/screens/ForgotPasswordScreen.js
-
 import React, { useState, useRef, useContext } from 'react';
 import {
+  SafeAreaView,
+  ScrollView,
   View,
   Text,
   TextInput,
@@ -10,8 +10,8 @@ import {
   Animated,
   KeyboardAvoidingView,
   Platform,
-  Dimensions,
   ActivityIndicator,
+  useWindowDimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -23,11 +23,8 @@ import CustomAlert from '../components/CustomAlert';
 import LegalLinksPopup from '../components/LegalLinksPopup';
 import AppBrandName from '../components/AppBrandName';
 
-// NEW: Import useDispatch and forgotPwd thunk from authSlice
 import { useDispatch } from 'react-redux';
 import { forgotPwd } from '../store/slices/authSlice';
-
-const { width, height } = Dimensions.get('window');
 
 const ForgotPasswordScreen = () => {
   const [email, setEmail] = useState('');
@@ -46,8 +43,8 @@ const ForgotPasswordScreen = () => {
   const iconTranslateY = useRef(new Animated.Value(-50)).current;
   const buttonScale = useRef(new Animated.Value(1)).current;
 
-  // NEW: Initialize Redux dispatcher
   const dispatch = useDispatch();
+  const { width, height } = useWindowDimensions();
 
   const handleResetPassword = async () => {
     if (!email) {
@@ -69,7 +66,6 @@ const ForgotPasswordScreen = () => {
 
     setLoading(true);
     try {
-      // Use Redux thunk instead of a direct API call
       const response = await dispatch(forgotPwd(email)).unwrap();
       setLoading(false);
       if (response.success) {
@@ -100,125 +96,137 @@ const ForgotPasswordScreen = () => {
   };
 
   return (
-    <LinearGradient
-      colors={
-        theme === 'light'
-          ? ['#f7efff', '#e0c3fc']
-          : ['#0f0c29', '#302b63']
-      }
-      style={styles.background}
-    >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.overlay}
+    <SafeAreaView style={styles.safeArea}>
+      <LinearGradient
+        colors={
+          theme === 'light'
+            ? currentTheme.authBackground
+            : currentTheme.authBackground
+        }
+        style={[styles.background, { width, height }]}
       >
-        <View style={styles.container}>
-          <AppBrandName
-            brandName="Ai-Nsider"
-            primaryColor={currentTheme.primaryColor}
-            textColor={currentTheme.textColor}
-          />
-          <Text style={[styles.subtitle, { color: currentTheme.textColor }]}>
-            Forgot Your Password?
-          </Text>
-
-          <View style={styles.inputContainer}>
-            <View
-              style={[
-                styles.inputWrapper,
-                { backgroundColor: 'rgba(255,255,255,0.2)' },
-              ]}
-            >
-              <Icon
-                name="email"
-                size={24}
-                color={currentTheme.placeholderTextColor}
-                style={styles.inputIcon}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.keyboardView}
+        >
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.container}>
+              <AppBrandName
+                brandName="Ai-Nsider"
+                primaryColor={currentTheme.primaryColor}
+                textColor={currentTheme.textColor}
               />
-              <TextInput
-                placeholder="Email"
-                placeholderTextColor={currentTheme.placeholderTextColor}
-                style={[styles.input, { color: currentTheme.textColor }]}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                returnKeyType="done"
-                onSubmitEditing={handleResetPassword}
+              <Text style={[styles.subtitle, { color: currentTheme.textColor }]}>
+                Forgot Your Password?
+              </Text>
+
+              <View style={styles.inputContainer}>
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    { backgroundColor: currentTheme.inputBackgroundColor,borderColor: currentTheme.inputBorderColor, },
+                  ]}
+                >
+                  <Icon
+                    name="email"
+                    size={24}
+                    color={currentTheme.placeholderTextColor}
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    placeholder="Email"
+                    placeholderTextColor={currentTheme.placeholderTextColor}
+                    style={[styles.input, { color: currentTheme.textColor }]}
+                    onChangeText={setEmail}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    returnKeyType="done"
+                    onSubmitEditing={handleResetPassword}
+                  />
+                </View>
+              </View>
+
+              <Animated.View
+                style={{
+                  transform: [{ scale: buttonScale }],
+                  width: '100%',
+                  alignItems: 'center',
+                }}
+              >
+                <TouchableOpacity
+                  style={[styles.button, { backgroundColor: currentTheme.primaryColor }]}
+                  onPress={handleResetPassword}
+                  activeOpacity={0.8}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator size="small" color='#FFFFFF'/>
+                  ) : (
+                    <Text style={[styles.buttonText, { color: currentTheme.buttonTextColor }]}>SEND RESET LINK</Text>
+                  )}
+                </TouchableOpacity>
+              </Animated.View>
+
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Login')}
+                style={styles.backToLoginButton}
+              >
+                <Text style={[styles.backToLoginText, { color: currentTheme.secondaryColor }]}>
+                  Back to Login
+                </Text>
+              </TouchableOpacity>
+
+              <View style={styles.legalContainer}>
+                <LegalLinksPopup
+                  staticContent="<p>Your legal content goes here. Replace this with actual content.</p>"
+                  themeStyles={{
+                    cardBackground: currentTheme.cardBackground,
+                    textColor: currentTheme.textColor,
+                    primaryColor: currentTheme.primaryColor,
+                  }}
+                  headerBackground={[currentTheme.primaryColor, currentTheme.secondaryColor]}
+                  textStyle={{ color: currentTheme.secondaryColor }}
+                />
+              </View>
+
+              <CustomAlert
+                visible={alertVisible}
+                title={alertTitle}
+                message={alertMessage}
+                onClose={handleCloseAlert}
+                icon={alertIcon}
               />
             </View>
-          </View>
-
-          <Animated.View
-            style={{
-              transform: [{ scale: buttonScale }],
-              width: '100%',
-              alignItems: 'center',
-            }}
-          >
-            <TouchableOpacity
-              style={[styles.button, { backgroundColor: currentTheme.primaryColor }]}
-              onPress={handleResetPassword}
-              activeOpacity={0.8}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <Text style={styles.buttonText}>SEND RESET LINK</Text>
-              )}
-            </TouchableOpacity>
-          </Animated.View>
-
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Login')}
-            style={styles.backToLoginButton}
-          >
-            <Text style={[styles.backToLoginText, { color: currentTheme.secondaryColor }]}>
-              Back to Login
-            </Text>
-          </TouchableOpacity>
-
-          <View style={styles.legalContainer}>
-            <LegalLinksPopup
-              staticContent="<p>Your legal content goes here. Replace this with actual content.</p>"
-              themeStyles={{
-                cardBackground: currentTheme.cardBackground,
-                textColor: currentTheme.textColor,
-                primaryColor: currentTheme.primaryColor,
-              }}
-              headerBackground={[currentTheme.primaryColor, currentTheme.secondaryColor]}
-              textStyle={{ color: currentTheme.secondaryColor }}
-            />
-          </View>
-
-          <CustomAlert
-            visible={alertVisible}
-            title={alertTitle}
-            message={alertMessage}
-            onClose={handleCloseAlert}
-            icon={alertIcon}
-          />
-        </View>
-      </KeyboardAvoidingView>
-    </LinearGradient>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </LinearGradient>
+    </SafeAreaView>
   );
 };
 
 export default ForgotPasswordScreen;
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   background: {
     flex: 1,
-    width,
-    height,
   },
-  overlay: {
+  keyboardView: {
     flex: 1,
+  },
+  scrollContainer: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
   },
   container: {
-    width: '85%',
+    width: '90%',
     alignItems: 'center',
   },
   subtitle: {
@@ -236,7 +244,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     borderRadius: 15,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.4)',
+    // borderColor: 'rgba(255,255,255,0.4)',
     paddingHorizontal: 15,
   },
   inputIcon: {
@@ -256,7 +264,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   buttonText: {
-    color: '#FFFFFF',
+    // color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
     letterSpacing: 1.1,
@@ -266,7 +274,8 @@ const styles = StyleSheet.create({
   },
   backToLoginText: {
     fontSize: 16,
-    textDecorationLine: 'underline',
+    fontWeight: 'bold',
+    // textDecorationLine: 'underline',
   },
   legalContainer: {
     flexDirection: 'row',
@@ -274,6 +283,290 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
 });
+
+
+
+
+
+
+
+
+// // src/screens/ForgotPasswordScreen.js
+
+// import React, { useState, useRef, useContext } from 'react';
+// import {
+//   View,
+//   Text,
+//   TextInput,
+//   TouchableOpacity,
+//   StyleSheet,
+//   Animated,
+//   KeyboardAvoidingView,
+//   Platform,
+//   Dimensions,
+//   ActivityIndicator,
+// } from 'react-native';
+// import { useNavigation } from '@react-navigation/native';
+// import Icon from 'react-native-vector-icons/MaterialIcons';
+// import { LinearGradient } from 'expo-linear-gradient';
+
+// import { ThemeContext } from '../../ThemeContext';
+// import { lightTheme, darkTheme } from '../../themes';
+// import CustomAlert from '../components/CustomAlert';
+// import LegalLinksPopup from '../components/LegalLinksPopup';
+// import AppBrandName from '../components/AppBrandName';
+
+// // NEW: Import useDispatch and forgotPwd thunk from authSlice
+// import { useDispatch } from 'react-redux';
+// import { forgotPwd } from '../store/slices/authSlice';
+
+// const { width, height } = Dimensions.get('window');
+
+// const ForgotPasswordScreen = () => {
+//   const [email, setEmail] = useState('');
+//   const navigation = useNavigation();
+
+//   const [loading, setLoading] = useState(false);
+//   const [alertVisible, setAlertVisible] = useState(false);
+//   const [alertTitle, setAlertTitle] = useState('');
+//   const [alertMessage, setAlertMessage] = useState('');
+//   const [alertIcon, setAlertIcon] = useState('');
+
+//   const { theme } = useContext(ThemeContext);
+//   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
+
+//   const iconOpacity = useRef(new Animated.Value(0)).current;
+//   const iconTranslateY = useRef(new Animated.Value(-50)).current;
+//   const buttonScale = useRef(new Animated.Value(1)).current;
+
+//   // NEW: Initialize Redux dispatcher
+//   const dispatch = useDispatch();
+
+//   const handleResetPassword = async () => {
+//     if (!email) {
+//       setAlertTitle('Validation Error');
+//       setAlertMessage('Please enter your email.');
+//       setAlertIcon('alert-circle');
+//       setAlertVisible(true);
+//       return;
+//     }
+
+//     const emailRegex = /\S+@\S+\.\S+/;
+//     if (!emailRegex.test(email)) {
+//       setAlertTitle('Validation Error');
+//       setAlertMessage('Please enter a valid email address.');
+//       setAlertIcon('alert-circle');
+//       setAlertVisible(true);
+//       return;
+//     }
+
+//     setLoading(true);
+//     try {
+//       // Use Redux thunk instead of a direct API call
+//       const response = await dispatch(forgotPwd(email)).unwrap();
+//       setLoading(false);
+//       if (response.success) {
+//         setAlertTitle('Success');
+//         setAlertMessage('A reset link has been sent to your email.');
+//         setAlertIcon('checkmark-circle');
+//         setAlertVisible(true);
+//       } else {
+//         setAlertTitle('Error');
+//         setAlertMessage(response.message);
+//         setAlertIcon('close-circle');
+//         setAlertVisible(true);
+//       }
+//     } catch (err) {
+//       setLoading(false);
+//       setAlertTitle('Error');
+//       setAlertMessage(err.message || 'Failed to send reset link.');
+//       setAlertIcon('close-circle');
+//       setAlertVisible(true);
+//     }
+//   };
+
+//   const handleCloseAlert = () => {
+//     setAlertVisible(false);
+//     if (alertTitle === 'Success') {
+//       navigation.navigate('Otp', { email });
+//     }
+//   };
+
+//   return (
+//     <LinearGradient
+//       colors={
+//         theme === 'light'
+//           ? ['#f7efff', '#e0c3fc']
+//           : ['#0f0c29', '#302b63']
+//       }
+//       style={styles.background}
+//     >
+//       <KeyboardAvoidingView
+//         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+//         style={styles.overlay}
+//       >
+//         <View style={styles.container}>
+//           <AppBrandName
+//             brandName="Ai-Nsider"
+//             primaryColor={currentTheme.primaryColor}
+//             textColor={currentTheme.textColor}
+//           />
+//           <Text style={[styles.subtitle, { color: currentTheme.textColor }]}>
+//             Forgot Your Password?
+//           </Text>
+
+//           <View style={styles.inputContainer}>
+//             <View
+//               style={[
+//                 styles.inputWrapper,
+//                 { backgroundColor: 'rgba(255,255,255,0.2)' },
+//               ]}
+//             >
+//               <Icon
+//                 name="email"
+//                 size={24}
+//                 color={currentTheme.placeholderTextColor}
+//                 style={styles.inputIcon}
+//               />
+//               <TextInput
+//                 placeholder="Email"
+//                 placeholderTextColor={currentTheme.placeholderTextColor}
+//                 style={[styles.input, { color: currentTheme.textColor }]}
+//                 onChangeText={setEmail}
+//                 autoCapitalize="none"
+//                 keyboardType="email-address"
+//                 returnKeyType="done"
+//                 onSubmitEditing={handleResetPassword}
+//               />
+//             </View>
+//           </View>
+
+//           <Animated.View
+//             style={{
+//               transform: [{ scale: buttonScale }],
+//               width: '100%',
+//               alignItems: 'center',
+//             }}
+//           >
+//             <TouchableOpacity
+//               style={[styles.button, { backgroundColor: currentTheme.primaryColor }]}
+//               onPress={handleResetPassword}
+//               activeOpacity={0.8}
+//               disabled={loading}
+//             >
+//               {loading ? (
+//                 <ActivityIndicator size="small" color="#FFFFFF" />
+//               ) : (
+//                 <Text style={styles.buttonText}>SEND RESET LINK</Text>
+//               )}
+//             </TouchableOpacity>
+//           </Animated.View>
+
+//           <TouchableOpacity
+//             onPress={() => navigation.navigate('Login')}
+//             style={styles.backToLoginButton}
+//           >
+//             <Text style={[styles.backToLoginText, { color: currentTheme.secondaryColor }]}>
+//               Back to Login
+//             </Text>
+//           </TouchableOpacity>
+
+//           <View style={styles.legalContainer}>
+//             <LegalLinksPopup
+//               staticContent="<p>Your legal content goes here. Replace this with actual content.</p>"
+//               themeStyles={{
+//                 cardBackground: currentTheme.cardBackground,
+//                 textColor: currentTheme.textColor,
+//                 primaryColor: currentTheme.primaryColor,
+//               }}
+//               headerBackground={[currentTheme.primaryColor, currentTheme.secondaryColor]}
+//               textStyle={{ color: currentTheme.secondaryColor }}
+//             />
+//           </View>
+
+//           <CustomAlert
+//             visible={alertVisible}
+//             title={alertTitle}
+//             message={alertMessage}
+//             onClose={handleCloseAlert}
+//             icon={alertIcon}
+//           />
+//         </View>
+//       </KeyboardAvoidingView>
+//     </LinearGradient>
+//   );
+// };
+
+// export default ForgotPasswordScreen;
+
+// const styles = StyleSheet.create({
+//   background: {
+//     flex: 1,
+//     width,
+//     height,
+//   },
+//   overlay: {
+//     flex: 1,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//   },
+//   container: {
+//     width: '85%',
+//     alignItems: 'center',
+//   },
+//   subtitle: {
+//     fontSize: 18,
+//     marginTop: 5,
+//     fontWeight: '600',
+//   },
+//   inputContainer: {
+//     width: '100%',
+//     marginTop: 20,
+//   },
+//   inputWrapper: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     marginVertical: 10,
+//     borderRadius: 15,
+//     borderWidth: 1,
+//     borderColor: 'rgba(255,255,255,0.4)',
+//     paddingHorizontal: 15,
+//   },
+//   inputIcon: {
+//     marginRight: 10,
+//   },
+//   input: {
+//     flex: 1,
+//     height: 50,
+//     fontSize: 16,
+//   },
+//   button: {
+//     width: '100%',
+//     paddingVertical: 15,
+//     borderRadius: 30,
+//     alignItems: 'center',
+//     elevation: 3,
+//     marginTop: 10,
+//   },
+//   buttonText: {
+//     color: '#FFFFFF',
+//     fontSize: 16,
+//     fontWeight: 'bold',
+//     letterSpacing: 1.1,
+//   },
+//   backToLoginButton: {
+//     marginTop: 20,
+//   },
+//   backToLoginText: {
+//     fontSize: 16,
+//     textDecorationLine: 'underline',
+//   },
+//   legalContainer: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     marginTop: 20,
+//   },
+// });
 
 
 

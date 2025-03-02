@@ -337,14 +337,15 @@ const MarketPage = () => {
         </View>
 
         {/* Ads Section */}
-        <View style={styles.adsContainer}>
+        {/* <View style={styles.adsContainer}> */}
           <AdsSection
             currentTheme={currentTheme}
             onAdPress={handleAdPress}
             refreshSignal={adsRefresh}
             templateFilter="sale"
+            marginV={-25}
           />
-        </View>
+        {/* </View> */}
       </>
     ),
     [currentTheme, searchQuery, adsRefresh, handleAdPress, handleSearch]
@@ -442,7 +443,7 @@ const MarketPage = () => {
   return (
     <View style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
       <StatusBar
-        backgroundColor={currentTheme.headerBackground[1]}
+        backgroundColor={currentTheme.headerBackground[0]}
         barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
       />
 

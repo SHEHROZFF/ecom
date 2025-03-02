@@ -23,7 +23,30 @@ export const lightTheme = {
   headerTextColor: '#FFFFFF', // Crisp White Text for the Header
   arrowColor: '#FFFFFF', // White Arrows for Standout Contrast
   aiheader: ['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.5)'],
-  marketheader: ['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.5)']
+  marketheader: ['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.5)'],
+  inputBackgroundColor: 'rgba(255,255,255,0.3)',
+  authBackground:['#f7efff', '#e0c3fc'],
+  loadingindicatorColor: '#8E44AD',
+  inputBorderColor:'rgba(255,255,255,0.9)',
+  passwordStrengthVeryStrongColor: '#4CAF50',
+  passwordStrengthStrongColor: '#FFC107',
+  passwordStrengthMediumColor: '#FF9800',
+  passwordStrengthWeakColor: '#F44336',
+  passwordStrengthTooShortColor: '#9E9E9E',
+  passwordMismatchTextColor: '#FF6F61',
+  buttonTextColor: '#FFFFFF', // White Text for Buttons
+  errorTextColor: '#FF6F61',
+  searchIconColor: '#8E44AD',
+  placeholderTextColor: '#B9B9B9',
+  textShadowColor:'rgba(0, 0, 0, 0.9)',
+  inputSearchBackgroundColor:'rgba(255,255,255,0.95)',
+  badgeTextColor: '#8E44AD',
+  badgeBackgroundColor: '#FFD700',
+  reelsCardHorizontalOverlayColor: 'rgba(255, 255, 255, 0.6)',
+  verticalreelsButtonColor: ['#8E44AD', '#D8A9E2'],
+  reelTitleColor: '#ffffff',
+  verticalreelsBgColor: '#000000',
+  ratingColor: '#FFD700',
 };
 
 export const darkTheme = {
@@ -49,7 +72,29 @@ export const darkTheme = {
   headerTextColor: '#E5E5E5', // Subtle Gray Text for the Header
   arrowColor: '#8E44AD', // Rich Purple for Arrows
   aiheader: ['rgba(102, 126, 234, 0.6)', 'rgba(100, 182, 255, 0.6)'],
-  marketheader: ['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.5)']
+  marketheader: ['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.5)'],
+  inputBackgroundColor: 'rgba(255,255,255,0.3)',
+  authBackground:['#0f0c29', '#302b63'],
+  loadingindicatorColor: '#8E44AD',
+  inputBorderColor:'rgba(255,255,255,0.9)',
+  passwordStrengthVeryStrongColor: '#4CAF50',
+  passwordStrengthStrongColor: '#FFC107',
+  passwordStrengthMediumColor: '#FF9800',
+  passwordStrengthWeakColor: '#F44336',
+  passwordStrengthTooShortColor: '#9E9E9E',
+  passwordMismatchTextColor: '#FF6F61',
+  buttonTextColor: '#FFFFFF', // White Text for Buttons
+  errorTextColor: '#FF6F61',
+  searchIconColor: '#8E44AD',
+  placeholderTextColor: '#6C6C6C',
+  textShadowColor:'rgba(0, 0, 0, 0.9)',
+  inputSearchBackgroundColor:'rgba(255,255,255,0.95)',
+  badgeTextColor: '#8E44AD',
+  badgeBackgroundColor: '#FFD700',
+  verticalreelsButtonColor: ['#8E44AD', '#D8A9E2'],
+  reelTitleColor: '#ffffff',
+  verticalreelsBgColor: '#ffffff',
+  ratingColor: '#FFD700',
 };
 
 // export const darkTheme = {

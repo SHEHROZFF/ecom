@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Image,
+  StatusBar
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ThemeContext } from '../../ThemeContext';
@@ -227,11 +228,15 @@ const MyEnrollmentsScreen = () => {
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: currentTheme.backgroundColor }]}>
       {/* Header with Back Button */}
+      <StatusBar
+        backgroundColor={currentTheme.headerBackground[0]}
+        barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
+      />
       <LinearGradient
         colors={currentTheme.headerBackground}
         style={styles.header}
         start={[0, 0]}
-        end={[1, 1]}
+        end={[0, 1]}
       >
         <TouchableOpacity
           style={styles.headerBackButton}

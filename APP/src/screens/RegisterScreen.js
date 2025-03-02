@@ -10,8 +10,10 @@ import {
   Animated,
   KeyboardAvoidingView,
   Platform,
-  Dimensions,
   ActivityIndicator,
+  ScrollView,
+  SafeAreaView,
+  useWindowDimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -19,22 +21,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { ThemeContext } from '../../ThemeContext';
 import { lightTheme, darkTheme } from '../../themes';
-import { registerUser } from '../services/api'; // Or from context
 import CustomAlert from '../components/CustomAlert';
 import { UserContext } from '../contexts/UserContext';
 import LegalLinksPopup from '../components/LegalLinksPopup';
-
-// NEW: Reusable brand-name component
 import AppBrandName from '../components/AppBrandName';
-
-const { width, height } = Dimensions.get('window');
 
 const RegisterScreen = () => {
   const navigation = useNavigation();
+  const { width, height } = useWindowDimensions();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
 
-  // Password & confirm
   const [password, setPassword] = useState('');
   const [passwordStrength, setPasswordStrength] = useState('');
   const [passwordScore, setPasswordScore] = useState(0);
@@ -53,12 +50,10 @@ const RegisterScreen = () => {
   const { theme } = useContext(ThemeContext);
   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
 
-  // Refs
   const emailInputRef = useRef();
   const passwordInputRef = useRef();
   const confirmPasswordInputRef = useRef();
 
-  // Animations
   const iconOpacity = useRef(new Animated.Value(0)).current;
   const iconTranslateY = useRef(new Animated.Value(-50)).current;
   const buttonScale = useRef(new Animated.Value(1)).current;
@@ -78,7 +73,6 @@ const RegisterScreen = () => {
     ]).start();
   }, []);
 
-  // Evaluate password strength
   const evaluatePasswordStrength = (pw) => {
     let score = 0;
     if (pw.length >= 6) {
@@ -183,207 +177,207 @@ const RegisterScreen = () => {
   const getPasswordStrengthColor = () => {
     switch (passwordStrength) {
       case 'Too Short':
+        return currentTheme.passwordStrengthTooShortColor;
       case 'Weak':
-        return 'red';
+        return currentTheme.passwordStrengthWeakColor;
       case 'Medium':
-        return 'orange';
+        return currentTheme.passwordStrengthMediumColor;
       case 'Strong':
-        return 'yellowgreen';
+        return currentTheme.passwordStrengthStrongColor;
       case 'Very Strong':
-        return 'green';
+        return currentTheme.passwordStrengthVeryStrongColor;
       default:
-        return 'grey';
+        return currentTheme.passwordStrengthWeakColor;
     }
   };
 
   return (
     <LinearGradient
-      colors={
-        theme === 'light'
-          ? ['#f7efff', '#e0c3fc']
-          : ['#0f0c29', '#302b63']
-      }
-      style={styles.background}
+      colors={theme === 'light' ? currentTheme.authBackground : currentTheme.authBackground}
+      style={[styles.background, { width, height }]}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.overlay}
-      >
-        <View style={styles.container}>
-          {/* Reusable brand name + subtitle */}
-          <AppBrandName
-            brandName="Ai-Nsider"
-            primaryColor={currentTheme.primaryColor}
-            textColor={currentTheme.textColor}
-          />
-          <Text style={[styles.subtitle, { color: currentTheme.textColor }]}>
-            Create Your Account
-          </Text>
-
-          <View style={styles.inputContainer}>
-            {/* Name Input */}
-            <View style={[styles.inputWrapper]}>
-              <Icon
-                name="person"
-                size={24}
-                color={currentTheme.placeholderTextColor}
-                style={styles.inputIcon}
-              />
-              <TextInput
-                placeholder="Name"
-                placeholderTextColor={currentTheme.placeholderTextColor}
-                style={[styles.input, { color: currentTheme.textColor }]}
-                onChangeText={setName}
-                returnKeyType="next"
-                onSubmitEditing={() => emailInputRef.current.focus()}
-                blurOnSubmit={false}
-              />
-            </View>
-
-            {/* Email Input */}
-            <View style={[styles.inputWrapper]}>
-              <Icon
-                name="email"
-                size={24}
-                color={currentTheme.placeholderTextColor}
-                style={styles.inputIcon}
-              />
-              <TextInput
-                ref={emailInputRef}
-                placeholder="Email"
-                placeholderTextColor={currentTheme.placeholderTextColor}
-                style={[styles.input, { color: currentTheme.textColor }]}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                returnKeyType="next"
-                onSubmitEditing={() => passwordInputRef.current.focus()}
-                blurOnSubmit={false}
-              />
-            </View>
-
-            {/* Password Input */}
-            <View style={[styles.inputWrapper]}>
-              <Icon
-                name="lock"
-                size={24}
-                color={currentTheme.placeholderTextColor}
-                style={styles.inputIcon}
-              />
-              <TextInput
-                ref={passwordInputRef}
-                placeholder="Password"
-                placeholderTextColor={currentTheme.placeholderTextColor}
-                style={[styles.input, { color: currentTheme.textColor }]}
-                secureTextEntry
-                onChangeText={handlePasswordChange}
-                returnKeyType="next"
-                onSubmitEditing={() => confirmPasswordInputRef.current.focus()}
-                blurOnSubmit={false}
-              />
-            </View>
-
-            {/* Password Strength */}
-            {password !== '' && (
-              <View style={styles.passwordStrengthContainer}>
-                <View
-                  style={[
-                    styles.passwordStrengthBar,
-                    {
-                      width: `${(passwordScore / 5) * 100}%`,
-                      backgroundColor: getPasswordStrengthColor(),
-                    },
-                  ]}
-                />
-                <Text
-                  style={[
-                    styles.passwordStrengthText,
-                    { color: getPasswordStrengthColor() },
-                  ]}
-                >
-                  {passwordStrength}
-                </Text>
-              </View>
-            )}
-
-            {/* Confirm Password */}
-            <View style={[styles.inputWrapper]}>
-              <Icon
-                name="lock-outline"
-                size={24}
-                color={currentTheme.placeholderTextColor}
-                style={styles.inputIcon}
-              />
-              <TextInput
-                ref={confirmPasswordInputRef}
-                placeholder="Confirm Password"
-                placeholderTextColor={currentTheme.placeholderTextColor}
-                style={[styles.input, { color: currentTheme.textColor }]}
-                secureTextEntry
-                onChangeText={handleConfirmPasswordChange}
-                returnKeyType="done"
-                onSubmitEditing={handleRegister}
-              />
-            </View>
-            {!passwordsMatch && confirmPassword !== '' && (
-              <Text style={styles.passwordMismatchText}>Passwords do not match</Text>
-            )}
-          </View>
-
-          <Animated.View
-            style={{
-              transform: [{ scale: buttonScale }],
-              width: '100%',
-              alignItems: 'center',
-            }}
+      <SafeAreaView style={{ flex: 1 }}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 20}
+          style={{ flex: 1 }}
+        >
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
-            <TouchableOpacity
-              style={[styles.button, { backgroundColor: currentTheme.primaryColor }]}
-              onPress={handleRegister}
-              activeOpacity={0.8}
-            >
-              {loading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <Text style={styles.buttonText}>REGISTER</Text>
-              )}
-            </TouchableOpacity>
-          </Animated.View>
-
-          <View style={styles.loginContainer}>
-            <Text style={[styles.accountText, { color: currentTheme.textColor }]}>
-              Already have an account?
-            </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-              <Text style={[styles.loginText, { color: currentTheme.secondaryColor }]}>
-                {' '}Login
+            <View style={styles.container}>
+              <AppBrandName
+                brandName="Ai-Nsider"
+                primaryColor={currentTheme.primaryColor}
+                textColor={currentTheme.textColor}
+              />
+              <Text style={[styles.subtitle, { color: currentTheme.textColor }]}>
+                Create Your Account
               </Text>
-            </TouchableOpacity>
-          </View>
 
-          <View style={styles.legalContainer}>
-            <LegalLinksPopup
-              staticContent="<p>Your legal content goes here. Replace this with actual content.</p>"
-              themeStyles={{
-                cardBackground: currentTheme.cardBackground,
-                textColor: currentTheme.textColor,
-                primaryColor: currentTheme.primaryColor,
-              }}
-              headerBackground={[currentTheme.primaryColor, currentTheme.secondaryColor]}
-              textStyle={{ color: currentTheme.secondaryColor }}
-            />
-          </View>
+              <View style={styles.inputContainer}>
+                <View style={[styles.inputWrapper, { backgroundColor: currentTheme.inputBackgroundColor, borderColor: currentTheme.inputBorderColor }]}>
+                  <Icon
+                    name="person"
+                    size={24}
+                    color={currentTheme.placeholderTextColor}
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    placeholder="Name"
+                    placeholderTextColor={currentTheme.placeholderTextColor}
+                    style={[styles.input, { color: currentTheme.textColor }]}
+                    onChangeText={setName}
+                    returnKeyType="next"
+                    onSubmitEditing={() => emailInputRef.current.focus()}
+                    blurOnSubmit={false}
+                  />
+                </View>
 
-          <CustomAlert
-            visible={alertVisible}
-            title={alertTitle}
-            message={alertMessage}
-            icon={alertIcon}
-            onClose={() => setAlertVisible(false)}
-            buttons={alertButtons}
-          />
-        </View>
-      </KeyboardAvoidingView>
+                <View style={[styles.inputWrapper, { backgroundColor: currentTheme.inputBackgroundColor, borderColor: currentTheme.inputBorderColor }]}>
+                  <Icon
+                    name="email"
+                    size={24}
+                    color={currentTheme.placeholderTextColor}
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    ref={emailInputRef}
+                    placeholder="Email"
+                    placeholderTextColor={currentTheme.placeholderTextColor}
+                    style={[styles.input, { color: currentTheme.textColor }]}
+                    onChangeText={setEmail}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    returnKeyType="next"
+                    onSubmitEditing={() => passwordInputRef.current.focus()}
+                    blurOnSubmit={false}
+                  />
+                </View>
+
+                <View style={[styles.inputWrapper, { backgroundColor: currentTheme.inputBackgroundColor, borderColor: currentTheme.inputBorderColor }]}>
+                  <Icon
+                    name="lock"
+                    size={24}
+                    color={currentTheme.placeholderTextColor}
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    ref={passwordInputRef}
+                    placeholder="Password"
+                    placeholderTextColor={currentTheme.placeholderTextColor}
+                    style={[styles.input, { color: currentTheme.textColor }]}
+                    secureTextEntry
+                    onChangeText={handlePasswordChange}
+                    returnKeyType="next"
+                    onSubmitEditing={() => confirmPasswordInputRef.current.focus()}
+                    blurOnSubmit={false}
+                  />
+                </View>
+
+                {password !== '' && (
+                  <View style={styles.passwordStrengthContainer}>
+                    <View
+                      style={[
+                        styles.passwordStrengthBar,
+                        {
+                          width: `${(passwordScore / 5) * 100}%`,
+                          backgroundColor: getPasswordStrengthColor(),
+                        },
+                      ]}
+                    />
+                    <Text
+                      style={[
+                        styles.passwordStrengthText,
+                        { color: getPasswordStrengthColor() },
+                      ]}
+                    >
+                      {passwordStrength}
+                    </Text>
+                  </View>
+                )}
+
+                <View style={[styles.inputWrapper, { backgroundColor: currentTheme.inputBackgroundColor,borderColor: currentTheme.inputBorderColor }]}>
+                  <Icon
+                    name="lock-outline"
+                    size={24}
+                    color={currentTheme.placeholderTextColor}
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    ref={confirmPasswordInputRef}
+                    placeholder="Confirm Password"
+                    placeholderTextColor={currentTheme.placeholderTextColor}
+                    style={[styles.input, { color: currentTheme.textColor }]}
+                    secureTextEntry
+                    onChangeText={handleConfirmPasswordChange}
+                    returnKeyType="done"
+                    onSubmitEditing={handleRegister}
+                  />
+                </View>
+                {!passwordsMatch && confirmPassword !== '' && (
+                  <Text style={[styles.passwordMismatchText, { color: currentTheme.passwordMismatchTextColor }]}>Passwords do not match</Text>
+                )}
+              </View>
+
+              <Animated.View
+                style={{
+                  transform: [{ scale: buttonScale }],
+                  width: '100%',
+                  alignItems: 'center',
+                }}
+              >
+                <TouchableOpacity
+                  style={[styles.button, { backgroundColor: currentTheme.primaryColor }]}
+                  onPress={handleRegister}
+                  activeOpacity={0.8}
+                >
+                  {loading ? (
+                    <ActivityIndicator size="small" color='#FFFFFF'/>
+                  ) : (
+                    <Text style={[styles.buttonText, { color: currentTheme.buttonTextColor }]}>REGISTER</Text>
+                  )}
+                </TouchableOpacity>
+              </Animated.View>
+
+              <View style={styles.loginContainer}>
+                <Text style={[styles.accountText, { color: currentTheme.textColor }]}>
+                  Already have an account?
+                </Text>
+                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                  <Text style={[styles.loginText, { color: currentTheme.secondaryColor }]}>
+                    {' '}Login
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.legalContainer}>
+                <LegalLinksPopup
+                  staticContent="<p>Your legal content goes here. Replace this with actual content.</p>"
+                  themeStyles={{
+                    cardBackground: currentTheme.cardBackground,
+                    textColor: currentTheme.textColor,
+                    primaryColor: currentTheme.primaryColor,
+                  }}
+                  headerBackground={[currentTheme.primaryColor, currentTheme.secondaryColor]}
+                  textStyle={{ color: currentTheme.secondaryColor }}
+                />
+              </View>
+
+              <CustomAlert
+                visible={alertVisible}
+                title={alertTitle}
+                message={alertMessage}
+                icon={alertIcon}
+                onClose={() => setAlertVisible(false)}
+                buttons={alertButtons}
+              />
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
     </LinearGradient>
   );
 };
@@ -393,17 +387,17 @@ export default RegisterScreen;
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    width,
-    height,
   },
-  overlay: {
-    flex: 1,
+  scrollContainer: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 10,
   },
   container: {
-    width: '85%',
+    width: '90%',
     alignItems: 'center',
+    paddingHorizontal: 10,
   },
   subtitle: {
     fontSize: 18,
@@ -420,9 +414,10 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     borderRadius: 15,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.4)',
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    // borderColor: 'rgba(255,255,255,0.4)',
+    // backgroundColor: 'rgba(255,255,255,0.2)',
     paddingHorizontal: 15,
+    height: 50,
   },
   inputIcon: {
     marginRight: 10,
@@ -448,7 +443,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
   },
   passwordMismatchText: {
-    color: 'red',
+    // color: 'red',
     fontSize: 14,
     marginTop: -5,
     marginBottom: 10,
@@ -464,7 +459,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   buttonText: {
-    color: '#FFFFFF',
+    // color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
     letterSpacing: 1.1,
@@ -487,6 +482,506 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
 });
+
+
+
+
+
+
+
+
+
+
+
+// // src/screens/RegisterScreen.js
+
+// import React, { useState, useEffect, useRef, useContext } from 'react';
+// import {
+//   View,
+//   Text,
+//   TextInput,
+//   TouchableOpacity,
+//   StyleSheet,
+//   Animated,
+//   KeyboardAvoidingView,
+//   Platform,
+//   Dimensions,
+//   ActivityIndicator,
+// } from 'react-native';
+// import { useNavigation } from '@react-navigation/native';
+// import Icon from 'react-native-vector-icons/MaterialIcons';
+// import { LinearGradient } from 'expo-linear-gradient';
+
+// import { ThemeContext } from '../../ThemeContext';
+// import { lightTheme, darkTheme } from '../../themes';
+// import { registerUser } from '../services/api'; // Or from context
+// import CustomAlert from '../components/CustomAlert';
+// import { UserContext } from '../contexts/UserContext';
+// import LegalLinksPopup from '../components/LegalLinksPopup';
+
+// // NEW: Reusable brand-name component
+// import AppBrandName from '../components/AppBrandName';
+
+// const { width, height } = Dimensions.get('window');
+
+// const RegisterScreen = () => {
+//   const navigation = useNavigation();
+//   const [name, setName] = useState('');
+//   const [email, setEmail] = useState('');
+
+//   // Password & confirm
+//   const [password, setPassword] = useState('');
+//   const [passwordStrength, setPasswordStrength] = useState('');
+//   const [passwordScore, setPasswordScore] = useState(0);
+//   const [confirmPassword, setConfirmPassword] = useState('');
+//   const [passwordsMatch, setPasswordsMatch] = useState(true);
+
+//   const { register } = useContext(UserContext);
+//   const [loading, setLoading] = useState(false);
+
+//   const [alertVisible, setAlertVisible] = useState(false);
+//   const [alertTitle, setAlertTitle] = useState('');
+//   const [alertMessage, setAlertMessage] = useState('');
+//   const [alertIcon, setAlertIcon] = useState('');
+//   const [alertButtons, setAlertButtons] = useState([]);
+
+//   const { theme } = useContext(ThemeContext);
+//   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
+
+//   // Refs
+//   const emailInputRef = useRef();
+//   const passwordInputRef = useRef();
+//   const confirmPasswordInputRef = useRef();
+
+//   // Animations
+//   const iconOpacity = useRef(new Animated.Value(0)).current;
+//   const iconTranslateY = useRef(new Animated.Value(-50)).current;
+//   const buttonScale = useRef(new Animated.Value(1)).current;
+
+//   useEffect(() => {
+//     Animated.parallel([
+//       Animated.timing(iconOpacity, {
+//         toValue: 1,
+//         duration: 1000,
+//         useNativeDriver: true,
+//       }),
+//       Animated.spring(iconTranslateY, {
+//         toValue: 0,
+//         friction: 5,
+//         useNativeDriver: true,
+//       }),
+//     ]).start();
+//   }, []);
+
+//   // Evaluate password strength
+//   const evaluatePasswordStrength = (pw) => {
+//     let score = 0;
+//     if (pw.length >= 6) {
+//       if (/[a-z]/.test(pw)) score++;
+//       if (/[A-Z]/.test(pw)) score++;
+//       if (/[0-9]/.test(pw)) score++;
+//       if (/[^A-Za-z0-9]/.test(pw)) score++;
+//       if (pw.length >= 8) score++;
+//     }
+//     setPasswordScore(score);
+
+//     let strengthLabel = 'Too Short';
+//     switch (score) {
+//       case 1:
+//       case 2:
+//         strengthLabel = 'Weak';
+//         break;
+//       case 3:
+//         strengthLabel = 'Medium';
+//         break;
+//       case 4:
+//         strengthLabel = 'Strong';
+//         break;
+//       case 5:
+//         strengthLabel = 'Very Strong';
+//         break;
+//       default:
+//         strengthLabel = 'Too Short';
+//     }
+//     setPasswordStrength(strengthLabel);
+//   };
+
+//   const handlePasswordChange = (pw) => {
+//     setPassword(pw);
+//     evaluatePasswordStrength(pw);
+//     if (confirmPassword !== '') {
+//       setPasswordsMatch(pw === confirmPassword);
+//     }
+//   };
+
+//   const handleConfirmPasswordChange = (cpw) => {
+//     setConfirmPassword(cpw);
+//     setPasswordsMatch(password === cpw);
+//   };
+
+//   const handleRegister = async () => {
+//     if (!name || !email || !password || !confirmPassword) {
+//       setAlertTitle('Validation Error');
+//       setAlertMessage('Please fill in all fields.');
+//       setAlertIcon('alert-circle');
+//       setAlertButtons([{ text: 'OK', onPress: () => setAlertVisible(false) }]);
+//       setAlertVisible(true);
+//       return;
+//     }
+
+//     if (password.length < 6) {
+//       setAlertTitle('Validation Error');
+//       setAlertMessage('Password must be at least 6 characters long.');
+//       setAlertIcon('alert-circle');
+//       setAlertButtons([{ text: 'OK', onPress: () => setAlertVisible(false) }]);
+//       setAlertVisible(true);
+//       return;
+//     }
+
+//     if (password !== confirmPassword) {
+//       setAlertTitle('Validation Error');
+//       setAlertMessage('Passwords do not match.');
+//       setAlertIcon('alert-circle');
+//       setAlertButtons([{ text: 'OK', onPress: () => setAlertVisible(false) }]);
+//       setAlertVisible(true);
+//       return;
+//     }
+
+//     setLoading(true);
+//     const userData = { name, email, password, role: 'user' };
+//     const response = await register(userData);
+//     setLoading(false);
+
+//     if (response.success) {
+//       setAlertTitle('Success');
+//       setAlertMessage('Account created successfully!');
+//       setAlertIcon('checkmark-circle');
+//       setAlertButtons([
+//         {
+//           text: 'OK',
+//           onPress: () => {
+//             setAlertVisible(false);
+//             navigation.navigate('Main');
+//           },
+//         },
+//       ]);
+//       setAlertVisible(true);
+//     } else {
+//       setAlertTitle('Registration Failed');
+//       setAlertMessage(response.message);
+//       setAlertIcon('close-circle');
+//       setAlertButtons([{ text: 'OK', onPress: () => setAlertVisible(false) }]);
+//       setAlertVisible(true);
+//     }
+//   };
+
+//   const getPasswordStrengthColor = () => {
+//     switch (passwordStrength) {
+//       case 'Too Short':
+//       case 'Weak':
+//         return 'red';
+//       case 'Medium':
+//         return 'orange';
+//       case 'Strong':
+//         return 'yellowgreen';
+//       case 'Very Strong':
+//         return 'green';
+//       default:
+//         return 'grey';
+//     }
+//   };
+
+//   return (
+//     <LinearGradient
+//       colors={
+//         theme === 'light'
+//           ? ['#f7efff', '#e0c3fc']
+//           : ['#0f0c29', '#302b63']
+//       }
+//       style={styles.background}
+//     >
+//       <KeyboardAvoidingView
+//         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+//         style={styles.overlay}
+//       >
+//         <View style={styles.container}>
+//           {/* Reusable brand name + subtitle */}
+//           <AppBrandName
+//             brandName="Ai-Nsider"
+//             primaryColor={currentTheme.primaryColor}
+//             textColor={currentTheme.textColor}
+//           />
+//           <Text style={[styles.subtitle, { color: currentTheme.textColor }]}>
+//             Create Your Account
+//           </Text>
+
+//           <View style={styles.inputContainer}>
+//             {/* Name Input */}
+//             <View style={[styles.inputWrapper]}>
+//               <Icon
+//                 name="person"
+//                 size={24}
+//                 color={currentTheme.placeholderTextColor}
+//                 style={styles.inputIcon}
+//               />
+//               <TextInput
+//                 placeholder="Name"
+//                 placeholderTextColor={currentTheme.placeholderTextColor}
+//                 style={[styles.input, { color: currentTheme.textColor }]}
+//                 onChangeText={setName}
+//                 returnKeyType="next"
+//                 onSubmitEditing={() => emailInputRef.current.focus()}
+//                 blurOnSubmit={false}
+//               />
+//             </View>
+
+//             {/* Email Input */}
+//             <View style={[styles.inputWrapper]}>
+//               <Icon
+//                 name="email"
+//                 size={24}
+//                 color={currentTheme.placeholderTextColor}
+//                 style={styles.inputIcon}
+//               />
+//               <TextInput
+//                 ref={emailInputRef}
+//                 placeholder="Email"
+//                 placeholderTextColor={currentTheme.placeholderTextColor}
+//                 style={[styles.input, { color: currentTheme.textColor }]}
+//                 onChangeText={setEmail}
+//                 autoCapitalize="none"
+//                 keyboardType="email-address"
+//                 returnKeyType="next"
+//                 onSubmitEditing={() => passwordInputRef.current.focus()}
+//                 blurOnSubmit={false}
+//               />
+//             </View>
+
+//             {/* Password Input */}
+//             <View style={[styles.inputWrapper]}>
+//               <Icon
+//                 name="lock"
+//                 size={24}
+//                 color={currentTheme.placeholderTextColor}
+//                 style={styles.inputIcon}
+//               />
+//               <TextInput
+//                 ref={passwordInputRef}
+//                 placeholder="Password"
+//                 placeholderTextColor={currentTheme.placeholderTextColor}
+//                 style={[styles.input, { color: currentTheme.textColor }]}
+//                 secureTextEntry
+//                 onChangeText={handlePasswordChange}
+//                 returnKeyType="next"
+//                 onSubmitEditing={() => confirmPasswordInputRef.current.focus()}
+//                 blurOnSubmit={false}
+//               />
+//             </View>
+
+//             {/* Password Strength */}
+//             {password !== '' && (
+//               <View style={styles.passwordStrengthContainer}>
+//                 <View
+//                   style={[
+//                     styles.passwordStrengthBar,
+//                     {
+//                       width: `${(passwordScore / 5) * 100}%`,
+//                       backgroundColor: getPasswordStrengthColor(),
+//                     },
+//                   ]}
+//                 />
+//                 <Text
+//                   style={[
+//                     styles.passwordStrengthText,
+//                     { color: getPasswordStrengthColor() },
+//                   ]}
+//                 >
+//                   {passwordStrength}
+//                 </Text>
+//               </View>
+//             )}
+
+//             {/* Confirm Password */}
+//             <View style={[styles.inputWrapper]}>
+//               <Icon
+//                 name="lock-outline"
+//                 size={24}
+//                 color={currentTheme.placeholderTextColor}
+//                 style={styles.inputIcon}
+//               />
+//               <TextInput
+//                 ref={confirmPasswordInputRef}
+//                 placeholder="Confirm Password"
+//                 placeholderTextColor={currentTheme.placeholderTextColor}
+//                 style={[styles.input, { color: currentTheme.textColor }]}
+//                 secureTextEntry
+//                 onChangeText={handleConfirmPasswordChange}
+//                 returnKeyType="done"
+//                 onSubmitEditing={handleRegister}
+//               />
+//             </View>
+//             {!passwordsMatch && confirmPassword !== '' && (
+//               <Text style={styles.passwordMismatchText}>Passwords do not match</Text>
+//             )}
+//           </View>
+
+//           <Animated.View
+//             style={{
+//               transform: [{ scale: buttonScale }],
+//               width: '100%',
+//               alignItems: 'center',
+//             }}
+//           >
+//             <TouchableOpacity
+//               style={[styles.button, { backgroundColor: currentTheme.primaryColor }]}
+//               onPress={handleRegister}
+//               activeOpacity={0.8}
+//             >
+//               {loading ? (
+//                 <ActivityIndicator size="small" color="#FFFFFF" />
+//               ) : (
+//                 <Text style={styles.buttonText}>REGISTER</Text>
+//               )}
+//             </TouchableOpacity>
+//           </Animated.View>
+
+//           <View style={styles.loginContainer}>
+//             <Text style={[styles.accountText, { color: currentTheme.textColor }]}>
+//               Already have an account?
+//             </Text>
+//             <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+//               <Text style={[styles.loginText, { color: currentTheme.secondaryColor }]}>
+//                 {' '}Login
+//               </Text>
+//             </TouchableOpacity>
+//           </View>
+
+//           <View style={styles.legalContainer}>
+//             <LegalLinksPopup
+//               staticContent="<p>Your legal content goes here. Replace this with actual content.</p>"
+//               themeStyles={{
+//                 cardBackground: currentTheme.cardBackground,
+//                 textColor: currentTheme.textColor,
+//                 primaryColor: currentTheme.primaryColor,
+//               }}
+//               headerBackground={[currentTheme.primaryColor, currentTheme.secondaryColor]}
+//               textStyle={{ color: currentTheme.secondaryColor }}
+//             />
+//           </View>
+
+//           <CustomAlert
+//             visible={alertVisible}
+//             title={alertTitle}
+//             message={alertMessage}
+//             icon={alertIcon}
+//             onClose={() => setAlertVisible(false)}
+//             buttons={alertButtons}
+//           />
+//         </View>
+//       </KeyboardAvoidingView>
+//     </LinearGradient>
+//   );
+// };
+
+// export default RegisterScreen;
+
+// const styles = StyleSheet.create({
+//   background: {
+//     flex: 1,
+//     width,
+//     height,
+//   },
+//   overlay: {
+//     flex: 1,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//   },
+//   container: {
+//     width: '85%',
+//     alignItems: 'center',
+//   },
+//   subtitle: {
+//     fontSize: 18,
+//     marginTop: 10,
+//     fontWeight: '600',
+//   },
+//   inputContainer: {
+//     width: '100%',
+//     marginTop: 10,
+//   },
+//   inputWrapper: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     marginVertical: 10,
+//     borderRadius: 15,
+//     borderWidth: 1,
+//     borderColor: 'rgba(255,255,255,0.4)',
+//     backgroundColor: 'rgba(255,255,255,0.2)',
+//     paddingHorizontal: 15,
+//   },
+//   inputIcon: {
+//     marginRight: 10,
+//   },
+//   input: {
+//     flex: 1,
+//     height: 50,
+//     fontSize: 16,
+//   },
+//   passwordStrengthContainer: {
+//     width: '100%',
+//     marginBottom: 10,
+//   },
+//   passwordStrengthBar: {
+//     height: 8,
+//     borderRadius: 4,
+//     backgroundColor: 'grey',
+//   },
+//   passwordStrengthText: {
+//     marginTop: 5,
+//     fontSize: 14,
+//     fontWeight: 'bold',
+//     alignSelf: 'flex-end',
+//   },
+//   passwordMismatchText: {
+//     color: 'red',
+//     fontSize: 14,
+//     marginTop: -5,
+//     marginBottom: 10,
+//     alignSelf: 'flex-start',
+//     marginLeft: 50,
+//   },
+//   button: {
+//     width: '100%',
+//     paddingVertical: 15,
+//     borderRadius: 30,
+//     alignItems: 'center',
+//     elevation: 3,
+//     marginTop: 10,
+//   },
+//   buttonText: {
+//     color: '#FFFFFF',
+//     fontSize: 16,
+//     fontWeight: 'bold',
+//     letterSpacing: 1.1,
+//   },
+//   loginContainer: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     marginTop: 15,
+//   },
+//   accountText: {
+//     fontSize: 16,
+//   },
+//   loginText: {
+//     fontSize: 16,
+//     fontWeight: 'bold',
+//   },
+//   legalContainer: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     marginTop: 20,
+//   },
+// });
 
 
 

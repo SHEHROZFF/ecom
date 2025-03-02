@@ -1,5 +1,4 @@
-// components/ReviewPopup.js
-
+// src/components/ReviewPopup.js
 import React, { useContext, useState, useEffect } from 'react';
 import {
   View,
@@ -20,83 +19,57 @@ import { useNavigation } from '@react-navigation/native';
 
 import { ThemeContext } from '../../ThemeContext';
 import { lightTheme, darkTheme } from '../../themes';
-import api from '../services/api';
+// Removed direct API import
+// import api from '../services/api';
 import { UserContext } from '../contexts/UserContext';
 import CustomAlert from './CustomAlert';
+
+// Redux imports
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchReviews, addOrUpdateReviewThunk } from '../store/slices/reviewSlice';
 
 const { width, height } = Dimensions.get('window');
 const placeholderAvatar =
   'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
 
 const ReviewPopup = ({ closePopup, reviewableId, reviewableType }) => {
-  // Theming
   const { theme } = useContext(ThemeContext);
   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
-
-  // Navigation
   const navigation = useNavigation();
 
-  // Review Data
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // Redux
+  const dispatch = useDispatch();
+  const { reviews, loading, error } = useSelector((state) => state.reviews);
 
-  // Add Review Form
+  // Local state for Add Review form
   const [showAddReviewForm, setShowAddReviewForm] = useState(false);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Alert
+  // Alert state
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertTitle, setAlertTitle] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
   const [alertIcon, setAlertIcon] = useState('');
   const [alertButtons, setAlertButtons] = useState([]);
 
-  // Authentication
+  // Authentication (for demo, still using UserContext)
   const { isAuthenticated } = useContext(UserContext);
 
-  // Fetch reviews on component mount or reviewableId change
+  // Fetch reviews on mount or when reviewableId changes
   useEffect(() => {
-    fetchReviews();
-  }, [reviewableId]);
-
-  const fetchReviews = async () => {
-    try {
-      setLoading(true);
-      const response = await api.getProductReviewsAPI(reviewableId, reviewableType);
-      console.log("fdsfd",response.data);
-      
-
-      if (response.data) {
-        
-        
-        setReviews(response.data);
-      } else {
-        throw new Error(response.message || 'Failed to fetch reviews.');
-      }
-      setLoading(false);
-    } catch (err) {
-      console.error(err);
-      setError(err.message || 'An error occurred while fetching reviews.');
-      setLoading(false);
-    }
-  };
+    dispatch(fetchReviews({ reviewableId, reviewableType }));
+  }, [reviewableId, reviewableType, dispatch]);
 
   // Handle Add Review button
   const handleAddReviewClick = () => {
     if (!isAuthenticated) {
-      // Show alert requiring login
       setAlertTitle('Authentication Required');
       setAlertMessage('You need to be logged in to add a review.');
       setAlertIcon('warning');
       setAlertButtons([
-        {
-          text: 'Cancel',
-          style: 'cancel',
-          onPress: () => setAlertVisible(false),
-        },
+        { text: 'Cancel', onPress: () => setAlertVisible(false) },
         {
           text: 'Login',
           onPress: () => {
@@ -113,7 +86,7 @@ const ReviewPopup = ({ closePopup, reviewableId, reviewableType }) => {
     setShowAddReviewForm(true);
   };
 
-  // Handle submitting the new review
+  // Handle submitting the new review via Redux thunk
   const handleSubmitReview = async () => {
     if (rating < 1 || rating > 5) {
       setAlertTitle('Error');
@@ -131,19 +104,19 @@ const ReviewPopup = ({ closePopup, reviewableId, reviewableType }) => {
       setAlertVisible(true);
       return;
     }
-
     try {
       setSubmitting(true);
-      const response = await api.addOrUpdateReview(reviewableId,reviewableType, rating, comment);
-
-      if (response.success) {
-        // Refresh list
-        await fetchReviews();
-        // Reset form
+      const result = await dispatch(
+        addOrUpdateReviewThunk({ reviewableId, reviewableType, rating, comment })
+      ).unwrap();
+      console.log('result', result);
+      
+      if (result) {
+        // Refresh reviews after submission
+        dispatch(fetchReviews({ reviewableId, reviewableType }));
         setRating(0);
         setComment('');
         setShowAddReviewForm(false);
-
         setAlertTitle('Success');
         setAlertMessage('Your review has been submitted.');
         setAlertIcon('checkmark-circle');
@@ -152,20 +125,25 @@ const ReviewPopup = ({ closePopup, reviewableId, reviewableType }) => {
             text: 'OK',
             onPress: () => {
               setAlertVisible(false);
-              closePopup(); // Close after successful submission
+              closePopup();
             },
           },
         ]);
         setAlertVisible(true);
       } else {
         setAlertTitle('Error');
-        setAlertMessage(response.message || 'Failed to submit review.');
+        setAlertMessage(result.message || 'Failed to submit review.');
         setAlertIcon('close-circle');
         setAlertButtons([{ text: 'OK', onPress: () => setAlertVisible(false) }]);
         setAlertVisible(true);
       }
     } catch (err) {
       console.error('Review submission error:', err);
+      setAlertTitle('Error');
+      setAlertMessage(err.message || 'Failed to submit review.');
+      setAlertIcon('close-circle');
+      setAlertButtons([{ text: 'OK', onPress: () => setAlertVisible(false) }]);
+      setAlertVisible(true);
     } finally {
       setSubmitting(false);
     }
@@ -173,10 +151,7 @@ const ReviewPopup = ({ closePopup, reviewableId, reviewableType }) => {
 
   // Render a single review item
   const renderReview = (review) => (
-    <View
-      key={review._id}
-      style={[styles.reviewItem, { backgroundColor: currentTheme.cardBackground }]}
-    >
+    <View key={review._id} style={[styles.reviewItem, { backgroundColor: currentTheme.cardBackground }]}>
       <View style={styles.reviewHeader}>
         <Image source={{ uri: review.user?.profileImage || placeholderAvatar }} style={styles.avatar} />
         <View style={styles.userInfo}>
@@ -198,9 +173,7 @@ const ReviewPopup = ({ closePopup, reviewableId, reviewableType }) => {
       <Text style={[styles.reviewDate, { color: currentTheme.placeholderTextColor }]}>
         {new Date(review.createdAt).toLocaleDateString()}
       </Text>
-      <Text style={[styles.reviewComment, { color: currentTheme.textColor }]}>
-        {review.comment}
-      </Text>
+      <Text style={[styles.reviewComment, { color: currentTheme.textColor }]}>{review.comment}</Text>
     </View>
   );
 
@@ -210,10 +183,7 @@ const ReviewPopup = ({ closePopup, reviewableId, reviewableType }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.formContainer}
     >
-      <Text style={[styles.sectionTitle, { color: currentTheme.textColor }]}>
-        Add a Review
-      </Text>
-
+      <Text style={[styles.sectionTitle, { color: currentTheme.textColor }]}>Add a Review</Text>
       {/* Rating */}
       <View style={styles.ratingInputContainer}>
         <Text style={[styles.label, { color: currentTheme.textColor }]}>Your Rating:</Text>
@@ -230,7 +200,6 @@ const ReviewPopup = ({ closePopup, reviewableId, reviewableType }) => {
           ))}
         </View>
       </View>
-
       {/* Comment */}
       <View style={styles.commentInputContainer}>
         <Text style={[styles.label, { color: currentTheme.textColor }]}>Your Comment:</Text>
@@ -251,7 +220,6 @@ const ReviewPopup = ({ closePopup, reviewableId, reviewableType }) => {
           onChangeText={setComment}
         />
       </View>
-
       {/* Buttons */}
       <View style={styles.formButtonsContainer}>
         <TouchableOpacity
@@ -292,8 +260,7 @@ const ReviewPopup = ({ closePopup, reviewableId, reviewableType }) => {
           >
             <Ionicons name="close" size={24} color={currentTheme.textColor} />
           </TouchableOpacity>
-
-          {/* Main ScrollView for both reviews & form */}
+          {/* Main ScrollView for reviews & form */}
           {loading ? (
             <ActivityIndicator
               size="large"
@@ -310,14 +277,11 @@ const ReviewPopup = ({ closePopup, reviewableId, reviewableType }) => {
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingBottom: 20 }}
             >
-              {/* Toggle: If showAddReviewForm = true, show form, else show reviews */}
               {showAddReviewForm ? (
                 renderAddReviewForm()
               ) : (
                 <>
-                  <Text style={[styles.sectionTitle, { color: currentTheme.textColor }]}>
-                    Reviews
-                  </Text>
+                  <Text style={[styles.sectionTitle, { color: currentTheme.textColor }]}>Reviews</Text>
                   {reviews.length > 0 ? (
                     reviews.map(renderReview)
                   ) : (
@@ -329,8 +293,7 @@ const ReviewPopup = ({ closePopup, reviewableId, reviewableType }) => {
               )}
             </ScrollView>
           )}
-
-          {/* Add Review button if not currently showing the form */}
+          {/* Add Review button */}
           {!showAddReviewForm && !loading && !error && (
             <TouchableOpacity
               style={[styles.addReviewButton, { backgroundColor: currentTheme.primaryColor }]}
@@ -343,8 +306,6 @@ const ReviewPopup = ({ closePopup, reviewableId, reviewableType }) => {
             </TouchableOpacity>
           )}
         </View>
-
-        {/* CustomAlert for errors, warnings, etc. */}
         <CustomAlert
           visible={alertVisible}
           title={alertTitle}
@@ -374,12 +335,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     position: 'relative',
-    // iOS shadow
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    // Android elevation
     elevation: 5,
   },
   topRightCloseButton: {
@@ -404,12 +363,10 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 15,
     marginBottom: 15,
-    // iOS shadow
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
     shadowRadius: 2.22,
-    // Android elevation
     elevation: 2,
   },
   reviewHeader: {
@@ -454,12 +411,10 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 25,
     marginTop: 10,
-    // iOS shadow
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    // Android elevation
     elevation: 3,
   },
   addReviewButtonText: {
@@ -477,7 +432,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     textAlign: 'center',
   },
-  // Add Review Form
   formContainer: {
     paddingBottom: 20,
   },
@@ -540,6 +494,559 @@ const styles = StyleSheet.create({
 });
 
 export default ReviewPopup;
+
+
+
+
+
+
+
+
+
+
+
+// // components/ReviewPopup.js
+
+// import React, { useContext, useState, useEffect } from 'react';
+// import {
+//   View,
+//   Text,
+//   StyleSheet,
+//   TouchableOpacity,
+//   Dimensions,
+//   Image,
+//   ActivityIndicator,
+//   TextInput,
+//   KeyboardAvoidingView,
+//   Platform,
+//   SafeAreaView,
+//   ScrollView,
+// } from 'react-native';
+// import { Ionicons } from '@expo/vector-icons';
+// import { useNavigation } from '@react-navigation/native';
+
+// import { ThemeContext } from '../../ThemeContext';
+// import { lightTheme, darkTheme } from '../../themes';
+// import api from '../services/api';
+// import { UserContext } from '../contexts/UserContext';
+// import CustomAlert from './CustomAlert';
+
+// const { width, height } = Dimensions.get('window');
+// const placeholderAvatar =
+//   'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+
+// const ReviewPopup = ({ closePopup, reviewableId, reviewableType }) => {
+//   // Theming
+//   const { theme } = useContext(ThemeContext);
+//   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
+
+//   // Navigation
+//   const navigation = useNavigation();
+
+//   // Review Data
+//   const [reviews, setReviews] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
+
+//   // Add Review Form
+//   const [showAddReviewForm, setShowAddReviewForm] = useState(false);
+//   const [rating, setRating] = useState(0);
+//   const [comment, setComment] = useState('');
+//   const [submitting, setSubmitting] = useState(false);
+
+//   // Alert
+//   const [alertVisible, setAlertVisible] = useState(false);
+//   const [alertTitle, setAlertTitle] = useState('');
+//   const [alertMessage, setAlertMessage] = useState('');
+//   const [alertIcon, setAlertIcon] = useState('');
+//   const [alertButtons, setAlertButtons] = useState([]);
+
+//   // Authentication
+//   const { isAuthenticated } = useContext(UserContext);
+
+//   // Fetch reviews on component mount or reviewableId change
+//   useEffect(() => {
+//     fetchReviews();
+//   }, [reviewableId]);
+
+//   const fetchReviews = async () => {
+//     try {
+//       setLoading(true);
+//       const response = await api.getProductReviewsAPI(reviewableId, reviewableType);
+//       console.log("fdsfd",response.data);
+      
+
+//       if (response.data) {
+        
+        
+//         setReviews(response.data);
+//       } else {
+//         throw new Error(response.message || 'Failed to fetch reviews.');
+//       }
+//       setLoading(false);
+//     } catch (err) {
+//       console.error(err);
+//       setError(err.message || 'An error occurred while fetching reviews.');
+//       setLoading(false);
+//     }
+//   };
+
+//   // Handle Add Review button
+//   const handleAddReviewClick = () => {
+//     if (!isAuthenticated) {
+//       // Show alert requiring login
+//       setAlertTitle('Authentication Required');
+//       setAlertMessage('You need to be logged in to add a review.');
+//       setAlertIcon('warning');
+//       setAlertButtons([
+//         {
+//           text: 'Cancel',
+//           style: 'cancel',
+//           onPress: () => setAlertVisible(false),
+//         },
+//         {
+//           text: 'Login',
+//           onPress: () => {
+//             setShowAddReviewForm(false);
+//             closePopup();
+//             navigation.navigate('Login');
+//             setAlertVisible(false);
+//           },
+//         },
+//       ]);
+//       setAlertVisible(true);
+//       return;
+//     }
+//     setShowAddReviewForm(true);
+//   };
+
+//   // Handle submitting the new review
+//   const handleSubmitReview = async () => {
+//     if (rating < 1 || rating > 5) {
+//       setAlertTitle('Error');
+//       setAlertMessage('Please provide a rating between 1 and 5.');
+//       setAlertIcon('alert-circle-outline');
+//       setAlertButtons([{ text: 'OK', onPress: () => setAlertVisible(false) }]);
+//       setAlertVisible(true);
+//       return;
+//     }
+//     if (!comment.trim()) {
+//       setAlertTitle('Empty Comment');
+//       setAlertMessage('Please enter a comment.');
+//       setAlertIcon('information-circle');
+//       setAlertButtons([{ text: 'OK', onPress: () => setAlertVisible(false) }]);
+//       setAlertVisible(true);
+//       return;
+//     }
+
+//     try {
+//       setSubmitting(true);
+//       const response = await api.addOrUpdateReview(reviewableId,reviewableType, rating, comment);
+
+//       if (response.success) {
+//         // Refresh list
+//         await fetchReviews();
+//         // Reset form
+//         setRating(0);
+//         setComment('');
+//         setShowAddReviewForm(false);
+
+//         setAlertTitle('Success');
+//         setAlertMessage('Your review has been submitted.');
+//         setAlertIcon('checkmark-circle');
+//         setAlertButtons([
+//           {
+//             text: 'OK',
+//             onPress: () => {
+//               setAlertVisible(false);
+//               closePopup(); // Close after successful submission
+//             },
+//           },
+//         ]);
+//         setAlertVisible(true);
+//       } else {
+//         setAlertTitle('Error');
+//         setAlertMessage(response.message || 'Failed to submit review.');
+//         setAlertIcon('close-circle');
+//         setAlertButtons([{ text: 'OK', onPress: () => setAlertVisible(false) }]);
+//         setAlertVisible(true);
+//       }
+//     } catch (err) {
+//       console.error('Review submission error:', err);
+//     } finally {
+//       setSubmitting(false);
+//     }
+//   };
+
+//   // Render a single review item
+//   const renderReview = (review) => (
+//     <View
+//       key={review._id}
+//       style={[styles.reviewItem, { backgroundColor: currentTheme.cardBackground }]}
+//     >
+//       <View style={styles.reviewHeader}>
+//         <Image source={{ uri: review.user?.profileImage || placeholderAvatar }} style={styles.avatar} />
+//         <View style={styles.userInfo}>
+//           <Text style={[styles.userName, { color: currentTheme.textColor }]}>
+//             {review.user?.name || 'Anonymous'}
+//           </Text>
+//           <View style={styles.ratingContainer}>
+//             {Array.from({ length: 5 }, (_, index) => (
+//               <Ionicons
+//                 key={index}
+//                 name={index < Math.floor(review.rating) ? 'star' : 'star-outline'}
+//                 size={16}
+//                 color="#FFD700"
+//               />
+//             ))}
+//           </View>
+//         </View>
+//       </View>
+//       <Text style={[styles.reviewDate, { color: currentTheme.placeholderTextColor }]}>
+//         {new Date(review.createdAt).toLocaleDateString()}
+//       </Text>
+//       <Text style={[styles.reviewComment, { color: currentTheme.textColor }]}>
+//         {review.comment}
+//       </Text>
+//     </View>
+//   );
+
+//   // Render the form for adding a new review
+//   const renderAddReviewForm = () => (
+//     <KeyboardAvoidingView
+//       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+//       style={styles.formContainer}
+//     >
+//       <Text style={[styles.sectionTitle, { color: currentTheme.textColor }]}>
+//         Add a Review
+//       </Text>
+
+//       {/* Rating */}
+//       <View style={styles.ratingInputContainer}>
+//         <Text style={[styles.label, { color: currentTheme.textColor }]}>Your Rating:</Text>
+//         <View style={styles.starRatingContainer}>
+//           {Array.from({ length: 5 }, (_, index) => (
+//             <TouchableOpacity key={index} onPress={() => setRating(index + 1)}>
+//               <Ionicons
+//                 name={index < rating ? 'star' : 'star-outline'}
+//                 size={32}
+//                 color="#FFD700"
+//                 style={styles.starIcon}
+//               />
+//             </TouchableOpacity>
+//           ))}
+//         </View>
+//       </View>
+
+//       {/* Comment */}
+//       <View style={styles.commentInputContainer}>
+//         <Text style={[styles.label, { color: currentTheme.textColor }]}>Your Comment:</Text>
+//         <TextInput
+//           style={[
+//             styles.commentInput,
+//             {
+//               borderColor: currentTheme.borderColor,
+//               color: currentTheme.textColor,
+//               backgroundColor: currentTheme.backgroundColor || '#fff',
+//             },
+//           ]}
+//           multiline
+//           numberOfLines={4}
+//           placeholder="Write your review here..."
+//           placeholderTextColor={currentTheme.placeholderTextColor}
+//           value={comment}
+//           onChangeText={setComment}
+//         />
+//       </View>
+
+//       {/* Buttons */}
+//       <View style={styles.formButtonsContainer}>
+//         <TouchableOpacity
+//           style={[styles.submitButton, { backgroundColor: currentTheme.primaryColor }]}
+//           onPress={handleSubmitReview}
+//           disabled={submitting}
+//         >
+//           {submitting ? (
+//             <ActivityIndicator color="#FFFFFF" />
+//           ) : (
+//             <Text style={styles.submitButtonText}>Submit Review</Text>
+//           )}
+//         </TouchableOpacity>
+//         <TouchableOpacity
+//           style={[styles.cancelButton, { backgroundColor: currentTheme.cancelButtonColor || '#888' }]}
+//           onPress={() => {
+//             setShowAddReviewForm(false);
+//             setRating(0);
+//             setComment('');
+//           }}
+//         >
+//           <Text style={styles.cancelButtonText}>Cancel</Text>
+//         </TouchableOpacity>
+//       </View>
+//     </KeyboardAvoidingView>
+//   );
+
+//   return (
+//     <SafeAreaView style={styles.safeArea}>
+//       <View style={styles.modalBackground}>
+//         <View style={[styles.modalContainer, { backgroundColor: currentTheme.cardBackground }]}>
+//           {/* Close button */}
+//           <TouchableOpacity
+//             style={styles.topRightCloseButton}
+//             onPress={closePopup}
+//             accessibilityLabel="Close Reviews"
+//             accessibilityRole="button"
+//           >
+//             <Ionicons name="close" size={24} color={currentTheme.textColor} />
+//           </TouchableOpacity>
+
+//           {/* Main ScrollView for both reviews & form */}
+//           {loading ? (
+//             <ActivityIndicator
+//               size="large"
+//               color={currentTheme.primaryColor}
+//               style={{ flex: 1, justifyContent: 'center' }}
+//             />
+//           ) : error ? (
+//             <View style={styles.errorContainer}>
+//               <Text style={[styles.errorText, { color: currentTheme.errorColor }]}>{error}</Text>
+//             </View>
+//           ) : (
+//             <ScrollView
+//               style={styles.modalScroll}
+//               showsVerticalScrollIndicator={false}
+//               contentContainerStyle={{ paddingBottom: 20 }}
+//             >
+//               {/* Toggle: If showAddReviewForm = true, show form, else show reviews */}
+//               {showAddReviewForm ? (
+//                 renderAddReviewForm()
+//               ) : (
+//                 <>
+//                   <Text style={[styles.sectionTitle, { color: currentTheme.textColor }]}>
+//                     Reviews
+//                   </Text>
+//                   {reviews.length > 0 ? (
+//                     reviews.map(renderReview)
+//                   ) : (
+//                     <Text style={[styles.noReviewsText, { color: currentTheme.textColor }]}>
+//                       No reviews yet. Be the first to share your feedback!
+//                     </Text>
+//                   )}
+//                 </>
+//               )}
+//             </ScrollView>
+//           )}
+
+//           {/* Add Review button if not currently showing the form */}
+//           {!showAddReviewForm && !loading && !error && (
+//             <TouchableOpacity
+//               style={[styles.addReviewButton, { backgroundColor: currentTheme.primaryColor }]}
+//               onPress={handleAddReviewClick}
+//               accessibilityLabel="Add a Review"
+//               accessibilityRole="button"
+//             >
+//               <Ionicons name="star" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+//               <Text style={styles.addReviewButtonText}>Add a Review</Text>
+//             </TouchableOpacity>
+//           )}
+//         </View>
+
+//         {/* CustomAlert for errors, warnings, etc. */}
+//         <CustomAlert
+//           visible={alertVisible}
+//           title={alertTitle}
+//           message={alertMessage}
+//           icon={alertIcon}
+//           onClose={() => setAlertVisible(false)}
+//           buttons={alertButtons}
+//         />
+//       </View>
+//     </SafeAreaView>
+//   );
+// };
+
+// const styles = StyleSheet.create({
+//   safeArea: {
+//     flex: 1,
+//   },
+//   modalBackground: {
+//     flex: 1,
+//     backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent overlay
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//   },
+//   modalContainer: {
+//     width: width * 0.9,
+//     maxHeight: height * 0.9,
+//     borderRadius: 20,
+//     padding: 20,
+//     position: 'relative',
+//     // iOS shadow
+//     shadowColor: '#000',
+//     shadowOffset: { width: 0, height: 2 },
+//     shadowOpacity: 0.25,
+//     shadowRadius: 3.84,
+//     // Android elevation
+//     elevation: 5,
+//   },
+//   topRightCloseButton: {
+//     position: 'absolute',
+//     top: 15,
+//     right: 15,
+//     padding: 8,
+//     borderRadius: 15,
+//     backgroundColor: 'rgba(0, 0, 0, 0.1)',
+//     zIndex: 1,
+//   },
+//   modalScroll: {
+//     marginTop: 15,
+//   },
+//   sectionTitle: {
+//     fontSize: 22,
+//     fontWeight: '700',
+//     marginBottom: 20,
+//     textAlign: 'center',
+//   },
+//   reviewItem: {
+//     borderRadius: 15,
+//     padding: 15,
+//     marginBottom: 15,
+//     // iOS shadow
+//     shadowColor: '#000',
+//     shadowOffset: { width: 0, height: 1 },
+//     shadowOpacity: 0.08,
+//     shadowRadius: 2.22,
+//     // Android elevation
+//     elevation: 2,
+//   },
+//   reviewHeader: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     marginBottom: 10,
+//   },
+//   avatar: {
+//     width: 50,
+//     height: 50,
+//     borderRadius: 25,
+//   },
+//   userInfo: {
+//     marginLeft: 15,
+//     flex: 1,
+//   },
+//   userName: {
+//     fontSize: 16,
+//     fontWeight: '600',
+//   },
+//   ratingContainer: {
+//     flexDirection: 'row',
+//     marginTop: 3,
+//   },
+//   reviewDate: {
+//     fontSize: 12,
+//     marginBottom: 6,
+//   },
+//   reviewComment: {
+//     fontSize: 14,
+//     lineHeight: 20,
+//   },
+//   noReviewsText: {
+//     fontSize: 16,
+//     textAlign: 'center',
+//     marginTop: 30,
+//   },
+//   addReviewButton: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     justifyContent: 'center',
+//     paddingVertical: 14,
+//     borderRadius: 25,
+//     marginTop: 10,
+//     // iOS shadow
+//     shadowColor: '#000',
+//     shadowOffset: { width: 0, height: 2 },
+//     shadowOpacity: 0.25,
+//     shadowRadius: 3.84,
+//     // Android elevation
+//     elevation: 3,
+//   },
+//   addReviewButtonText: {
+//     color: '#FFFFFF',
+//     fontSize: 18,
+//     fontWeight: '600',
+//   },
+//   errorContainer: {
+//     flex: 1,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//   },
+//   errorText: {
+//     fontSize: 16,
+//     marginHorizontal: 10,
+//     textAlign: 'center',
+//   },
+//   // Add Review Form
+//   formContainer: {
+//     paddingBottom: 20,
+//   },
+//   ratingInputContainer: {
+//     marginBottom: 20,
+//   },
+//   label: {
+//     fontSize: 16,
+//     fontWeight: '600',
+//     marginBottom: 8,
+//   },
+//   starRatingContainer: {
+//     flexDirection: 'row',
+//   },
+//   starIcon: {
+//     marginHorizontal: 5,
+//   },
+//   commentInputContainer: {
+//     marginBottom: 20,
+//   },
+//   commentInput: {
+//     height: 100,
+//     borderWidth: 1,
+//     borderRadius: 10,
+//     padding: 10,
+//     textAlignVertical: 'top',
+//     fontSize: 16,
+//   },
+//   formButtonsContainer: {
+//     flexDirection: 'row',
+//     justifyContent: 'space-between',
+//   },
+//   submitButton: {
+//     flex: 1,
+//     alignItems: 'center',
+//     paddingVertical: 14,
+//     borderRadius: 25,
+//     marginRight: 5,
+//     elevation: 2,
+//   },
+//   submitButtonText: {
+//     color: '#FFFFFF',
+//     fontSize: 16,
+//     fontWeight: '600',
+//   },
+//   cancelButton: {
+//     flex: 1,
+//     alignItems: 'center',
+//     paddingVertical: 14,
+//     borderRadius: 25,
+//     marginLeft: 5,
+//     backgroundColor: '#888',
+//     elevation: 2,
+//   },
+//   cancelButtonText: {
+//     color: '#FFFFFF',
+//     fontSize: 16,
+//     fontWeight: '600',
+//   },
+// });
+
+// export default ReviewPopup;
 
 
 
