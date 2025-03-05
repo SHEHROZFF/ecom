@@ -1,10 +1,11 @@
 // controllers/orderController.js
 const asyncHandler = require('express-async-handler');
 const Order = require('../models/Order');
+const Config = require('../models/Config');
 const dotenv = require('dotenv');
 dotenv.config();
 
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+// const stripe = require('stripe');
 
 /**
  * @desc    Create a Stripe Payment Intent
@@ -22,6 +23,11 @@ const createPaymentIntent = asyncHandler(async (req, res) => {
 // console.log( totalPrice);
 
   try {
+    const config = await Config.findOne({ key: 'stripePrivateKey' });
+    if (!config) {
+      return res.status(404).json({ error: 'Stripe configuration not found' });
+    }
+    const stripe = require('stripe')(config.value);
     // Create a PaymentIntent with the order amount and currency
     const paymentIntent = await stripe.paymentIntents.create({
       amount:totalPrice, // Amount in cents
