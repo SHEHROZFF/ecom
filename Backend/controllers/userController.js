@@ -224,6 +224,9 @@ const updateMe = asyncHandler(async (req, res) => {
           throw new Error('Failed to upload new profile image');
         }
 
+        console.log('New profile image uploaded:', result);
+        
+
         // Save the new URL & public_id
         user.profileImage = result.secure_url;
         user.profileImagePublicId = result.public_id;
