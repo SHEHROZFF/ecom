@@ -35,10 +35,12 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    profileImagePublicId: { type: String }, 
     coverImage: {
       type: String,
       default: '',
     },
+    coverImagePublicId: { type: String },
     phone: {
       type: String,
       default: '',
