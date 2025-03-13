@@ -164,33 +164,99 @@ export const getUserProfile = async () => {
   }
 };
 
+// /**
+//  * Update User Profile
+//  * @param {object} updatedData - Updated user data.
+//  * @returns {Promise<object>} Updated user data or error object.
+//  */
+// export const updateUserProfile = async (updatedData) => {
+//   try {
+//     const token = await getAuthToken();
+//     if (!token) {
+//       throw new Error('No authentication token found.');
+//     }
+
+//     const config = {
+//       headers: {
+//         'Content-Type': 'application/json',
+//         Authorization: `Bearer ${token}`,
+//       },
+//     };
+
+//     const response = await axios.put(`${API_URL}/users/me`, updatedData, config);
+//     return { success: true, data: response.data };
+//   } catch (error) {
+//     console.error('Update User Profile error:', error.response?.data?.message || error.message);
+//     return { success: false, message: error.response?.data?.message || 'Failed to update profile.' };
+//   }
+// };
+
 /**
- * Update User Profile
- * @param {object} updatedData - Updated user data.
- * @returns {Promise<object>} Updated user data or error object.
+ * Update user profile with images via multipart form-data.
+ * @param {object} updatedData - { name, email, phone, address, etc. }
+ * @param {string} profileImageUri - local file URI for profile
+ * @param {string} coverImageUri   - local file URI for cover
  */
-export const updateUserProfile = async (updatedData) => {
+export const updateUserProfileMultipart = async (updatedData, profileImageUri, coverImageUri) => {
   try {
     const token = await getAuthToken();
     if (!token) {
       throw new Error('No authentication token found.');
     }
 
+    // Construct the form data
+    const formData = new FormData();
+
+    // Text fields
+    formData.append('name', updatedData.name || '');
+    formData.append('email', updatedData.email || '');
+    formData.append('phone', updatedData.phone || '');
+    formData.append('address', updatedData.address || '');
+
+    // If user selected a new profile image from gallery
+    if (profileImageUri && !profileImageUri.startsWith('http')) {
+      formData.append('profileImage', {
+        uri: profileImageUri,
+        type: mime.getType(profileImageUri) || 'image/jpeg',
+        name: `profile.${mime.getExtension(mime.getType(profileImageUri)) || 'jpg'}`,
+      });
+    }
+
+    // If user selected a new cover image from gallery
+    if (coverImageUri && !coverImageUri.startsWith('http')) {
+      formData.append('coverImage', {
+        uri: coverImageUri,
+        type: mime.getType(coverImageUri) || 'image/jpeg',
+        name: `cover.${mime.getExtension(mime.getType(coverImageUri)) || 'jpg'}`,
+      });
+    }
+
     const config = {
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'multipart/form-data',
         Authorization: `Bearer ${token}`,
       },
     };
 
-    const response = await axios.put(`${API_URL}/users/me`, updatedData, config);
-    return { success: true, data: response.data };
+    // Send the multipart/form-data to your server
+    const response = await axios.put(`${API_URL}/users/me`, formData, config);
+
+    if (!response.data?.success) {
+      throw new Error(response.data?.message || 'Update failed');
+    }
+
+    return {
+      success: true,
+      data: response.data.data, // The "data" property from your server's JSON
+    };
   } catch (error) {
-    console.error('Update User Profile error:', error.response?.data?.message || error.message);
-    return { success: false, message: error.response?.data?.message || 'Failed to update profile.' };
+    console.error('Update User Profile (multipart) error:', error);
+    return {
+      success: false,
+      message: error.response?.data?.message || error.message || 'Failed to update profile.',
+    };
   }
 };
-
 // ----------------------- Product Functions ----------------------- //
 
 /**

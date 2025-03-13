@@ -190,7 +190,7 @@ const FavouritesPage = () => {
   );
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: currentTheme.backgroundColor }]}>
+    <View style={[styles.safeArea, { backgroundColor: currentTheme.backgroundColor }]}>
       <StatusBar
         backgroundColor={currentTheme.headerBackground[0]}
         barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
@@ -248,7 +248,7 @@ const FavouritesPage = () => {
         icon={alertIcon}
         buttons={alertButtons}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

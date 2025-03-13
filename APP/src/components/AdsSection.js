@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+// File: src/components/AdsSection.js
+import React, { useEffect, useCallback } from 'react';
 import { View, ActivityIndicator, StyleSheet, useWindowDimensions } from 'react-native';
-import { useDispatch } from 'react-redux';
-import { fetchAdsThunk } from '../store/slices/courseSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchAdsThunk } from '../store/slices/adsSlice';
 import AdsList from './AdsList';
 
 const AdsSection = ({
@@ -12,70 +13,30 @@ const AdsSection = ({
   templateFilter = 'all',
   marginV = 0,
 }) => {
-  const [ads, setAds] = useState([]);
-  const [loading, setLoading] = useState(false);
-
   const dispatch = useDispatch();
+  const adsData = useSelector((state) => state.ads.data);
+  const loading = useSelector((state) => state.ads.loading);
 
-  // 1) Match your LoginScreen approach for scaling
   const { width } = useWindowDimensions();
   const baseWidth = width > 375 ? 460 : 500;
   const scaleFactor = width / baseWidth;
   const scale = (size) => size * scaleFactor;
 
-  // 2) Create styles in a useMemo, referencing scale(...)
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        sectionWrapper: {
-          marginVertical: scale(marginV),
-          borderRadius: scale(20),
-        },
-        loadingContainer: {
-          marginVertical: scale(20),
-          alignItems: 'center',
-        },
-        templateGroup: {
-          // If you want spacing between different template groups:
-          // marginBottom: scale(15),
-        },
-      }),
-    [scaleFactor, marginV]
-  );
+  const styles = StyleSheet.create({
+    sectionWrapper: {
+      marginVertical: scale(marginV),
+      borderRadius: scale(20),
+    },
+    loadingContainer: {
+      marginVertical: scale(20),
+      alignItems: 'center',
+    },
+    templateGroup: {},
+  });
 
-  // Group ads by templateId
-  const groupAdsByTemplate = useCallback((adsArray) => {
-    return adsArray.reduce((groups, ad) => {
-      const key = ad.templateId || 'newCourse';
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(ad);
-      return groups;
-    }, {});
-  }, []);
-
-  // Fetch ads via Redux thunk
-  const getAds = useCallback(async () => {
-    setLoading(true);
-    try {
-      const result = await dispatch(fetchAdsThunk()).unwrap();
-      let fetchedAds = result.data || [];
-
-      // Filter by category if given
-      if (categoryFilter) {
-        if (typeof categoryFilter === 'string') {
-          fetchedAds = fetchedAds.filter((ad) => ad.category === categoryFilter);
-        } else if (Array.isArray(categoryFilter)) {
-          fetchedAds = fetchedAds.filter((ad) => categoryFilter.includes(ad.category));
-        }
-      }
-      setAds(fetchedAds);
-    } catch (error) {
-      console.error('Ads fetch error', error);
-      setAds([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [categoryFilter, dispatch]);
+  const getAds = useCallback(() => {
+    dispatch(fetchAdsThunk());
+  }, [dispatch]);
 
   useEffect(() => {
     getAds();
@@ -84,25 +45,43 @@ const AdsSection = ({
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="small" color={currentTheme.primaryColor} />
+        <ActivityIndicator size="small" color={currentTheme?.primaryColor || '#000'} />
       </View>
     );
   }
 
-  if (!ads.length) return null;
+  // Filter by category
+  let filteredAds = adsData;
+  if (categoryFilter) {
+    if (typeof categoryFilter === 'string') {
+      filteredAds = filteredAds.filter((ad) => ad.category === categoryFilter);
+    } else if (Array.isArray(categoryFilter)) {
+      filteredAds = filteredAds.filter((ad) => categoryFilter.includes(ad.category));
+    }
+  }
 
-  // Either show all templates or just one
-  const adsToShow =
+  if (!filteredAds.length) return null;
+
+  // Group by template
+  const grouped = {};
+  filteredAds.forEach((ad) => {
+    const key = ad.templateId || 'newCourse';
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(ad);
+  });
+
+  // If templateFilter != 'all', override grouping
+  const groupedAds =
     templateFilter === 'all'
-      ? groupAdsByTemplate(ads)
-      : { [templateFilter]: ads.filter((ad) => ad.templateId === templateFilter) };
+      ? grouped
+      : { [templateFilter]: filteredAds.filter((ad) => ad.templateId === templateFilter) };
 
   return (
     <View style={styles.sectionWrapper}>
-      {Object.keys(adsToShow).map((templateKey) => (
+      {Object.keys(groupedAds).map((templateKey) => (
         <View key={templateKey} style={styles.templateGroup}>
           <AdsList
-            ads={adsToShow[templateKey]}
+            ads={groupedAds[templateKey]}
             onAdPress={onAdPress}
             currentTheme={currentTheme}
           />
@@ -113,6 +92,241 @@ const AdsSection = ({
 };
 
 export default AdsSection;
+
+
+
+
+
+
+
+
+
+
+
+
+// // AdsSection.js
+// import React, { useEffect, useCallback } from 'react';
+// import { View, ActivityIndicator, StyleSheet, useWindowDimensions } from 'react-native';
+// import { useDispatch, useSelector } from 'react-redux';
+// import { fetchAdsThunk } from '../store/slices/adsSlice'; // or courseSlice
+// import AdsList from './AdsList';
+
+// const AdsSection = ({
+//   currentTheme,
+//   onAdPress,
+//   refreshSignal,
+//   categoryFilter,
+//   templateFilter = 'all',
+//   marginV = 0,
+// }) => {
+//   const dispatch = useDispatch();
+
+//   // Grab ads + loading state from Redux
+//   const adsData = useSelector((state) => state.ads.data);
+//   const loading = useSelector((state) => state.ads.loading);
+
+//   const { width } = useWindowDimensions();
+//   const baseWidth = width > 375 ? 460 : 500;
+//   const scaleFactor = width / baseWidth;
+//   const scale = (size) => size * scaleFactor;
+
+//   const styles = StyleSheet.create({
+//     sectionWrapper: {
+//       marginVertical: scale(marginV),
+//       borderRadius: scale(20),
+//     },
+//     loadingContainer: {
+//       marginVertical: scale(20),
+//       alignItems: 'center',
+//     },
+//     templateGroup: {},
+//   });
+
+//   // Fire off your thunk once
+//   const getAds = useCallback(() => {
+//     dispatch(fetchAdsThunk());
+//   }, [dispatch]);
+
+//   // Also re-fetch if parent passes a "refreshSignal" prop
+//   useEffect(() => {
+//     getAds();
+//   }, [getAds, refreshSignal]);
+
+//   if (loading) {
+//     return (
+//       <View style={styles.loadingContainer}>
+//         <ActivityIndicator size="small" color={currentTheme?.primaryColor || '#000'} />
+//       </View>
+//     );
+//   }
+
+//   // Filter by category
+//   let filteredAds = adsData;
+//   if (categoryFilter) {
+//     if (typeof categoryFilter === 'string') {
+//       filteredAds = filteredAds.filter((ad) => ad.category === categoryFilter);
+//     } else if (Array.isArray(categoryFilter)) {
+//       filteredAds = filteredAds.filter((ad) => categoryFilter.includes(ad.category));
+//     }
+//   }
+
+//   if (!filteredAds?.length) return null;
+
+//   // Group by template if needed
+//   const grouped = {};
+//   filteredAds.forEach((ad) => {
+//     const key = ad.templateId || 'newCourse';
+//     if (!grouped[key]) grouped[key] = [];
+//     grouped[key].push(ad);
+//   });
+
+//   // If templateFilter != 'all', override grouping
+//   const groupedAds =
+//     templateFilter === 'all'
+//       ? grouped
+//       : { [templateFilter]: filteredAds.filter((ad) => ad.templateId === templateFilter) };
+
+//   return (
+//     <View style={styles.sectionWrapper}>
+//       {Object.keys(groupedAds).map((templateKey) => (
+//         <View key={templateKey} style={styles.templateGroup}>
+//           <AdsList
+//             ads={groupedAds[templateKey]}
+//             onAdPress={onAdPress}
+//             currentTheme={currentTheme}
+//           />
+//         </View>
+//       ))}
+//     </View>
+//   );
+// };
+
+// export default AdsSection;
+
+
+
+
+
+
+
+
+
+
+// import React, { useState, useEffect, useCallback, useMemo } from 'react';
+// import { View, ActivityIndicator, StyleSheet, useWindowDimensions } from 'react-native';
+// import { useDispatch } from 'react-redux';
+// import { fetchAdsThunk } from '../store/slices/courseSlice';
+// import AdsList from './AdsList';
+
+// const AdsSection = ({
+//   currentTheme,
+//   onAdPress,
+//   refreshSignal,
+//   categoryFilter,
+//   templateFilter = 'all',
+//   marginV = 0,
+// }) => {
+//   const [ads, setAds] = useState([]);
+//   const [loading, setLoading] = useState(false);
+
+//   const dispatch = useDispatch();
+
+//   // 1) Match your LoginScreen approach for scaling
+//   const { width } = useWindowDimensions();
+//   const baseWidth = width > 375 ? 460 : 500;
+//   const scaleFactor = width / baseWidth;
+//   const scale = (size) => size * scaleFactor;
+
+//   // 2) Create styles in a useMemo, referencing scale(...)
+//   const styles = useMemo(
+//     () =>
+//       StyleSheet.create({
+//         sectionWrapper: {
+//           marginVertical: scale(marginV),
+//           borderRadius: scale(20),
+//         },
+//         loadingContainer: {
+//           marginVertical: scale(20),
+//           alignItems: 'center',
+//         },
+//         templateGroup: {
+//           // If you want spacing between different template groups:
+//           // marginBottom: scale(15),
+//         },
+//       }),
+//     [scaleFactor, marginV]
+//   );
+
+//   // Group ads by templateId
+//   const groupAdsByTemplate = useCallback((adsArray) => {
+//     return adsArray.reduce((groups, ad) => {
+//       const key = ad.templateId || 'newCourse';
+//       if (!groups[key]) groups[key] = [];
+//       groups[key].push(ad);
+//       return groups;
+//     }, {});
+//   }, []);
+
+//   // Fetch ads via Redux thunk
+//   const getAds = useCallback(async () => {
+//     setLoading(true);
+//     try {
+//       const result = await dispatch(fetchAdsThunk()).unwrap();
+//       let fetchedAds = result.data || [];
+
+//       // Filter by category if given
+//       if (categoryFilter) {
+//         if (typeof categoryFilter === 'string') {
+//           fetchedAds = fetchedAds.filter((ad) => ad.category === categoryFilter);
+//         } else if (Array.isArray(categoryFilter)) {
+//           fetchedAds = fetchedAds.filter((ad) => categoryFilter.includes(ad.category));
+//         }
+//       }
+//       setAds(fetchedAds);
+//     } catch (error) {
+//       console.error('Ads fetch error', error);
+//       setAds([]);
+//     } finally {
+//       setLoading(false);
+//     }
+//   }, [categoryFilter, dispatch]);
+
+//   useEffect(() => {
+//     getAds();
+//   }, [getAds, refreshSignal]);
+
+//   if (loading) {
+//     return (
+//       <View style={styles.loadingContainer}>
+//         <ActivityIndicator size="small" color={currentTheme.primaryColor} />
+//       </View>
+//     );
+//   }
+
+//   if (!ads.length) return null;
+
+//   // Either show all templates or just one
+//   const adsToShow =
+//     templateFilter === 'all'
+//       ? groupAdsByTemplate(ads)
+//       : { [templateFilter]: ads.filter((ad) => ad.templateId === templateFilter) };
+
+//   return (
+//     <View style={styles.sectionWrapper}>
+//       {Object.keys(adsToShow).map((templateKey) => (
+//         <View key={templateKey} style={styles.templateGroup}>
+//           <AdsList
+//             ads={adsToShow[templateKey]}
+//             onAdPress={onAdPress}
+//             currentTheme={currentTheme}
+//           />
+//         </View>
+//       ))}
+//     </View>
+//   );
+// };
+
+// export default AdsSection;
 
 
 

@@ -9,6 +9,7 @@ import courseReducer from './slices/courseSlice';
 import enrollmentReducer from './slices/enrollmentSlice';
 import policyReducer from './slices/policySlice';
 import configSlice  from './slices/configSlice';
+import adsSlice from './slices/adsSlice';
 
 const store = configureStore({
   reducer: {
@@ -20,7 +21,8 @@ const store = configureStore({
     courses: courseReducer,
     enrollments: enrollmentReducer,
     policy: policyReducer,
-    config: configSlice
+    config: configSlice,
+    ads: adsSlice
   },
 });
 
