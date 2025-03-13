@@ -2,6 +2,8 @@
 
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import mime from 'mime';
+
 
 // Replace with your actual API URL
 // const API_URL = 'http://10.0.0.2:5000/api';
@@ -164,32 +166,32 @@ export const getUserProfile = async () => {
   }
 };
 
-// /**
-//  * Update User Profile
-//  * @param {object} updatedData - Updated user data.
-//  * @returns {Promise<object>} Updated user data or error object.
-//  */
-// export const updateUserProfile = async (updatedData) => {
-//   try {
-//     const token = await getAuthToken();
-//     if (!token) {
-//       throw new Error('No authentication token found.');
-//     }
+/**
+ * Update User Profile
+ * @param {object} updatedData - Updated user data.
+ * @returns {Promise<object>} Updated user data or error object.
+ */
+export const updateUserProfile = async (updatedData) => {
+  try {
+    const token = await getAuthToken();
+    if (!token) {
+      throw new Error('No authentication token found.');
+    }
 
-//     const config = {
-//       headers: {
-//         'Content-Type': 'application/json',
-//         Authorization: `Bearer ${token}`,
-//       },
-//     };
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    };
 
-//     const response = await axios.put(`${API_URL}/users/me`, updatedData, config);
-//     return { success: true, data: response.data };
-//   } catch (error) {
-//     console.error('Update User Profile error:', error.response?.data?.message || error.message);
-//     return { success: false, message: error.response?.data?.message || 'Failed to update profile.' };
-//   }
-// };
+    const response = await axios.put(`${API_URL}/users/me`, updatedData, config);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Update User Profile error:', error.response?.data?.message || error.message);
+    return { success: false, message: error.response?.data?.message || 'Failed to update profile.' };
+  }
+};
 
 /**
  * Update user profile with images via multipart form-data.

@@ -5014,6 +5014,11 @@ mime-types@^2.1.12, mime-types@^2.1.27, mime-types@^2.1.35, mime-types@~2.1.34:
   dependencies:
     mime-db "1.52.0"
 
+mime@^4.0.6:
+  version "4.0.6"
+  resolved "https://registry.npmjs.org/mime/-/mime-4.0.6.tgz"
+  integrity sha512-4rGt7rvQHBbaSOF9POGkk1ocRP16Md1x36Xma8sz8h8/vfCUI2OtEIeCqe4Ofes853x4xDoPiFLIT47J5fI/7A==
+
 mime@1.6.0:
   version "1.6.0"
   resolved "https://registry.npmjs.org/mime/-/mime-1.6.0.tgz"

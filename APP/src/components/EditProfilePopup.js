@@ -20,9 +20,6 @@ import CustomAlert from './CustomAlert';
 import { ThemeContext } from '../../ThemeContext';
 import { lightTheme, darkTheme } from '../../themes';
 
-// We'll no longer do direct URL validation
-// so we remove isValidImageUrl checks, etc.
-
 const EditProfilePopup = ({ visible, onClose, userData, onSave }) => {
   const { width } = useWindowDimensions();
   const { theme } = useContext(ThemeContext);
@@ -49,6 +46,7 @@ const EditProfilePopup = ({ visible, onClose, userData, onSave }) => {
   const [alertIcon, setAlertIcon] = useState('');
   const [alertButtons, setAlertButtons] = useState([]);
 
+  // On mount or userData change, reset fields:
   useEffect(() => {
     setName(userData?.name || '');
     setEmail(userData?.email || '');
@@ -77,6 +75,7 @@ const EditProfilePopup = ({ visible, onClose, userData, onSave }) => {
       showAlert('Permission denied', 'Please allow gallery access to pick images.', 'alert-circle');
       return;
     }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -84,11 +83,13 @@ const EditProfilePopup = ({ visible, onClose, userData, onSave }) => {
       quality: 0.8,
     });
 
-    if (!result.cancelled) {
+    // For Expo SDK 48+ (and beyond):
+    if (!result.canceled && result.assets?.length) {
+      const pickedUri = result.assets[0].uri;
       if (isProfile) {
-        setProfileImageUri(result.uri);
+        setProfileImageUri(pickedUri);
       } else {
-        setCoverImageUri(result.uri);
+        setCoverImageUri(pickedUri);
       }
     }
   };
@@ -117,9 +118,7 @@ const EditProfilePopup = ({ visible, onClose, userData, onSave }) => {
       address: address.trim(),
     };
 
-    // We pass local URIs, and on the front-end side we can do multi-part form data
-    // But in your final code, you can do the form-data inside onSave. We'll assume
-    // `onSave(updatedData, profileImageUri, coverImageUri)` will handle that.
+    // Pass local URIs up to parent
     onSave(updatedData, profileImageUri, coverImageUri);
     onClose();
   };
@@ -239,7 +238,12 @@ const EditProfilePopup = ({ visible, onClose, userData, onSave }) => {
   );
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+    >
       <KeyboardAvoidingView
         style={responsiveStyles.modalContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -270,7 +274,11 @@ const EditProfilePopup = ({ visible, onClose, userData, onSave }) => {
                 style={responsiveStyles.pickImageButton}
                 onPress={() => pickImage(true)}
               >
-                <Ionicons name="image-outline" size={scale(20)} color={currentTheme.buttonTextColor} />
+                <Ionicons
+                  name="image-outline"
+                  size={scale(20)}
+                  color={currentTheme.buttonTextColor}
+                />
                 <Text style={responsiveStyles.pickImageButtonText}>Pick Profile Image</Text>
               </TouchableOpacity>
             </View>
@@ -287,7 +295,11 @@ const EditProfilePopup = ({ visible, onClose, userData, onSave }) => {
                 style={responsiveStyles.pickImageButton}
                 onPress={() => pickImage(false)}
               >
-                <Ionicons name="image-outline" size={scale(20)} color={currentTheme.buttonTextColor} />
+                <Ionicons
+                  name="image-outline"
+                  size={scale(20)}
+                  color={currentTheme.buttonTextColor}
+                />
                 <Text style={responsiveStyles.pickImageButtonText}>Pick Cover Image</Text>
               </TouchableOpacity>
             </View>
@@ -368,10 +380,6 @@ const EditProfilePopup = ({ visible, onClose, userData, onSave }) => {
 };
 
 export default EditProfilePopup;
-
-
-
-
 
 
 
