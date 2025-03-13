@@ -3,7 +3,7 @@ import { useWindowDimensions } from 'react-native';
 
 export const useResponsiveTemplateStyles = () => {
   const { width } = useWindowDimensions();
-  const guidelineBaseWidth = 400; // Your design baseline width
+  const guidelineBaseWidth = width > 375 ? 460 : 500;// Your design baseline width
   const scale = width / guidelineBaseWidth;
 
   return {

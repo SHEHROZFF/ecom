@@ -23,6 +23,7 @@ import {
   TextInput,
   Image,
   SafeAreaView,
+  Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -51,7 +52,7 @@ import { fetchCoursesThunk, searchCoursesThunk } from '../store/slices/courseSli
 const PAGE_LIMIT = 10;
 
 /* ---------------------------------------------------------------------------
-   1) AICoursesHeader - with responsive header height and font sizes
+   1) AICoursesHeader - with scaled styling
 --------------------------------------------------------------------------- */
 const AICoursesHeader = memo(function AICoursesHeader({
   currentTheme,
@@ -59,38 +60,177 @@ const AICoursesHeader = memo(function AICoursesHeader({
   courses,
   onAdPress,
   onSearchResults,
+  scale,
+  scaleFactor,
+  width,
 }) {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const { width } = useWindowDimensions();
 
-  // Compute responsive header height
-  const headerHeight = useMemo(() => {
-    if (width < 360) return 180;
-    else if (width < 600) return 220;
-    else return 300;
-  }, [width]);
-
-  // Responsive font sizes for header title and subtitle
-  const headerFontSize = useMemo(() => {
-    if (width < 360) return 28;
-    else if (width < 600) return 36;
-    else return 44;
-  }, [width]);
-
-  const headerSubtitleFontSize = useMemo(() => {
-    if (width < 360) return 14;
-    else if (width < 600) return 18;
-    else return 22;
-  }, [width]);
-
-  // Local search states
+  // ----- Local search states -----
   const [localSearchTerm, setLocalSearchTerm] = useState('');
   const [localSuggestions, setLocalSuggestions] = useState([]);
   const [showLocalSuggestions, setShowLocalSuggestions] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Pressing on a suggestion
+  /* ---------------------------------------------------------------------------
+     STYLES (Scaled) for the header portion
+  --------------------------------------------------------------------------- */
+  const stylesHeader = useMemo(
+    () =>
+      StyleSheet.create({
+        headerContainer: {
+          overflow: 'hidden',
+          borderBottomLeftRadius: scale(40),
+          borderBottomRightRadius: scale(40),
+          borderTopLeftRadius: scale(40),
+          borderTopRightRadius: scale(40),
+          position: 'relative',
+          // we can pick a "base" height and scale it
+          height: scale(220),
+        },
+        lottieContainer1: {
+          ...StyleSheet.absoluteFillObject,
+          borderBottomLeftRadius: scale(40),
+          borderBottomRightRadius: scale(40),
+          alignItems: 'center',
+        },
+        waveLottie1: {
+          width: '120%',
+          height: '120%',
+        },
+        lottieContainer2: {
+          ...StyleSheet.absoluteFillObject,
+          borderBottomLeftRadius: scale(40),
+          borderBottomRightRadius: scale(40),
+          alignItems: 'flex-end',
+        },
+        waveLottie2: {
+          width: '45%',
+          height: '45%',
+        },
+        lottieContainer3: {
+          ...StyleSheet.absoluteFillObject,
+          borderBottomLeftRadius: scale(40),
+          borderBottomRightRadius: scale(40),
+          alignItems: 'flex-start',
+          left: -scale(30),
+        },
+        waveLottie3: {
+          width: '45%',
+          height: '50%',
+        },
+        heroContent: {
+          flex: 1,
+          zIndex: 2,
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingHorizontal: scale(25),
+        },
+        headerTitle: {
+          fontWeight: '800',
+          marginBottom: scale(6),
+          textShadowOffset: { width: 0, height: scale(2) },
+          textShadowRadius: scale(4),
+        },
+        headerSubtitle: {
+          marginBottom: scale(12),
+          opacity: 0.9,
+          textShadowOffset: { width: 0, height: scale(1) },
+          textShadowRadius: scale(2),
+        },
+        searchRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          borderRadius: scale(25),
+          elevation: 4,
+          width: '100%',
+          paddingHorizontal: scale(10),
+          marginTop: scale(15),
+        },
+        searchInput: {
+          flex: 1,
+          fontSize: scale(16),
+          paddingVertical: scale(10),
+        },
+        // Suggestions
+        suggestionsContainer: {
+          marginHorizontal: scale(10),
+          marginTop: scale(-40),
+          borderRadius: scale(12),
+          elevation: 6,
+          padding: scale(10),
+          zIndex: 1,
+        },
+        suggestionItem: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingVertical: scale(10),
+          borderBottomWidth: 0.6,
+        },
+        suggestionImageContainer: {
+          position: 'relative',
+          marginRight: scale(12),
+        },
+        suggestionImage: {
+          width: scale(50),
+          height: scale(50),
+          borderRadius: scale(25),
+        },
+        featuredBadge: {
+          position: 'absolute',
+          bottom: scale(-4),
+          right: scale(-4),
+          paddingHorizontal: Platform.OS === 'ios' ? scale(2) : scale(4),
+          borderRadius: scale(10),
+        },
+        featuredText: {
+          fontSize: scale(10),
+          fontWeight: '600',
+        },
+        suggestionContent: {
+          flex: 1,
+        },
+        suggestionTitle: {
+          fontSize: scale(16),
+          fontWeight: '700',
+        },
+        suggestionDescription: {
+          fontSize: scale(12),
+          marginTop: scale(2),
+        },
+        suggestionStats: {
+          flexDirection: 'row',
+          marginTop: scale(4),
+        },
+        suggestionRating: {
+          fontSize: scale(12),
+          marginRight: scale(10),
+        },
+        suggestionReviews: {
+          fontSize: scale(12),
+        },
+        // Section heading
+        sectionWrapper: {
+          marginHorizontal: scale(15),
+          marginTop: scale(20),
+        },
+        sectionTitle: {
+          fontSize: scale(22),
+          fontWeight: '700',
+        },
+        sectionDivider: {
+          height: scale(2),
+          marginVertical: scale(8),
+          borderRadius: scale(2),
+        },
+      }),
+    [scaleFactor, currentTheme]
+  );
+
+  /* ---------------------------------------------------------------------------
+     SUGGESTIONS / SEARCH LOGIC
+  --------------------------------------------------------------------------- */
   const handleSuggestionPress = useCallback(
     (course) => {
       setLocalSearchTerm(course.title);
@@ -100,57 +240,76 @@ const AICoursesHeader = memo(function AICoursesHeader({
     [navigation]
   );
 
-  // Render each suggestion item
   const renderSuggestionItem = useCallback(
     ({ item }) => (
       <TouchableOpacity
-        style={[styles.suggestionItem, { borderBottomColor: currentTheme.borderColor }]}
+        style={[
+          stylesHeader.suggestionItem,
+          { borderBottomColor: currentTheme.borderColor },
+        ]}
         onPress={() => handleSuggestionPress(item)}
       >
-        <View style={styles.suggestionImageContainer}>
+        <View style={stylesHeader.suggestionImageContainer}>
           {item.image ? (
-            <Image source={{ uri: item.image }} style={styles.suggestionImage} />
+            <Image
+              source={{ uri: item.image }}
+              style={stylesHeader.suggestionImage}
+            />
           ) : (
-            <Ionicons name="book-outline" size={32} color="#555" />
+            <Ionicons name="book-outline" size={scale(32)} color="#555" />
           )}
           {item.isFeatured && (
             <View
               style={[
-                styles.featuredBadge,
+                stylesHeader.featuredBadge,
                 { backgroundColor: currentTheme.badgeBackgroundColor },
               ]}
             >
-              <Text style={[styles.featuredText, { color: currentTheme.badgeTextColor }]}>
+              <Text
+                style={[
+                  stylesHeader.featuredText,
+                  { color: currentTheme.badgeTextColor },
+                ]}
+              >
                 Featured
               </Text>
             </View>
           )}
         </View>
-        <View style={styles.suggestionContent}>
-          <Text style={[styles.suggestionTitle, { color: currentTheme.textColor }]}>
+        <View style={stylesHeader.suggestionContent}>
+          <Text
+            style={[stylesHeader.suggestionTitle, { color: currentTheme.textColor }]}
+          >
             {item.title}
           </Text>
           <Text
-            style={[styles.suggestionDescription, { color: currentTheme.textColor }]}
+            style={[
+              stylesHeader.suggestionDescription,
+              { color: currentTheme.textColor },
+            ]}
             numberOfLines={2}
           >
             {item.description}
           </Text>
-          <View style={styles.suggestionStats}>
-            <Text style={[styles.suggestionRating, { color: currentTheme.textColor }]}>
+          <View style={stylesHeader.suggestionStats}>
+            <Text
+              style={[stylesHeader.suggestionRating, { color: currentTheme.textColor }]}
+            >
               {item.rating}⭐
             </Text>
-            <Text style={[styles.suggestionReviews, { color: currentTheme.textColor }]}>
+            <Text
+              style={[stylesHeader.suggestionReviews, { color: currentTheme.textColor }]}
+            >
               {item.reviews} reviews
             </Text>
           </View>
         </View>
       </TouchableOpacity>
     ),
-    [currentTheme, handleSuggestionPress]
+    [stylesHeader, currentTheme, handleSuggestionPress, scale]
   );
 
-  // Actual search function (debounced by useEffect)
+  // Debounced search
   const handleSearch = useCallback(async () => {
     const term = localSearchTerm.trim();
     if (!term) {
@@ -184,7 +343,6 @@ const AICoursesHeader = memo(function AICoursesHeader({
     }
   }, [localSearchTerm, onSearchResults, dispatch]);
 
-  // Debounce search on keystroke
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       handleSearch();
@@ -192,19 +350,22 @@ const AICoursesHeader = memo(function AICoursesHeader({
     return () => clearTimeout(delayDebounceFn);
   }, [localSearchTerm, handleSearch]);
 
+  /* ---------------------------------------------------------------------------
+     RETURN
+  --------------------------------------------------------------------------- */
   return (
     <View>
       {/* Hero Header Container */}
-      <View style={[styles.headerContainer, { height: headerHeight }]}>
+      <View style={stylesHeader.headerContainer}>
         {/* Lottie Animated Backgrounds */}
-        <View style={styles.lottieContainer1}>
-          <LottieView source={lotti1} autoPlay loop style={styles.waveLottie1} />
+        <View style={stylesHeader.lottieContainer1}>
+          <LottieView source={lotti1} autoPlay loop style={stylesHeader.waveLottie1} />
         </View>
-        <View style={styles.lottieContainer2}>
-          <LottieView source={lotti2} autoPlay loop style={styles.waveLottie2} />
+        <View style={stylesHeader.lottieContainer2}>
+          <LottieView source={lotti2} autoPlay loop style={stylesHeader.waveLottie2} />
         </View>
-        <View style={styles.lottieContainer3}>
-          <LottieView source={robo} autoPlay loop style={styles.waveLottie3} />
+        <View style={stylesHeader.lottieContainer3}>
+          <LottieView source={robo} autoPlay loop style={stylesHeader.waveLottie3} />
         </View>
 
         {/* Overlay Gradient */}
@@ -216,14 +377,15 @@ const AICoursesHeader = memo(function AICoursesHeader({
         />
 
         {/* Hero Text & Search */}
-        <View style={styles.heroContent}>
+        <View style={stylesHeader.heroContent}>
           <Text
             style={[
-              styles.headerTitle,
+              stylesHeader.headerTitle,
               {
                 color: currentTheme.headerTextColor,
                 textShadowColor: currentTheme.textShadowColor,
-                fontSize: headerFontSize,
+                fontSize: scale(36),
+                textAlign: 'center',
               },
             ]}
           >
@@ -231,11 +393,12 @@ const AICoursesHeader = memo(function AICoursesHeader({
           </Text>
           <Text
             style={[
-              styles.headerSubtitle,
+              stylesHeader.headerSubtitle,
               {
                 color: currentTheme.headerTextColor,
                 textShadowColor: currentTheme.textShadowColor,
-                fontSize: headerSubtitleFontSize,
+                fontSize: scale(18),
+                textAlign: 'center',
               },
             ]}
           >
@@ -245,40 +408,47 @@ const AICoursesHeader = memo(function AICoursesHeader({
           {/* Search bar */}
           <View
             style={[
-              styles.searchRow,
-              { backgroundColor: currentTheme.inputSearchBackgroundColor },
+              stylesHeader.searchRow,
+              { backgroundColor: currentTheme.cardBackground },
             ]}
           >
             <Ionicons
               name="search"
-              size={25}
+              size={scale(25)}
               color={currentTheme.searchIconColor}
-              style={{ marginHorizontal: 8 }}
+              style={{ marginHorizontal: scale(8) }}
             />
             <TextInput
               placeholder="Search courses..."
               placeholderTextColor={currentTheme.placeholderTextColor}
-              style={[styles.searchInput, { color: currentTheme.textColor }]}
+              style={[
+                stylesHeader.searchInput,
+                { color: currentTheme.textColor },
+              ]}
               value={localSearchTerm}
               onChangeText={setLocalSearchTerm}
               autoCapitalize="none"
               returnKeyType="search"
             />
-            {/* Inline spinner while searching */}
             {isSearching && (
               <ActivityIndicator
                 size="small"
                 color={currentTheme.primaryColor}
-                style={{ marginRight: 8 }}
+                style={{ marginRight: scale(8) }}
               />
             )}
           </View>
         </View>
       </View>
 
-      {/* Suggestions Container: displayed only when not searching and there are suggestions */}
+      {/* Suggestions */}
       {localSearchTerm.trim() !== '' && !isSearching && localSuggestions.length > 0 && (
-        <View style={[styles.suggestionsContainer, { backgroundColor: currentTheme.backgroundColor }]}>
+        <View
+          style={[
+            stylesHeader.suggestionsContainer,
+            { backgroundColor: currentTheme.cardBackground },
+          ]}
+        >
           <FlatList
             data={localSuggestions}
             keyExtractor={(item) => item.id}
@@ -296,8 +466,10 @@ const AICoursesHeader = memo(function AICoursesHeader({
         templateFilter="promo"
         marginV={-5}
       />
+
       {/* Featured Courses */}
       <FeaturedReel currentTheme={currentTheme} />
+
       {/* Another Ads Section */}
       <AdsSection
         currentTheme={currentTheme}
@@ -306,13 +478,19 @@ const AICoursesHeader = memo(function AICoursesHeader({
         templateFilter="newCourse"
         marginV={20}
       />
+
       {/* "All Courses" section title */}
       {courses.length > 0 && (
-        <View style={styles.sectionWrapper}>
-          <Text style={[styles.sectionTitle, { color: currentTheme.cardTextColor }]}>
+        <View style={stylesHeader.sectionWrapper}>
+          <Text style={[stylesHeader.sectionTitle, { color: currentTheme.cardTextColor }]}>
             All Courses
           </Text>
-          <View style={[styles.sectionDivider, { backgroundColor: currentTheme.borderColor }]} />
+          <View
+            style={[
+              stylesHeader.sectionDivider,
+              { backgroundColor: currentTheme.borderColor },
+            ]}
+          />
         </View>
       )}
     </View>
@@ -320,15 +498,21 @@ const AICoursesHeader = memo(function AICoursesHeader({
 });
 
 /* ---------------------------------------------------------------------------
-   2) Main Screen - AICoursesScreen with responsive grid & card widths
+   2) Main Screen - AICoursesScreen with scaled styling
 --------------------------------------------------------------------------- */
 const AICoursesScreen = () => {
   const { theme } = useContext(ThemeContext);
   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
   const navigation = useNavigation();
-  const { width } = useWindowDimensions();
 
-  // Local states
+  const { width, height } = useWindowDimensions();
+
+  // 1) Setup scale
+  const baseWidth = width > 375 ? 460 : 500;
+  const scaleFactor = width / baseWidth;
+  const scale = (size) => size * scaleFactor;
+
+  // 2) Local states
   const [courses, setCourses] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -337,19 +521,21 @@ const AICoursesScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [adsRefresh, setAdsRefresh] = useState(0);
 
-  // Animations
+  // 3) Animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Decide columns based on device width
+  // 4) Decide columns
   const numColumns = useMemo(() => (width < 600 ? 1 : 2), [width]);
   const cardWidth = useMemo(() => {
-    const totalMargin = 20 * (numColumns + 1);
+    const totalMargin = scale(20) * (numColumns + 1);
     return (width - totalMargin) / numColumns;
-  }, [width, numColumns]);
+    // Alternatively, you might just do: return scale(200) for each card, etc.
+  }, [width, numColumns, scale]);
 
+  // 5) Redux
   const dispatch = useDispatch();
 
-  // Fetch courses via Redux thunk
+  // 6) fetchData (Redux thunk)
   const fetchData = useCallback(
     async (isRefresh = false) => {
       try {
@@ -413,6 +599,9 @@ const AICoursesScreen = () => {
     refreshAll();
   }, []);
 
+  /* ---------------------------------------------------------------------------
+     handleAdPress
+  --------------------------------------------------------------------------- */
   const handleAdPress = useCallback(
     (ad) => {
       if (ad.adProdtype === 'Course') {
@@ -424,35 +613,99 @@ const AICoursesScreen = () => {
     [navigation]
   );
 
+  /* ---------------------------------------------------------------------------
+     RENDER COURSE
+  --------------------------------------------------------------------------- */
   const renderCourse = useCallback(
     ({ item }) => (
-      <CourseCard course={item} cardWidth={cardWidth} currentTheme={currentTheme} />
+      <CourseCard
+        course={item}
+        cardWidth={cardWidth}
+        currentTheme={currentTheme}
+      />
     ),
     [cardWidth, currentTheme]
   );
 
+  /* ---------------------------------------------------------------------------
+     getItemLayout
+  --------------------------------------------------------------------------- */
   const getItemLayout = useCallback(
     (_, index) => {
-      const CARD_HEIGHT = 300;
+      // approximate card height
+      const CARD_HEIGHT = scale(300);
       const row = Math.floor(index / numColumns);
       return { length: CARD_HEIGHT, offset: row * CARD_HEIGHT, index };
     },
-    [numColumns]
+    [numColumns, scale]
   );
 
+  /* ---------------------------------------------------------------------------
+     handleLoadMoreCourses
+  --------------------------------------------------------------------------- */
   const handleLoadMoreCourses = useCallback(() => {
     if (!loadingMore && hasMore) {
       fetchData();
     }
   }, [loadingMore, hasMore, fetchData]);
 
+  /* ---------------------------------------------------------------------------
+     STYLES
+  --------------------------------------------------------------------------- */
+  const stylesMain = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: currentTheme.backgroundColor,
+        },
+        contentContainer: {
+          flex: 1,
+          opacity: 1,
+        },
+        listContent: {
+          paddingHorizontal: scale(10),
+          paddingBottom: scale(100),
+        },
+        emptyContainer: {
+          flex: 1,
+          marginTop: scale(50),
+          alignItems: 'center',
+        },
+        emptyText: {
+          fontSize: scale(18),
+        },
+        loadingScreen: {
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+        loadingOverlay: {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 99,
+        },
+        footer: {
+          paddingVertical: scale(20),
+          alignItems: 'center',
+        },
+      }),
+    [scaleFactor, currentTheme]
+  );
+
+  /* ---------------------------------------------------------------------------
+     MAIN RENDER
+  --------------------------------------------------------------------------- */
   if (loading && courses.length === 0 && !refreshing) {
     return (
-      <SafeAreaView
-        style={[styles.loadingScreen, { backgroundColor: currentTheme.backgroundColor }]}
-      >
+      <SafeAreaView style={[stylesMain.loadingScreen]}>
         <ActivityIndicator size="large" color={currentTheme.primaryColor} />
-        <Text style={{ color: currentTheme.textColor, marginTop: 10 }}>
+        <Text style={{ color: currentTheme.textColor, marginTop: scale(10) }}>
           Loading courses...
         </Text>
       </SafeAreaView>
@@ -460,8 +713,8 @@ const AICoursesScreen = () => {
   }
 
   const renderEmptyComponent = () => (
-    <View style={styles.emptyContainer}>
-      <Text style={[styles.emptyText, { color: currentTheme.textColor }]}>
+    <View style={stylesMain.emptyContainer}>
+      <Text style={[stylesMain.emptyText, { color: currentTheme.textColor }]}>
         No courses available.
       </Text>
     </View>
@@ -470,20 +723,21 @@ const AICoursesScreen = () => {
   const renderFooter = () => {
     if (!loadingMore) return null;
     return (
-      <View style={styles.footer}>
+      <View style={stylesMain.footer}>
         <ActivityIndicator size="small" color={currentTheme.primaryColor} />
       </View>
     );
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+    <View style={stylesMain.container}>
       <StatusBar
         backgroundColor={currentTheme.headerBackground[0]}
         barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
       />
       <CustomHeader />
-      <Animated.View style={[styles.contentContainer, { opacity: fadeAnim }]}>
+
+      <Animated.View style={[stylesMain.contentContainer, { opacity: fadeAnim }]}>
         <FlatList
           data={courses}
           keyExtractor={(item) => item.id}
@@ -498,11 +752,15 @@ const AICoursesScreen = () => {
               onSearchResults={(suggestions) => {
                 // optional callback after search
               }}
+              /* pass scale-related items to header so it can do scaled styling */
+              width={width}
+              scaleFactor={scaleFactor}
+              scale={scale}
             />
           }
           ListEmptyComponent={renderEmptyComponent}
           ListFooterComponent={renderFooter}
-          contentContainerStyle={[styles.listContent, { paddingBottom: 100 }]}
+          contentContainerStyle={stylesMain.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -521,15 +779,18 @@ const AICoursesScreen = () => {
           getItemLayout={getItemLayout}
         />
       </Animated.View>
+
       {loading && courses.length > 0 && (
         <View
           style={[
-            styles.loadingOverlay,
+            stylesMain.loadingOverlay,
             { backgroundColor: currentTheme.backgroundColor + 'cc' },
           ]}
         >
           <ActivityIndicator size="large" color={currentTheme.primaryColor} />
-          <Text style={{ color: currentTheme.textColor, marginTop: 10 }}>Loading...</Text>
+          <Text style={{ color: currentTheme.textColor, marginTop: scale(10) }}>
+            Loading...
+          </Text>
         </View>
       )}
     </View>
@@ -538,192 +799,747 @@ const AICoursesScreen = () => {
 
 export default AICoursesScreen;
 
-/* ---------------------------------------------------------------------------
-   Styles
---------------------------------------------------------------------------- */
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  adsContainer: {
-    marginVertical: -15,
-  },
-  headerContainer: {
-    overflow: 'hidden',
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
-    marginHorizontal: -10,
-    position: 'relative',
-  },
-  lottieContainer1: {
-    ...StyleSheet.absoluteFillObject,
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
-    alignItems: 'center',
-  },
-  waveLottie1: {
-    width: '120%',
-    height: '120%',
-  },
-  lottieContainer2: {
-    ...StyleSheet.absoluteFillObject,
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
-    alignItems: 'flex-end',
-  },
-  waveLottie2: {
-    width: '45%',
-    height: '45%',
-  },
-  lottieContainer3: {
-    ...StyleSheet.absoluteFillObject,
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
-    alignItems: 'flex-start',
-    left: -30,
-  },
-  waveLottie3: {
-    width: '45%',
-    height: '50%',
-  },
-  heroContent: {
-    flex: 1,
-    zIndex: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 25,
-  },
-  headerTitle: {
-    fontWeight: '800',
-    marginBottom: 6,
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-  },
-  headerSubtitle: {
-    marginBottom: 12,
-    opacity: 0.9,
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-  searchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 25,
-    elevation: 4,
-    width: '100%',
-    paddingHorizontal: 10,
-    marginTop: 15,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    paddingVertical: 10,
-  },
-  suggestionsContainer: {
-    marginHorizontal: 10,
-    marginTop: -40,
-    borderRadius: 12,
-    elevation: 6,
-    padding: 10,
-    zIndex: 1,
-  },
-  suggestionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 0.6,
-  },
-  suggestionImageContainer: {
-    position: 'relative',
-    marginRight: 12,
-  },
-  suggestionImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-  },
-  featuredBadge: {
-    position: 'absolute',
-    bottom: -4,
-    right: -4,
-    paddingHorizontal: 4,
-    borderRadius: 10,
-  },
-  featuredText: {
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  suggestionContent: {
-    flex: 1,
-  },
-  suggestionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  suggestionDescription: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  suggestionStats: {
-    flexDirection: 'row',
-    marginTop: 4,
-  },
-  suggestionRating: {
-    fontSize: 12,
-    marginRight: 10,
-  },
-  suggestionReviews: {
-    fontSize: 12,
-  },
-  contentContainer: {
-    flex: 1,
-  },
-  listContent: {
-    paddingHorizontal: 10,
-  },
-  sectionWrapper: {
-    marginHorizontal: 15,
-    marginTop: 20,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-  },
-  sectionDivider: {
-    height: 2,
-    marginVertical: 8,
-    borderRadius: 2,
-  },
-  emptyContainer: {
-    flex: 1,
-    marginTop: 50,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 18,
-  },
-  loadingScreen: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 99,
-  },
-  footer: {
-    paddingVertical: 20,
-    alignItems: 'center',
-  },
-});
+
+
+
+
+
+
+
+
+
+
+
+
+// // src/screens/AICoursesScreen.js
+
+// import React, {
+//   useState,
+//   useEffect,
+//   useContext,
+//   useCallback,
+//   useMemo,
+//   useRef,
+//   memo,
+// } from 'react';
+// import {
+//   View,
+//   Text,
+//   StyleSheet,
+//   FlatList,
+//   StatusBar,
+//   ActivityIndicator,
+//   RefreshControl,
+//   TouchableOpacity,
+//   useWindowDimensions,
+//   Animated,
+//   TextInput,
+//   Image,
+//   SafeAreaView,
+//   Platform,
+// } from 'react-native';
+// import { LinearGradient } from 'expo-linear-gradient';
+// import { Ionicons } from '@expo/vector-icons';
+// import { useNavigation } from '@react-navigation/native';
+// import LottieView from 'lottie-react-native';
+
+// // Theming
+// import { ThemeContext } from '../../ThemeContext';
+// import { lightTheme, darkTheme } from '../../themes';
+
+// // Lottie animation imports
+// import lotti1 from '../../assets/lotti1.json';
+// import lotti2 from '../../assets/lotti2.json';
+// import robo from '../../assets/robo.json';
+
+// // Child Components
+// import CustomHeader from '../components/CustomHeader';
+// import CourseCard from '../components/CourseCard';
+// import FeaturedReel from '../components/FeaturedReel';
+// import AdsSection from '../components/AdsSection';
+
+// // Redux pieces
+// import { useDispatch } from 'react-redux';
+// import { fetchCoursesThunk, searchCoursesThunk } from '../store/slices/courseSlice';
+
+// const PAGE_LIMIT = 10;
+
+// /* ---------------------------------------------------------------------------
+//    1) AICoursesHeader - with responsive header height and font sizes
+// --------------------------------------------------------------------------- */
+// const AICoursesHeader = memo(function AICoursesHeader({
+//   currentTheme,
+//   adsRefresh,
+//   courses,
+//   onAdPress,
+//   onSearchResults,
+// }) {
+//   const navigation = useNavigation();
+//   const dispatch = useDispatch();
+//   const { width } = useWindowDimensions();
+
+//   // Compute responsive header height
+//   const headerHeight = useMemo(() => {
+//     if (width < 360) return 180;
+//     else if (width < 600) return 220;
+//     else return 300;
+//   }, [width]);
+
+//   // Responsive font sizes for header title and subtitle
+//   const headerFontSize = useMemo(() => {
+//     if (width < 360) return 28;
+//     else if (width < 600) return 36;
+//     else return 44;
+//   }, [width]);
+
+//   const headerSubtitleFontSize = useMemo(() => {
+//     if (width < 360) return 14;
+//     else if (width < 600) return 18;
+//     else return 22;
+//   }, [width]);
+
+//   // Local search states
+//   const [localSearchTerm, setLocalSearchTerm] = useState('');
+//   const [localSuggestions, setLocalSuggestions] = useState([]);
+//   const [showLocalSuggestions, setShowLocalSuggestions] = useState(false);
+//   const [isSearching, setIsSearching] = useState(false);
+
+//   // Pressing on a suggestion
+//   const handleSuggestionPress = useCallback(
+//     (course) => {
+//       setLocalSearchTerm(course.title);
+//       setShowLocalSuggestions(false);
+//       navigation.navigate('CourseDetailScreen', { courseId: course.id });
+//     },
+//     [navigation]
+//   );
+
+//   // Render each suggestion item
+//   const renderSuggestionItem = useCallback(
+//     ({ item }) => (
+//       <TouchableOpacity
+//         style={[styles.suggestionItem, { borderBottomColor: currentTheme.borderColor }]}
+//         onPress={() => handleSuggestionPress(item)}
+//       >
+//         <View style={styles.suggestionImageContainer}>
+//           {item.image ? (
+//             <Image source={{ uri: item.image }} style={styles.suggestionImage} />
+//           ) : (
+//             <Ionicons name="book-outline" size={32} color="#555" />
+//           )}
+//           {item.isFeatured && (
+//             <View
+//               style={[
+//                 styles.featuredBadge,
+//                 { backgroundColor: currentTheme.badgeBackgroundColor },
+//               ]}
+//             >
+//               <Text style={[styles.featuredText, { color: currentTheme.badgeTextColor }]}>
+//                 Featured
+//               </Text>
+//             </View>
+//           )}
+//         </View>
+//         <View style={styles.suggestionContent}>
+//           <Text style={[styles.suggestionTitle, { color: currentTheme.textColor }]}>
+//             {item.title}
+//           </Text>
+//           <Text
+//             style={[styles.suggestionDescription, { color: currentTheme.textColor }]}
+//             numberOfLines={2}
+//           >
+//             {item.description}
+//           </Text>
+//           <View style={styles.suggestionStats}>
+//             <Text style={[styles.suggestionRating, { color: currentTheme.textColor }]}>
+//               {item.rating}⭐
+//             </Text>
+//             <Text style={[styles.suggestionReviews, { color: currentTheme.textColor }]}>
+//               {item.reviews} reviews
+//             </Text>
+//           </View>
+//         </View>
+//       </TouchableOpacity>
+//     ),
+//     [currentTheme, handleSuggestionPress]
+//   );
+
+//   // Actual search function (debounced by useEffect)
+//   const handleSearch = useCallback(async () => {
+//     const term = localSearchTerm.trim();
+//     if (!term) {
+//       setLocalSuggestions([]);
+//       setShowLocalSuggestions(false);
+//       onSearchResults?.([]);
+//       setIsSearching(false);
+//       return;
+//     }
+//     try {
+//       setIsSearching(true);
+//       const resultAction = await dispatch(searchCoursesThunk(term));
+//       if (searchCoursesThunk.fulfilled.match(resultAction)) {
+//         const foundCourses = resultAction.payload.data || [];
+//         const mapped = foundCourses.map((c) => ({ ...c, id: c._id }));
+//         setLocalSuggestions(mapped);
+//         setShowLocalSuggestions(true);
+//         onSearchResults?.(mapped);
+//       } else {
+//         setLocalSuggestions([]);
+//         setShowLocalSuggestions(false);
+//         onSearchResults?.([]);
+//       }
+//     } catch (err) {
+//       console.log('search error', err);
+//       setLocalSuggestions([]);
+//       setShowLocalSuggestions(false);
+//       onSearchResults?.([]);
+//     } finally {
+//       setIsSearching(false);
+//     }
+//   }, [localSearchTerm, onSearchResults, dispatch]);
+
+//   // Debounce search on keystroke
+//   useEffect(() => {
+//     const delayDebounceFn = setTimeout(() => {
+//       handleSearch();
+//     }, 300);
+//     return () => clearTimeout(delayDebounceFn);
+//   }, [localSearchTerm, handleSearch]);
+
+//   return (
+//     <View>
+//       {/* Hero Header Container */}
+//       <View style={[styles.headerContainer, { height: headerHeight }]}>
+//         {/* Lottie Animated Backgrounds */}
+//         <View style={styles.lottieContainer1}>
+//           <LottieView source={lotti1} autoPlay loop style={styles.waveLottie1} />
+//         </View>
+//         <View style={styles.lottieContainer2}>
+//           <LottieView source={lotti2} autoPlay loop style={styles.waveLottie2} />
+//         </View>
+//         <View style={styles.lottieContainer3}>
+//           <LottieView source={robo} autoPlay loop style={styles.waveLottie3} />
+//         </View>
+
+//         {/* Overlay Gradient */}
+//         <LinearGradient
+//           colors={currentTheme.aiheader}
+//           style={[StyleSheet.absoluteFill, { zIndex: 1 }]}
+//           start={[0, 0]}
+//           end={[1, 1]}
+//         />
+
+//         {/* Hero Text & Search */}
+//         <View style={styles.heroContent}>
+//           <Text
+//             style={[
+//               styles.headerTitle,
+//               {
+//                 color: currentTheme.headerTextColor,
+//                 textShadowColor: currentTheme.textShadowColor,
+//                 fontSize: headerFontSize,
+//                 textAlign:'center'
+//               },
+//             ]}
+//           >
+//             AI Courses
+//           </Text>
+//           <Text
+//             style={[
+//               styles.headerSubtitle,
+//               {
+//                 color: currentTheme.headerTextColor,
+//                 textShadowColor: currentTheme.textShadowColor,
+//                 fontSize: headerSubtitleFontSize,
+//                 textAlign:'center'
+//               },
+//             ]}
+//           >
+//             Elevate your skills with modern AI education
+//           </Text>
+
+//           {/* Search bar */}
+//           <View
+//             style={[
+//               styles.searchRow,
+//               { backgroundColor: currentTheme.cardBackground },
+//             ]}
+//           >
+//             <Ionicons
+//               name="search"
+//               size={25}
+//               color={currentTheme.searchIconColor}
+//               style={{ marginHorizontal: 8 }}
+//             />
+//             <TextInput
+//               placeholder="Search courses..."
+//               placeholderTextColor={currentTheme.placeholderTextColor}
+//               style={[styles.searchInput, { color: currentTheme.textColor }]}
+//               value={localSearchTerm}
+//               onChangeText={setLocalSearchTerm}
+//               autoCapitalize="none"
+//               returnKeyType="search"
+//             />
+//             {/* Inline spinner while searching */}
+//             {isSearching && (
+//               <ActivityIndicator
+//                 size="small"
+//                 color={currentTheme.primaryColor}
+//                 style={{ marginRight: 8 }}
+//               />
+//             )}
+//           </View>
+//         </View>
+//       </View>
+
+//       {/* Suggestions Container: displayed only when not searching and there are suggestions */}
+//       {localSearchTerm.trim() !== '' && !isSearching && localSuggestions.length > 0 && (
+//         <View style={[styles.suggestionsContainer, { backgroundColor: currentTheme.cardBackground }]}>
+//           <FlatList
+//             data={localSuggestions}
+//             keyExtractor={(item) => item.id}
+//             renderItem={renderSuggestionItem}
+//             keyboardShouldPersistTaps="handled"
+//           />
+//         </View>
+//       )}
+
+//       {/* Ads Section */}
+//       <AdsSection
+//         currentTheme={currentTheme}
+//         onAdPress={onAdPress}
+//         refreshSignal={adsRefresh}
+//         templateFilter="promo"
+//         marginV={-5}
+//       />
+//       {/* Featured Courses */}
+//       <FeaturedReel currentTheme={currentTheme} />
+//       {/* Another Ads Section */}
+//       <AdsSection
+//         currentTheme={currentTheme}
+//         onAdPress={onAdPress}
+//         refreshSignal={adsRefresh}
+//         templateFilter="newCourse"
+//         marginV={20}
+//       />
+//       {/* "All Courses" section title */}
+//       {courses.length > 0 && (
+//         <View style={styles.sectionWrapper}>
+//           <Text style={[styles.sectionTitle, { color: currentTheme.cardTextColor }]}>
+//             All Courses
+//           </Text>
+//           <View style={[styles.sectionDivider, { backgroundColor: currentTheme.borderColor }]} />
+//         </View>
+//       )}
+//     </View>
+//   );
+// });
+
+// /* ---------------------------------------------------------------------------
+//    2) Main Screen - AICoursesScreen with responsive grid & card widths
+// --------------------------------------------------------------------------- */
+// const AICoursesScreen = () => {
+//   const { theme } = useContext(ThemeContext);
+//   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
+//   const navigation = useNavigation();
+//   const { width } = useWindowDimensions();
+
+//   // Local states
+//   const [courses, setCourses] = useState([]);
+//   const [page, setPage] = useState(1);
+//   const [hasMore, setHasMore] = useState(true);
+//   const [loading, setLoading] = useState(false);
+//   const [loadingMore, setLoadingMore] = useState(false);
+//   const [refreshing, setRefreshing] = useState(false);
+//   const [adsRefresh, setAdsRefresh] = useState(0);
+
+//   // Animations
+//   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+//   // Decide columns based on device width
+//   const numColumns = useMemo(() => (width < 600 ? 1 : 2), [width]);
+//   const cardWidth = useMemo(() => {
+//     const totalMargin = 20 * (numColumns + 1);
+//     return (width - totalMargin) / numColumns;
+//   }, [width, numColumns]);
+
+//   const dispatch = useDispatch();
+
+//   // Fetch courses via Redux thunk
+//   const fetchData = useCallback(
+//     async (isRefresh = false) => {
+//       try {
+//         if (isRefresh) {
+//           setRefreshing(true);
+//           setPage(1);
+//           setHasMore(true);
+//           setAdsRefresh((prev) => prev + 1);
+//         } else if (page === 1) {
+//           setLoading(true);
+//         } else {
+//           setLoadingMore(true);
+//         }
+
+//         const currentPage = isRefresh ? 1 : page;
+//         const resultAction = await dispatch(
+//           fetchCoursesThunk({ page: currentPage, limit: PAGE_LIMIT })
+//         );
+
+//         if (fetchCoursesThunk.fulfilled.match(resultAction)) {
+//           const newCourses = resultAction.payload.data || [];
+//           if (isRefresh) {
+//             setCourses(newCourses.map((c) => ({ ...c, id: c._id })));
+//             setPage(2);
+//           } else {
+//             setCourses((prev) => {
+//               const existingIds = new Set(prev.map((item) => item.id));
+//               const filtered = newCourses.filter((item) => !existingIds.has(item._id));
+//               return [...prev, ...filtered.map((c) => ({ ...c, id: c._id }))];
+//             });
+//             setPage(currentPage + 1);
+//           }
+//           if (newCourses.length < PAGE_LIMIT) {
+//             setHasMore(false);
+//           }
+//           Animated.timing(fadeAnim, {
+//             toValue: 1,
+//             duration: 300,
+//             useNativeDriver: true,
+//           }).start();
+//         } else {
+//           console.log('fetchData error:', resultAction.payload);
+//         }
+//       } catch (err) {
+//         console.log('fetchData error', err);
+//       } finally {
+//         setRefreshing(false);
+//         setLoading(false);
+//         setLoadingMore(false);
+//       }
+//     },
+//     [page, dispatch, fadeAnim]
+//   );
+
+//   const refreshAll = useCallback(() => {
+//     setHasMore(true);
+//     fetchData(true);
+//   }, [fetchData]);
+
+//   useEffect(() => {
+//     refreshAll();
+//   }, []);
+
+//   const handleAdPress = useCallback(
+//     (ad) => {
+//       if (ad.adProdtype === 'Course') {
+//         navigation.navigate('CourseDetailScreen', { courseId: ad.adProdId });
+//       } else {
+//         navigation.navigate('ProductPage', { productId: ad.adProdId });
+//       }
+//     },
+//     [navigation]
+//   );
+
+//   const renderCourse = useCallback(
+//     ({ item }) => (
+//       <CourseCard course={item} cardWidth={cardWidth} currentTheme={currentTheme} />
+//     ),
+//     [cardWidth, currentTheme]
+//   );
+
+//   const getItemLayout = useCallback(
+//     (_, index) => {
+//       const CARD_HEIGHT = 300;
+//       const row = Math.floor(index / numColumns);
+//       return { length: CARD_HEIGHT, offset: row * CARD_HEIGHT, index };
+//     },
+//     [numColumns]
+//   );
+
+//   const handleLoadMoreCourses = useCallback(() => {
+//     if (!loadingMore && hasMore) {
+//       fetchData();
+//     }
+//   }, [loadingMore, hasMore, fetchData]);
+
+//   if (loading && courses.length === 0 && !refreshing) {
+//     return (
+//       <SafeAreaView
+//         style={[styles.loadingScreen, { backgroundColor: currentTheme.backgroundColor }]}
+//       >
+//         <ActivityIndicator size="large" color={currentTheme.primaryColor} />
+//         <Text style={{ color: currentTheme.textColor, marginTop: 10 }}>
+//           Loading courses...
+//         </Text>
+//       </SafeAreaView>
+//     );
+//   }
+
+//   const renderEmptyComponent = () => (
+//     <View style={styles.emptyContainer}>
+//       <Text style={[styles.emptyText, { color: currentTheme.textColor }]}>
+//         No courses available.
+//       </Text>
+//     </View>
+//   );
+
+//   const renderFooter = () => {
+//     if (!loadingMore) return null;
+//     return (
+//       <View style={styles.footer}>
+//         <ActivityIndicator size="small" color={currentTheme.primaryColor} />
+//       </View>
+//     );
+//   };
+
+//   return (
+//     <View style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+//       <StatusBar
+//         backgroundColor={currentTheme.headerBackground[0]}
+//         barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
+//       />
+//       <CustomHeader />
+//       <Animated.View style={[styles.contentContainer, { opacity: fadeAnim }]}>
+//         <FlatList
+//           data={courses}
+//           keyExtractor={(item) => item.id}
+//           renderItem={renderCourse}
+//           numColumns={numColumns}
+//           ListHeaderComponent={
+//             <AICoursesHeader
+//               currentTheme={currentTheme}
+//               adsRefresh={adsRefresh}
+//               courses={courses}
+//               onAdPress={handleAdPress}
+//               onSearchResults={(suggestions) => {
+//                 // optional callback after search
+//               }}
+//             />
+//           }
+//           ListEmptyComponent={renderEmptyComponent}
+//           ListFooterComponent={renderFooter}
+//           contentContainerStyle={[styles.listContent, { paddingBottom: 100 }]}
+//           showsVerticalScrollIndicator={false}
+//           refreshControl={
+//             <RefreshControl
+//               refreshing={refreshing}
+//               onRefresh={refreshAll}
+//               tintColor={currentTheme.primaryColor}
+//             />
+//           }
+//           onEndReached={handleLoadMoreCourses}
+//           onEndReachedThreshold={0.5}
+//           removeClippedSubviews
+//           initialNumToRender={6}
+//           windowSize={5}
+//           maxToRenderPerBatch={10}
+//           updateCellsBatchingPeriod={50}
+//           getItemLayout={getItemLayout}
+//         />
+//       </Animated.View>
+//       {loading && courses.length > 0 && (
+//         <View
+//           style={[
+//             styles.loadingOverlay,
+//             { backgroundColor: currentTheme.backgroundColor + 'cc' },
+//           ]}
+//         >
+//           <ActivityIndicator size="large" color={currentTheme.primaryColor} />
+//           <Text style={{ color: currentTheme.textColor, marginTop: 10 }}>Loading...</Text>
+//         </View>
+//       )}
+//     </View>
+//   );
+// };
+
+// export default AICoursesScreen;
+
+// /* ---------------------------------------------------------------------------
+//    Styles
+// --------------------------------------------------------------------------- */
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//   },
+//   adsContainer: {
+//     marginVertical: -15,
+//   },
+//   headerContainer: {
+//     overflow: 'hidden',
+//     borderBottomLeftRadius: 40,
+//     borderBottomRightRadius: 40,
+//     borderTopLeftRadius: 40,
+//     borderTopRightRadius: 40,
+//     // marginHorizontal: -10,
+//     position: 'relative',
+//   },
+//   lottieContainer1: {
+//     ...StyleSheet.absoluteFillObject,
+//     borderBottomLeftRadius: 40,
+//     borderBottomRightRadius: 40,
+//     alignItems: 'center',
+//   },
+//   waveLottie1: {
+//     width: '120%',
+//     height: '120%',
+//   },
+//   lottieContainer2: {
+//     ...StyleSheet.absoluteFillObject,
+//     borderBottomLeftRadius: 40,
+//     borderBottomRightRadius: 40,
+//     alignItems: 'flex-end',
+//   },
+//   waveLottie2: {
+//     width: '45%',
+//     height: '45%',
+//   },
+//   lottieContainer3: {
+//     ...StyleSheet.absoluteFillObject,
+//     borderBottomLeftRadius: 40,
+//     borderBottomRightRadius: 40,
+//     alignItems: 'flex-start',
+//     left: -30,
+//   },
+//   waveLottie3: {
+//     width: '45%',
+//     height: '50%',
+//   },
+//   heroContent: {
+//     flex: 1,
+//     zIndex: 2,
+//     alignItems: 'center',
+//     justifyContent: 'center',
+//     paddingHorizontal: 25,
+//   },
+//   headerTitle: {
+//     fontWeight: '800',
+//     marginBottom: 6,
+//     textShadowOffset: { width: 0, height: 2 },
+//     textShadowRadius: 4,
+//   },
+//   headerSubtitle: {
+//     marginBottom: 12,
+//     opacity: 0.9,
+//     textShadowOffset: { width: 0, height: 1 },
+//     textShadowRadius: 2,
+//   },
+//   searchRow: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     borderRadius: 25,
+//     elevation: 4,
+//     width: '100%',
+//     paddingHorizontal: 10,
+//     marginTop: 15,
+//   },
+//   searchInput: {
+//     flex: 1,
+//     fontSize: 16,
+//     paddingVertical: 10,
+//   },
+//   suggestionsContainer: {
+//     marginHorizontal: 10,
+//     marginTop: -40,
+//     borderRadius: 12,
+//     elevation: 6,
+//     padding: 10,
+//     zIndex: 1,
+//   },
+//   suggestionItem: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     paddingVertical: 10,
+//     borderBottomWidth: 0.6,
+//   },
+//   suggestionImageContainer: {
+//     position: 'relative',
+//     marginRight: 12,
+//   },
+//   suggestionImage: {
+//     width: 50,
+//     height: 50,
+//     borderRadius: 25,
+//   },
+//   featuredBadge: {
+//     position: 'absolute',
+//     bottom: -4,
+//     right: -4,
+//     paddingHorizontal: Platform.OS === 'ios' ? 2 : 4,
+//     borderRadius: 10,
+//   },
+//   featuredText: {
+//     fontSize: 10,
+//     fontWeight: '600',
+//   },
+//   suggestionContent: {
+//     flex: 1,
+//   },
+//   suggestionTitle: {
+//     fontSize: 16,
+//     fontWeight: '700',
+//   },
+//   suggestionDescription: {
+//     fontSize: 12,
+//     marginTop: 2,
+//   },
+//   suggestionStats: {
+//     flexDirection: 'row',
+//     marginTop: 4,
+//   },
+//   suggestionRating: {
+//     fontSize: 12,
+//     marginRight: 10,
+//   },
+//   suggestionReviews: {
+//     fontSize: 12,
+//   },
+//   contentContainer: {
+//     flex: 1,
+//   },
+//   listContent: {
+//     paddingHorizontal: 10,
+//   },
+//   sectionWrapper: {
+//     marginHorizontal: 15,
+//     marginTop: 20,
+//   },
+//   sectionTitle: {
+//     fontSize: 22,
+//     fontWeight: '700',
+//   },
+//   sectionDivider: {
+//     height: 2,
+//     marginVertical: 8,
+//     borderRadius: 2,
+//   },
+//   emptyContainer: {
+//     flex: 1,
+//     marginTop: 50,
+//     alignItems: 'center',
+//   },
+//   emptyText: {
+//     fontSize: 18,
+//   },
+//   loadingScreen: {
+//     flex: 1,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//   },
+//   loadingOverlay: {
+//     position: 'absolute',
+//     top: 0,
+//     left: 0,
+//     right: 0,
+//     bottom: 0,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//     zIndex: 99,
+//   },
+//   footer: {
+//     paddingVertical: 20,
+//     alignItems: 'center',
+//   },
+// });
 
 
 

@@ -7,25 +7,30 @@ import {
   StyleSheet,
   ScrollView,
   SafeAreaView,
-  Dimensions,
-  StatusBar
+  StatusBar,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemeContext } from '../../ThemeContext';
 import { lightTheme, darkTheme } from '../../themes';
 import DynamicContentPopup from '../components/DynamicContentPopup';
-// import { fetchPolicy } from '../services/api';
 import { useDispatch } from 'react-redux';
 import { fetchPolicyThunk } from '../store/slices/policySlice';
 
-const { width, height } = Dimensions.get('window');
+
 
 const HelpScreen = () => {
+  const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const { theme } = useContext(ThemeContext);
   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
   const dispatch = useDispatch();
+
+  // Dynamic scaling function
+  const baseWidth = width > 375 ? 460 : 500;
+  const scale = (size) => (size * width) / baseWidth;
 
   // State for dynamic content popup (for FAQ, Contact, Terms & Privacy)
   const [policyPopupVisible, setPolicyPopupVisible] = useState(false);
@@ -55,77 +60,148 @@ const HelpScreen = () => {
     return dispatch(fetchPolicyThunk(type)).unwrap();
   };
 
+  // Responsive styles computed with useMemo
+  const styles = React.useMemo(
+    () =>
+      StyleSheet.create({
+        safeArea: {
+          flex: 1,
+        },
+        scrollContainer: {
+          paddingBottom: scale(30),
+        },
+        header: {
+          width: '100%',
+          paddingVertical: scale(10),
+          paddingHorizontal: scale(15),
+          borderBottomLeftRadius: scale(30),
+          borderBottomRightRadius: scale(30),
+          elevation: 4,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: scale(3) },
+          shadowOpacity: 0.25,
+          shadowRadius: scale(4),
+          marginBottom: scale(15),
+          alignItems: 'center',
+        },
+        headerTitleContainer: {
+          alignItems: 'center',
+        },
+        headerTitle: {
+          fontSize: scale(26),
+          fontWeight: '800',
+        },
+        cardsContainer: {
+          marginHorizontal: scale(20),
+        },
+        card: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingVertical: scale(13),
+          paddingHorizontal: scale(16),
+          borderWidth: 1,
+          borderRadius: scale(16),
+          marginBottom: scale(15),
+          elevation: 4,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: scale(2) },
+          shadowOpacity: 0.15,
+          shadowRadius: scale(3),
+          backgroundColor: currentTheme.cardBackground,
+          borderColor: currentTheme.borderColor,
+        },
+        cardRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+        },
+        cardText: {
+          fontSize: scale(16),
+          fontWeight: '500',
+          flexShrink: 1,
+        },
+        icon: {
+          marginRight: scale(15),
+        },
+      }),
+    [width, currentTheme]
+  );
+
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: currentTheme.backgroundColor }]}>
-        <StatusBar
-          backgroundColor={currentTheme.headerBackground[0]}
-          barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
-        />
-        <LinearGradient
-          colors={currentTheme.headerBackground}
-          style={styles.header}
-          start={[0, 0]}
-          end={[0, 1]}
-        >
+    <View style={[styles.safeArea, { backgroundColor: currentTheme.backgroundColor }]}>
+      <StatusBar
+        backgroundColor={currentTheme.headerBackground[0]}
+        barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
+      />
+      <LinearGradient
+        colors={currentTheme.headerBackground}
+        style={[styles.header, { paddingTop: insets.top + scale(10) }]}
+        start={[0, 0]}
+        end={[0, 1]}
+      >
+        <View style={styles.headerTitleContainer}>
           <Text style={[styles.headerTitle, { color: currentTheme.headerTextColor }]}>
             Help & Support
           </Text>
-        </LinearGradient>
+        </View>
+      </LinearGradient>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.cardsContainer}>
           <TouchableOpacity
-            style={[styles.card, { borderColor: currentTheme.borderColor }]}
+            style={styles.card}
             onPress={handleFAQPress}
             activeOpacity={0.8}
           >
             <View style={styles.cardRow}>
-              <Ionicons name="help-circle" size={24} color={currentTheme.primaryColor} style={styles.icon} />
+              <Ionicons name="help-circle" size={scale(24)} color={currentTheme.primaryColor} style={styles.icon} />
               <Text style={[styles.cardText, { color: currentTheme.textColor }]}>
                 Frequently Asked Questions
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={24} color={currentTheme.placeholderTextColor} />
+            <Ionicons name="chevron-forward" size={scale(24)} color={currentTheme.placeholderTextColor} />
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.card, { borderColor: currentTheme.borderColor }]}
+            style={styles.card}
             onPress={handleContactUsPress}
             activeOpacity={0.8}
           >
             <View style={styles.cardRow}>
-              <Ionicons name="mail" size={24} color={currentTheme.primaryColor} style={styles.icon} />
-              <Text style={[styles.cardText, { color: currentTheme.textColor }]}>Contact Us</Text>
+              <Ionicons name="mail" size={scale(24)} color={currentTheme.primaryColor} style={styles.icon} />
+              <Text style={[styles.cardText, { color: currentTheme.textColor }]}>
+                Contact Us
+              </Text>
             </View>
-            <Ionicons name="chevron-forward" size={24} color={currentTheme.placeholderTextColor} />
+            <Ionicons name="chevron-forward" size={scale(24)} color={currentTheme.placeholderTextColor} />
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.card, { borderColor: currentTheme.borderColor }]}
+            style={styles.card}
             onPress={handleTermsPress}
             activeOpacity={0.8}
           >
             <View style={styles.cardRow}>
-              <Ionicons name="document-text" size={24} color={currentTheme.primaryColor} style={styles.icon} />
+              <Ionicons name="document-text" size={scale(24)} color={currentTheme.primaryColor} style={styles.icon} />
               <Text style={[styles.cardText, { color: currentTheme.textColor }]}>
                 Terms & Conditions
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={24} color={currentTheme.placeholderTextColor} />
+            <Ionicons name="chevron-forward" size={scale(24)} color={currentTheme.placeholderTextColor} />
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.card, { borderColor: currentTheme.borderColor }]}
+            style={styles.card}
             onPress={handlePrivacyPress}
             activeOpacity={0.8}
           >
             <View style={styles.cardRow}>
-              <Ionicons name="lock-closed" size={24} color={currentTheme.primaryColor} style={styles.icon} />
+              <Ionicons name="lock-closed" size={scale(24)} color={currentTheme.primaryColor} style={styles.icon} />
               <Text style={[styles.cardText, { color: currentTheme.textColor }]}>
                 Privacy Policy
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={24} color={currentTheme.placeholderTextColor} />
+            <Ionicons name="chevron-forward" size={scale(24)} color={currentTheme.placeholderTextColor} />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -140,72 +216,227 @@ const HelpScreen = () => {
         headerTextColor={currentTheme.headerTextColor}
         fetchContent={fetchContentWithRedux}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
 export default HelpScreen;
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  scrollContainer: {
-    paddingBottom: 30,
-  },
-  header: {
-    width: '100%',
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    marginBottom: 15,
-    alignItems: 'center',
-  },
-  headerTitleContainer: {
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 26,
-    fontWeight: '800',
-  },
-  cardsContainer: {
-    marginHorizontal: 20,
-  },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 13,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderRadius: 16,
-    marginBottom: 15,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-  },
-  cardRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  cardText: {
-    fontSize: 16,
-    fontWeight: '500',
-    flexShrink: 1,
-  },
-  icon: {
-    marginRight: 15,
-  },
-});
+
+
+
+
+
+
+// // src/screens/HelpScreen.js
+// import React, { useContext, useState } from 'react';
+// import {
+//   View,
+//   Text,
+//   TouchableOpacity,
+//   StyleSheet,
+//   ScrollView,
+//   SafeAreaView,
+//   StatusBar
+// } from 'react-native';
+// import { Ionicons } from '@expo/vector-icons';
+// import { LinearGradient } from 'expo-linear-gradient';
+
+// import { useSafeAreaInsets } from 'react-native-safe-area-context';
+// import { ThemeContext } from '../../ThemeContext';
+// import { lightTheme, darkTheme } from '../../themes';
+// import DynamicContentPopup from '../components/DynamicContentPopup';
+// // import { fetchPolicy } from '../services/api';
+// import { useDispatch } from 'react-redux';
+// import { fetchPolicyThunk } from '../store/slices/policySlice';
+
+
+// const HelpScreen = () => {
+//   const { theme } = useContext(ThemeContext);
+//   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
+//   const dispatch = useDispatch();
+
+//   const insets = useSafeAreaInsets();
+
+//   // State for dynamic content popup (for FAQ, Contact, Terms & Privacy)
+//   const [policyPopupVisible, setPolicyPopupVisible] = useState(false);
+//   const [policyType, setPolicyType] = useState('');
+
+//   const handleFAQPress = () => {
+//     setPolicyType('faq');
+//     setPolicyPopupVisible(true);
+//   };
+
+//   const handleContactUsPress = () => {
+//     setPolicyType('contact');
+//     setPolicyPopupVisible(true);
+//   };
+
+//   const handleTermsPress = () => {
+//     setPolicyType('terms');
+//     setPolicyPopupVisible(true);
+//   };
+
+//   const handlePrivacyPress = () => {
+//     setPolicyType('privacy');
+//     setPolicyPopupVisible(true);
+//   };
+
+//   const fetchContentWithRedux = (type) => {
+//     return dispatch(fetchPolicyThunk(type)).unwrap();
+//   };
+
+//   return (
+//     <View style={[styles.safeArea, { backgroundColor: currentTheme.backgroundColor }]}>
+//         <StatusBar
+//           backgroundColor={currentTheme.headerBackground[0]}
+//           barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
+//         />
+//         <LinearGradient
+//           colors={currentTheme.headerBackground}
+//           style={[styles.header, { paddingTop: insets.top + 10 }]}
+//           start={[0, 0]}
+//           end={[0, 1]}
+//         >
+//           <Text style={[styles.headerTitle, { color: currentTheme.headerTextColor }]}>
+//             Help & Support
+//           </Text>
+//         </LinearGradient>
+
+//       <ScrollView contentContainerStyle={styles.scrollContainer}>
+//         <View style={styles.cardsContainer}>
+//           <TouchableOpacity
+//             style={[styles.card, { borderColor: currentTheme.borderColor, backgroundColor: currentTheme.cardBackground }]}
+//             onPress={handleFAQPress}
+//             activeOpacity={0.8}
+//           >
+//             <View style={styles.cardRow}>
+//               <Ionicons name="help-circle" size={24} color={currentTheme.primaryColor} style={styles.icon} />
+//               <Text style={[styles.cardText, { color: currentTheme.textColor }]}>
+//                 Frequently Asked Questions
+//               </Text>
+//             </View>
+//             <Ionicons name="chevron-forward" size={24} color={currentTheme.placeholderTextColor} />
+//           </TouchableOpacity>
+
+//           <TouchableOpacity
+//             style={[styles.card, { borderColor: currentTheme.borderColor, backgroundColor: currentTheme.cardBackground }]}
+//             onPress={handleContactUsPress}
+//             activeOpacity={0.8}
+//           >
+//             <View style={styles.cardRow}>
+//               <Ionicons name="mail" size={24} color={currentTheme.primaryColor} style={styles.icon} />
+//               <Text style={[styles.cardText, { color: currentTheme.textColor }]}>Contact Us</Text>
+//             </View>
+//             <Ionicons name="chevron-forward" size={24} color={currentTheme.placeholderTextColor} />
+//           </TouchableOpacity>
+
+//           <TouchableOpacity
+//             style={[styles.card, { borderColor: currentTheme.borderColor, backgroundColor: currentTheme.cardBackground }]}
+//             onPress={handleTermsPress}
+//             activeOpacity={0.8}
+//           >
+//             <View style={styles.cardRow}>
+//               <Ionicons name="document-text" size={24} color={currentTheme.primaryColor} style={styles.icon} />
+//               <Text style={[styles.cardText, { color: currentTheme.textColor }]}>
+//                 Terms & Conditions
+//               </Text>
+//             </View>
+//             <Ionicons name="chevron-forward" size={24} color={currentTheme.placeholderTextColor} />
+//           </TouchableOpacity>
+
+//           <TouchableOpacity
+//             style={[styles.card, { borderColor: currentTheme.borderColor, backgroundColor: currentTheme.cardBackground }]}
+//             onPress={handlePrivacyPress}
+//             activeOpacity={0.8}
+//           >
+//             <View style={styles.cardRow}>
+//               <Ionicons name="lock-closed" size={24} color={currentTheme.primaryColor} style={styles.icon} />
+//               <Text style={[styles.cardText, { color: currentTheme.textColor }]}>
+//                 Privacy Policy
+//               </Text>
+//             </View>
+//             <Ionicons name="chevron-forward" size={24} color={currentTheme.placeholderTextColor} />
+//           </TouchableOpacity>
+//         </View>
+//       </ScrollView>
+
+//       {/* Dynamic Content Popup for FAQ, Contact, Terms & Privacy */}
+//       <DynamicContentPopup
+//         type={policyType}
+//         visible={policyPopupVisible}
+//         onClose={() => setPolicyPopupVisible(false)}
+//         themeStyles={currentTheme}
+//         headerBackground={currentTheme.headerBackground}
+//         headerTextColor={currentTheme.headerTextColor}
+//         fetchContent={fetchContentWithRedux}
+//       />
+//     </View>
+//   );
+// };
+
+// export default HelpScreen;
+
+// const styles = StyleSheet.create({
+//   safeArea: {
+//     flex: 1,
+//   },
+//   scrollContainer: {
+//     paddingBottom: 30,
+//   },
+//   header: {
+//     width: '100%',
+//     paddingVertical: 10,
+//     paddingHorizontal: 15,
+//     borderBottomLeftRadius: 30,
+//     borderBottomRightRadius: 30,
+//     elevation: 4,
+//     shadowColor: '#000',
+//     shadowOffset: { width: 0, height: 3 },
+//     shadowOpacity: 0.25,
+//     shadowRadius: 4,
+//     marginBottom: 15,
+//     alignItems: 'center',
+//   },
+//   headerTitleContainer: {
+//     alignItems: 'center',
+//   },
+//   headerTitle: {
+//     fontSize: 26,
+//     fontWeight: '800',
+//   },
+//   cardsContainer: {
+//     marginHorizontal: 20,
+//   },
+//   card: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     justifyContent: 'space-between',
+//     paddingVertical: 13,
+//     paddingHorizontal: 16,
+//     borderWidth: 1,
+//     borderRadius: 16,
+//     marginBottom: 15,
+//     // backgroundColor: 'rgba(255,255,255,0.95)',
+//     elevation: 4,
+//     shadowColor: '#000',
+//     shadowOffset: { width: 0, height: 2 },
+//     shadowOpacity: 0.15,
+//     shadowRadius: 3,
+//   },
+//   cardRow: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//   },
+//   cardText: {
+//     fontSize: 16,
+//     fontWeight: '500',
+//     flexShrink: 1,
+//   },
+//   icon: {
+//     marginRight: 15,
+//   },
+// });
 
 
 

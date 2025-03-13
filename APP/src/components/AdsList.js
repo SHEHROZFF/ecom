@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
 import Animated, {
@@ -8,21 +8,29 @@ import Animated, {
   Easing,
   runOnJS,
 } from 'react-native-reanimated';
+
 import AdCard from './AdCard';
 
-// Set your design baseline width (from your original design)
-const guidelineBaseWidth = 375;
-
+/**
+ * This now matches your LoginScreen scaling approach:
+ *   baseWidth = width > 375 ? 460 : 500
+ *   scaleFactor = width / baseWidth
+ */
 const AdsList = ({ ads, onAdPress, currentTheme }) => {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
-  // Scale helper: adjusts size relative to screen width
-  const scale = (size) => (screenWidth / guidelineBaseWidth) * size;
+  // 1) Matching your LoginScreen approach
+  const baseWidth = screenWidth > 375 ? 460 : 500;
+  const scaleFactor = screenWidth / baseWidth;
+  const scale = (size) => size * scaleFactor;
 
-  // Determine template type from first ad (default to newCourse)
+  // 2) If no ads, return early
+  if (!ads || !ads.length) return null;
+
+  // Determine the template
   const templateId = ads[0]?.templateId || 'newCourse';
-  // console.log(ads.length, templateId);
 
+  // Basic config
   let carouselConfigCustom = {};
   let continuousScroll = false;
   if (templateId === 'promo') {
@@ -35,57 +43,103 @@ const AdsList = ({ ads, onAdPress, currentTheme }) => {
       autoPlayInterval: 2500,
       scrollAnimationDuration: 600,
       modeConfig: {
-        activeStackOffset: -40 * (screenWidth / guidelineBaseWidth),
+        activeStackOffset: -40 * scaleFactor,
         inactiveStackScale: 1,
-        inactiveStackOffset: 10 * (screenWidth / guidelineBaseWidth),
+        inactiveStackOffset: 10 * scaleFactor,
       },
     };
   } else if (templateId === 'sale') {
-    carouselConfigCustom = { mode: 'horizontal-stack', autoPlay: true, autoPlayInterval: 3000, scrollAnimationDuration: 800 };
+    carouselConfigCustom = {
+      mode: 'horizontal-stack',
+      autoPlay: true,
+      autoPlayInterval: 3000,
+      scrollAnimationDuration: 800,
+    };
   } else if (templateId === 'event') {
     carouselConfigCustom = { mode: 'tinder', autoPlay: false };
   } else {
-    carouselConfigCustom = { mode: 'default', autoPlay: true, autoPlayInterval: 3000, scrollAnimationDuration: 800 };
+    carouselConfigCustom = {
+      mode: 'default',
+      autoPlay: true,
+      autoPlayInterval: 3000,
+      scrollAnimationDuration: 800,
+    };
   }
 
+  // Show pagination for these templates
   const paginationTemplates = ['event'];
   const shouldShowPagination = paginationTemplates.includes(templateId);
 
-  // Use custom or default dimensions
+  // Check for custom overrides
   const override = ads[0]?.customStyles?.templateOverride || {};
   const defaultCardWidth = templateId === 'sale' ? 330 : 300;
   const defaultCardHeight = templateId === 'newCourse' ? 250 : 260;
 
+  // Our final card dimensions
   const finalCardWidth = override.cardWidth ? scale(override.cardWidth) : scale(defaultCardWidth);
   let finalCardHeight = override.cardHeight ? scale(override.cardHeight) : scale(defaultCardHeight);
 
-  // Clamp height if exceeds 40% of screen height
+  // Cap to 40% of screen
   const maxCardHeight = screenHeight * 0.4;
-  if (finalCardHeight > maxCardHeight) {
-    finalCardHeight = maxCardHeight;
-  }
+  if (finalCardHeight > maxCardHeight) finalCardHeight = maxCardHeight;
 
-  // Constant margin for each card
-  const CARD_MARGIN = 10;
-  
-  // Shared value for continuous scroll
+  // We can define local styles in a useMemo so they recalc on dimension changes
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginVertical: 0,
+        },
+        carousel: {
+          marginVertical: scale(20),
+        },
+        animatedItem: {
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+        marqueeContainer: {
+          flexDirection: 'row',
+          overflow: 'hidden',
+          alignItems: 'center',
+        },
+        marqueeItem: {},
+        paginationContainer: {
+          position: 'absolute',
+          bottom: scale(18),
+          flexDirection: 'row',
+          alignSelf: 'center',
+        },
+        paginationDot: {
+          width: scale(8),
+          height: scale(8),
+          borderRadius: scale(4),
+          marginHorizontal: scale(4),
+        },
+      }),
+    [scaleFactor]
+  );
+
+  const CARD_MARGIN = scale(10);
+
+  // For continuous scroll
   const scrollX = useSharedValue(0);
+
   useEffect(() => {
     if (continuousScroll) {
-      // Effective width per card including left/right margins
       const effectiveCardWidth = finalCardWidth + CARD_MARGIN * 2;
-      // Total scroll distance for one set of promo cards
       const totalScrollDistance = ads.length * effectiveCardWidth;
 
-      // Recursive animation loop for smooth continuous scroll
+      // Animate function
       const animate = () => {
         scrollX.value = withTiming(
           totalScrollDistance,
           { duration: 15000, easing: Easing.linear },
           (finished) => {
             if (finished) {
-              scrollX.value = 0; // reset to start position
-              runOnJS(animate)(); // call animate on the JS thread
+              scrollX.value = 0;
+              runOnJS(animate)(); // loop
             }
           }
         );
@@ -94,11 +148,11 @@ const AdsList = ({ ads, onAdPress, currentTheme }) => {
     }
   }, [continuousScroll, finalCardWidth, ads.length, CARD_MARGIN, scrollX]);
 
-  // Use negative translate to move leftwards
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: continuousScroll ? -scrollX.value : 0 }],
   }));
 
+  // Render pagination
   const renderPagination = (index) => (
     <View style={styles.paginationContainer}>
       {ads.map((_, i) => (
@@ -106,7 +160,9 @@ const AdsList = ({ ads, onAdPress, currentTheme }) => {
           key={i}
           style={[
             styles.paginationDot,
-            { backgroundColor: i === index ? currentTheme.primaryColor || '#00aced' : '#ccc' },
+            {
+              backgroundColor: i === index ? currentTheme.primaryColor || '#00aced' : '#ccc',
+            },
           ]}
         />
       ))}
@@ -116,13 +172,20 @@ const AdsList = ({ ads, onAdPress, currentTheme }) => {
   const renderItem = ({ item, index }) => {
     let extraStyle = {};
     if (templateId === 'newCourse') {
-      extraStyle = { transform: [{ rotate: index % 2 === 0 ? '5deg' : '-5deg' }] };
+      extraStyle = {
+        transform: [{ rotate: index % 2 === 0 ? '5deg' : '-5deg' }],
+      };
     }
+
     return (
       <Animated.View
         style={[
           styles.animatedItem,
-          { width: finalCardWidth, height: finalCardHeight, marginHorizontal: CARD_MARGIN },
+          {
+            width: finalCardWidth,
+            height: finalCardHeight,
+            marginHorizontal: CARD_MARGIN,
+          },
           continuousScroll && animatedStyle,
           extraStyle,
         ]}
@@ -133,9 +196,10 @@ const AdsList = ({ ads, onAdPress, currentTheme }) => {
     );
   };
 
-  return (
-    <View style={[styles.container, { height: finalCardHeight }]}>
-      {continuousScroll ? (
+  if (continuousScroll) {
+    // Marquee-style continuous scrolling
+    return (
+      <View style={[styles.container, { height: finalCardHeight }]}>
         <Animated.View
           style={[
             styles.marqueeContainer,
@@ -148,44 +212,241 @@ const AdsList = ({ ads, onAdPress, currentTheme }) => {
               key={index}
               style={[
                 styles.marqueeItem,
-                { width: finalCardWidth, height: finalCardHeight, marginHorizontal: CARD_MARGIN },
+                {
+                  width: finalCardWidth,
+                  height: finalCardHeight,
+                  marginHorizontal: CARD_MARGIN,
+                },
               ]}
             >
               <AdCard adData={item} onPress={() => onAdPress(item)} currentTheme={currentTheme} />
             </View>
           ))}
         </Animated.View>
-      ) : (
-        <Carousel
-          data={ads}
-          renderItem={renderItem}
-          width={finalCardWidth + CARD_MARGIN * 2}
-          height={finalCardHeight}
-          loop
-          autoPlay={carouselConfigCustom.autoPlay}
-          autoPlayInterval={carouselConfigCustom.autoPlayInterval}
-          scrollAnimationDuration={carouselConfigCustom.scrollAnimationDuration}
-          mode={carouselConfigCustom.mode}
-          modeConfig={carouselConfigCustom.modeConfig || {}}
-          style={styles.carousel}
-          snapEnabled
-        />
-      )}
+      </View>
+    );
+  }
+
+  // Otherwise normal carousel
+  return (
+    <View style={[styles.container, { height: finalCardHeight }]}>
+      <Carousel
+        data={ads}
+        renderItem={renderItem}
+        width={finalCardWidth + CARD_MARGIN * 2}
+        height={finalCardHeight}
+        loop
+        autoPlay={carouselConfigCustom.autoPlay}
+        autoPlayInterval={carouselConfigCustom.autoPlayInterval}
+        scrollAnimationDuration={carouselConfigCustom.scrollAnimationDuration}
+        mode={carouselConfigCustom.mode}
+        modeConfig={carouselConfigCustom.modeConfig || {}}
+        style={styles.carousel}
+        snapEnabled
+      />
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: { justifyContent: 'center', alignItems: 'center', marginVertical: 0 },
-  carousel: { marginVertical: 20 },
-  animatedItem: { justifyContent: 'center', alignItems: 'center' },
-  marqueeContainer: { flexDirection: 'row', overflow: 'hidden', alignItems: 'center' },
-  marqueeItem: {},
-  paginationContainer: { position: 'absolute', bottom: 18, flexDirection: 'row', alignSelf: 'center' },
-  paginationDot: { width: 8, height: 8, borderRadius: 4, marginHorizontal: 4 },
-});
-
 export default AdsList;
+
+
+
+
+
+
+
+
+
+
+// import React, { useEffect } from 'react';
+// import { StyleSheet, View, useWindowDimensions } from 'react-native';
+// import Carousel from 'react-native-reanimated-carousel';
+// import Animated, {
+//   useSharedValue,
+//   useAnimatedStyle,
+//   withTiming,
+//   Easing,
+//   runOnJS,
+// } from 'react-native-reanimated';
+// import AdCard from './AdCard';
+
+// // Set your design baseline width (from your original design)
+// const guidelineBaseWidth = 375;
+
+// const AdsList = ({ ads, onAdPress, currentTheme }) => {
+//   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+
+//   // Scale helper: adjusts size relative to screen width
+//   const scale = (size) => (screenWidth / guidelineBaseWidth) * size;
+
+//   // Determine template type from first ad (default to newCourse)
+//   const templateId = ads[0]?.templateId || 'newCourse';
+//   // console.log(ads.length, templateId);
+
+//   let carouselConfigCustom = {};
+//   let continuousScroll = false;
+//   if (templateId === 'promo') {
+//     carouselConfigCustom = { mode: 'default', autoPlay: false };
+//     continuousScroll = true;
+//   } else if (templateId === 'newCourse') {
+//     carouselConfigCustom = {
+//       mode: 'horizontal-stack',
+//       autoPlay: true,
+//       autoPlayInterval: 2500,
+//       scrollAnimationDuration: 600,
+//       modeConfig: {
+//         activeStackOffset: -40 * (screenWidth / guidelineBaseWidth),
+//         inactiveStackScale: 1,
+//         inactiveStackOffset: 10 * (screenWidth / guidelineBaseWidth),
+//       },
+//     };
+//   } else if (templateId === 'sale') {
+//     carouselConfigCustom = { mode: 'horizontal-stack', autoPlay: true, autoPlayInterval: 3000, scrollAnimationDuration: 800 };
+//   } else if (templateId === 'event') {
+//     carouselConfigCustom = { mode: 'tinder', autoPlay: false };
+//   } else {
+//     carouselConfigCustom = { mode: 'default', autoPlay: true, autoPlayInterval: 3000, scrollAnimationDuration: 800 };
+//   }
+
+//   const paginationTemplates = ['event'];
+//   const shouldShowPagination = paginationTemplates.includes(templateId);
+
+//   // Use custom or default dimensions
+//   const override = ads[0]?.customStyles?.templateOverride || {};
+//   const defaultCardWidth = templateId === 'sale' ? 330 : 300;
+//   const defaultCardHeight = templateId === 'newCourse' ? 250 : 260;
+
+//   const finalCardWidth = override.cardWidth ? scale(override.cardWidth) : scale(defaultCardWidth);
+//   let finalCardHeight = override.cardHeight ? scale(override.cardHeight) : scale(defaultCardHeight);
+
+//   // Clamp height if exceeds 40% of screen height
+//   const maxCardHeight = screenHeight * 0.4;
+//   if (finalCardHeight > maxCardHeight) {
+//     finalCardHeight = maxCardHeight;
+//   }
+
+//   // Constant margin for each card
+//   const CARD_MARGIN = 10;
+  
+//   // Shared value for continuous scroll
+//   const scrollX = useSharedValue(0);
+//   useEffect(() => {
+//     if (continuousScroll) {
+//       // Effective width per card including left/right margins
+//       const effectiveCardWidth = finalCardWidth + CARD_MARGIN * 2;
+//       // Total scroll distance for one set of promo cards
+//       const totalScrollDistance = ads.length * effectiveCardWidth;
+
+//       // Recursive animation loop for smooth continuous scroll
+//       const animate = () => {
+//         scrollX.value = withTiming(
+//           totalScrollDistance,
+//           { duration: 15000, easing: Easing.linear },
+//           (finished) => {
+//             if (finished) {
+//               scrollX.value = 0; // reset to start position
+//               runOnJS(animate)(); // call animate on the JS thread
+//             }
+//           }
+//         );
+//       };
+//       animate();
+//     }
+//   }, [continuousScroll, finalCardWidth, ads.length, CARD_MARGIN, scrollX]);
+
+//   // Use negative translate to move leftwards
+//   const animatedStyle = useAnimatedStyle(() => ({
+//     transform: [{ translateX: continuousScroll ? -scrollX.value : 0 }],
+//   }));
+
+//   const renderPagination = (index) => (
+//     <View style={styles.paginationContainer}>
+//       {ads.map((_, i) => (
+//         <View
+//           key={i}
+//           style={[
+//             styles.paginationDot,
+//             { backgroundColor: i === index ? currentTheme.primaryColor || '#00aced' : '#ccc' },
+//           ]}
+//         />
+//       ))}
+//     </View>
+//   );
+
+//   const renderItem = ({ item, index }) => {
+//     let extraStyle = {};
+//     if (templateId === 'newCourse') {
+//       extraStyle = { transform: [{ rotate: index % 2 === 0 ? '5deg' : '-5deg' }] };
+//     }
+//     return (
+//       <Animated.View
+//         style={[
+//           styles.animatedItem,
+//           { width: finalCardWidth, height: finalCardHeight, marginHorizontal: CARD_MARGIN },
+//           continuousScroll && animatedStyle,
+//           extraStyle,
+//         ]}
+//       >
+//         <AdCard adData={item} onPress={() => onAdPress(item)} currentTheme={currentTheme} />
+//         {!continuousScroll && shouldShowPagination && renderPagination(index)}
+//       </Animated.View>
+//     );
+//   };
+
+//   return (
+//     <View style={[styles.container, { height: finalCardHeight }]}>
+//       {continuousScroll ? (
+//         <Animated.View
+//           style={[
+//             styles.marqueeContainer,
+//             animatedStyle,
+//             { height: finalCardHeight, paddingHorizontal: CARD_MARGIN },
+//           ]}
+//         >
+//           {ads.concat(ads).map((item, index) => (
+//             <View
+//               key={index}
+//               style={[
+//                 styles.marqueeItem,
+//                 { width: finalCardWidth, height: finalCardHeight, marginHorizontal: CARD_MARGIN },
+//               ]}
+//             >
+//               <AdCard adData={item} onPress={() => onAdPress(item)} currentTheme={currentTheme} />
+//             </View>
+//           ))}
+//         </Animated.View>
+//       ) : (
+//         <Carousel
+//           data={ads}
+//           renderItem={renderItem}
+//           width={finalCardWidth + CARD_MARGIN * 2}
+//           height={finalCardHeight}
+//           loop
+//           autoPlay={carouselConfigCustom.autoPlay}
+//           autoPlayInterval={carouselConfigCustom.autoPlayInterval}
+//           scrollAnimationDuration={carouselConfigCustom.scrollAnimationDuration}
+//           mode={carouselConfigCustom.mode}
+//           modeConfig={carouselConfigCustom.modeConfig || {}}
+//           style={styles.carousel}
+//           snapEnabled
+//         />
+//       )}
+//     </View>
+//   );
+// };
+
+// const styles = StyleSheet.create({
+//   container: { justifyContent: 'center', alignItems: 'center', marginVertical: 0 },
+//   carousel: { marginVertical: 20 },
+//   animatedItem: { justifyContent: 'center', alignItems: 'center' },
+//   marqueeContainer: { flexDirection: 'row', overflow: 'hidden', alignItems: 'center' },
+//   marqueeItem: {},
+//   paginationContainer: { position: 'absolute', bottom: 18, flexDirection: 'row', alignSelf: 'center' },
+//   paginationDot: { width: 8, height: 8, borderRadius: 4, marginHorizontal: 4 },
+// });
+
+// export default AdsList;
 
 
 

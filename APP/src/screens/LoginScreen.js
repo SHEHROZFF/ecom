@@ -1,6 +1,6 @@
 // src/screens/LoginScreen.js
 
-import React, { useState, useEffect, useRef, useContext } from 'react';
+import React, { useState, useEffect, useRef, useContext, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,6 @@ import {
   ScrollView,
   SafeAreaView,
   useWindowDimensions,
-  PixelRatio,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -27,12 +26,15 @@ import { UserContext } from '../contexts/UserContext';
 import LegalLinksPopup from '../components/LegalLinksPopup';
 import AppBrandName from '../components/AppBrandName';
 
-const scaleFont = (size) => size * PixelRatio.getFontScale();
 
 const LoginScreen = () => {
   const navigation = useNavigation();
   const { width, height } = useWindowDimensions();
-  const isSmallScreen = width < 380;
+  const baseWidth = width > 375 ? 460 : 500;
+  const scaleFactor = width / baseWidth; // scale everything relative to a base width
+
+  // Optional: a scaling function for fonts and dimensions
+  const scale = (size) => size * scaleFactor;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -46,7 +48,7 @@ const LoginScreen = () => {
   const { login } = useContext(UserContext);
 
   const iconOpacity = useRef(new Animated.Value(0)).current;
-  const iconTranslateY = useRef(new Animated.Value(-50)).current;
+  const iconTranslateY = useRef(new Animated.Value(-50 * scaleFactor)).current;
   const buttonScale = useRef(new Animated.Value(1)).current;
   const passwordInputRef = useRef();
 
@@ -87,6 +89,88 @@ const LoginScreen = () => {
     setAlertVisible(false);
   };
 
+  // Create responsive styles that re-calculate when dimensions change.
+  const styles = useMemo(() => StyleSheet.create({
+    background: {
+      flex: 1,
+    },
+    scrollContainer: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: scale(10),
+    },
+    container: {
+      width: '90%',
+      alignItems: 'center',
+      paddingHorizontal: scale(10),
+    },
+    subtitle: {
+      fontSize: scale(18),
+      marginTop: scale(10),
+      fontWeight: '600',
+    },
+    inputContainer: {
+      width: '100%',
+      marginTop: scale(20),
+    },
+    inputWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: scale(8),
+      borderRadius: scale(15),
+      borderWidth: 1,
+      paddingHorizontal: scale(15),
+      height: scale(50),
+    },
+    inputIcon: {
+      marginRight: scale(10),
+    },
+    input: {
+      flex: 1,
+      height: scale(50),
+      fontSize: scale(16),
+    },
+    forgotPasswordButton: {
+      alignSelf: 'flex-end',
+      marginTop: scale(5),
+    },
+    forgotPasswordText: {
+      fontWeight: 'bold',
+      fontSize: scale(14),
+    },
+    button: {
+      width: '100%',
+      paddingVertical: scale(15),
+      borderRadius: scale(30),
+      alignItems: 'center',
+      elevation: 3,
+      marginTop: scale(10),
+    },
+    buttonText: {
+      fontSize: scale(16),
+      fontWeight: 'bold',
+      letterSpacing: 1.1 * scaleFactor,
+    },
+    registerContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: scale(20),
+    },
+    accountText: {
+      fontSize: scale(16),
+    },
+    registerText: {
+      fontSize: scale(16),
+      fontWeight: 'bold',
+    },
+    legalContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: scale(20),
+    },
+  }), [scaleFactor]);
+
   return (
     <LinearGradient
       colors={currentTheme.authBackground}
@@ -95,7 +179,7 @@ const LoginScreen = () => {
       <SafeAreaView style={{ flex: 1 }}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 20}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? scale(60) : scale(20)}
           style={{ flex: 1 }}
         >
           <ScrollView
@@ -125,7 +209,7 @@ const LoginScreen = () => {
                 >
                   <Icon
                     name="email"
-                    size={24}
+                    size={scale(24)}
                     color={currentTheme.placeholderTextColor}
                     style={styles.inputIcon}
                   />
@@ -153,7 +237,7 @@ const LoginScreen = () => {
                 >
                   <Icon
                     name="lock"
-                    size={24}
+                    size={scale(24)}
                     color={currentTheme.placeholderTextColor}
                     style={styles.inputIcon}
                   />
@@ -197,9 +281,11 @@ const LoginScreen = () => {
                   activeOpacity={0.8}
                 >
                   {loading ? (
-                    <ActivityIndicator size="small" color='#FFFFFF'/>
+                    <ActivityIndicator size="small" color='#FFFFFF' />
                   ) : (
-                    <Text style={[styles.buttonText, { color: currentTheme.buttonTextColor }]}>LOGIN</Text>
+                    <Text style={[styles.buttonText, { color: currentTheme.buttonTextColor }]}>
+                      LOGIN
+                    </Text>
                   )}
                 </TouchableOpacity>
               </Animated.View>
@@ -254,88 +340,351 @@ const LoginScreen = () => {
 
 export default LoginScreen;
 
-const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-  },
-  container: {
-    width: '90%',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-  },
-  subtitle: {
-    fontSize: scaleFont(18),
-    marginTop: 10,
-    fontWeight: '600',
-  },
-  inputContainer: {
-    width: '100%',
-    marginTop: 20,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 8,
-    borderRadius: 15,
-    borderWidth: 1,
-    paddingHorizontal: 15,
-    height: 50,
-  },
-  inputIcon: {
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    height: 50,
-    fontSize: 16,
-  },
-  forgotPasswordButton: {
-    alignSelf: 'flex-end',
-    marginTop: 5,
-  },
-  forgotPasswordText: {
-    fontWeight: 'bold',
-    fontSize: scaleFont(14),
-    // textDecorationLine: 'underline',
-  },
-  button: {
-    width: '100%',
-    paddingVertical: 15,
-    borderRadius: 30,
-    alignItems: 'center',
-    elevation: 3,
-    marginTop: 10,
-  },
-  buttonText: {
-    // color: '#FFFFFF',
-    fontSize: scaleFont(16),
-    fontWeight: 'bold',
-    letterSpacing: 1.1,
-  },
-  registerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  accountText: {
-    fontSize: scaleFont(16),
-  },
-  registerText: {
-    fontSize: scaleFont(16),
-    fontWeight: 'bold',
-  },
-  legalContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 20,
-  },
-});
+
+
+
+
+
+
+
+// // src/screens/LoginScreen.js
+
+// import React, { useState, useEffect, useRef, useContext } from 'react';
+// import {
+//   View,
+//   Text,
+//   TextInput,
+//   TouchableOpacity,
+//   StyleSheet,
+//   Animated,
+//   KeyboardAvoidingView,
+//   Platform,
+//   ActivityIndicator,
+//   ScrollView,
+//   SafeAreaView,
+//   useWindowDimensions,
+//   PixelRatio,
+// } from 'react-native';
+// import { useNavigation } from '@react-navigation/native';
+// import Icon from 'react-native-vector-icons/MaterialIcons';
+// import { LinearGradient } from 'expo-linear-gradient';
+
+// import { ThemeContext } from '../../ThemeContext';
+// import { lightTheme, darkTheme } from '../../themes';
+// import CustomAlert from '../components/CustomAlert';
+// import { UserContext } from '../contexts/UserContext';
+// import LegalLinksPopup from '../components/LegalLinksPopup';
+// import AppBrandName from '../components/AppBrandName';
+
+// const scaleFont = (size) => size * PixelRatio.getFontScale();
+
+// const LoginScreen = () => {
+//   const navigation = useNavigation();
+//   const { width, height } = useWindowDimensions();
+//   const isSmallScreen = width < 380;
+
+//   const [email, setEmail] = useState('');
+//   const [password, setPassword] = useState('');
+//   const [loading, setLoading] = useState(false);
+//   const [alertVisible, setAlertVisible] = useState(false);
+//   const [alertTitle, setAlertTitle] = useState('');
+//   const [alertMessage, setAlertMessage] = useState('');
+
+//   const { theme } = useContext(ThemeContext);
+//   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
+//   const { login } = useContext(UserContext);
+
+//   const iconOpacity = useRef(new Animated.Value(0)).current;
+//   const iconTranslateY = useRef(new Animated.Value(-50)).current;
+//   const buttonScale = useRef(new Animated.Value(1)).current;
+//   const passwordInputRef = useRef();
+
+//   useEffect(() => {
+//     Animated.parallel([
+//       Animated.timing(iconOpacity, {
+//         toValue: 1,
+//         duration: 1000,
+//         useNativeDriver: true,
+//       }),
+//       Animated.spring(iconTranslateY, {
+//         toValue: 0,
+//         friction: 5,
+//         useNativeDriver: true,
+//       }),
+//     ]).start();
+//   }, []);
+
+//   const handleLogin = async () => {
+//     if (!email || !password) {
+//       setAlertTitle('Validation Error');
+//       setAlertMessage('Please enter both email and password.');
+//       setAlertVisible(true);
+//       return;
+//     }
+//     setLoading(true);
+//     const response = await login(email, password);
+//     setLoading(false);
+
+//     if (!response.success) {
+//       setAlertTitle('Login Failed');
+//       setAlertMessage('Invalid email or password.');
+//       setAlertVisible(true);
+//     }
+//   };
+
+//   const handleCloseAlert = () => {
+//     setAlertVisible(false);
+//   };
+
+//   return (
+//     <LinearGradient
+//       colors={currentTheme.authBackground}
+//       style={[styles.background, { width, height }]}
+//     >
+//       <SafeAreaView style={{ flex: 1 }}>
+//         <KeyboardAvoidingView
+//           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+//           keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 20}
+//           style={{ flex: 1 }}
+//         >
+//           <ScrollView
+//             contentContainerStyle={styles.scrollContainer}
+//             keyboardShouldPersistTaps="handled"
+//             showsVerticalScrollIndicator={false}
+//           >
+//             <View style={styles.container}>
+//               <AppBrandName
+//                 brandName="Ai-Nsider"
+//                 primaryColor={currentTheme.primaryColor}
+//                 textColor={currentTheme.textColor}
+//               />
+//               <Text style={[styles.subtitle, { color: currentTheme.textColor }]}>
+//                 Welcome Back
+//               </Text>
+
+//               <View style={styles.inputContainer}>
+//                 <View
+//                   style={[
+//                     styles.inputWrapper,
+//                     {
+//                       backgroundColor: currentTheme.inputBackgroundColor,
+//                       borderColor: currentTheme.inputBorderColor,
+//                     },
+//                   ]}
+//                 >
+//                   <Icon
+//                     name="email"
+//                     size={24}
+//                     color={currentTheme.placeholderTextColor}
+//                     style={styles.inputIcon}
+//                   />
+//                   <TextInput
+//                     placeholder="Email"
+//                     placeholderTextColor={currentTheme.placeholderTextColor}
+//                     style={[styles.input, { color: currentTheme.textColor }]}
+//                     onChangeText={setEmail}
+//                     autoCapitalize="none"
+//                     keyboardType="email-address"
+//                     returnKeyType="next"
+//                     onSubmitEditing={() => passwordInputRef.current.focus()}
+//                     blurOnSubmit={false}
+//                   />
+//                 </View>
+
+//                 <View
+//                   style={[
+//                     styles.inputWrapper,
+//                     {
+//                       backgroundColor: currentTheme.inputBackgroundColor,
+//                       borderColor: currentTheme.inputBorderColor,
+//                     },
+//                   ]}
+//                 >
+//                   <Icon
+//                     name="lock"
+//                     size={24}
+//                     color={currentTheme.placeholderTextColor}
+//                     style={styles.inputIcon}
+//                   />
+//                   <TextInput
+//                     ref={passwordInputRef}
+//                     placeholder="Password"
+//                     placeholderTextColor={currentTheme.placeholderTextColor}
+//                     style={[styles.input, { color: currentTheme.textColor }]}
+//                     secureTextEntry
+//                     onChangeText={setPassword}
+//                     returnKeyType="done"
+//                     onSubmitEditing={handleLogin}
+//                   />
+//                 </View>
+
+//                 <TouchableOpacity
+//                   onPress={() => navigation.navigate('ForgotPassword')}
+//                   style={styles.forgotPasswordButton}
+//                 >
+//                   <Text
+//                     style={[
+//                       styles.forgotPasswordText,
+//                       { color: currentTheme.secondaryColor },
+//                     ]}
+//                   >
+//                     Forgot Password?
+//                   </Text>
+//                 </TouchableOpacity>
+//               </View>
+
+//               <Animated.View
+//                 style={{
+//                   transform: [{ scale: buttonScale }],
+//                   width: '100%',
+//                   alignItems: 'center',
+//                 }}
+//               >
+//                 <TouchableOpacity
+//                   style={[styles.button, { backgroundColor: currentTheme.primaryColor }]}
+//                   onPress={handleLogin}
+//                   activeOpacity={0.8}
+//                 >
+//                   {loading ? (
+//                     <ActivityIndicator size="small" color='#FFFFFF'/>
+//                   ) : (
+//                     <Text style={[styles.buttonText, { color: currentTheme.buttonTextColor }]}>LOGIN</Text>
+//                   )}
+//                 </TouchableOpacity>
+//               </Animated.View>
+
+//               <View style={styles.registerContainer}>
+//                 <Text style={[styles.accountText, { color: currentTheme.textColor }]}>
+//                   Don't have an account?
+//                 </Text>
+//                 <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+//                   <Text
+//                     style={[
+//                       styles.registerText,
+//                       { color: currentTheme.secondaryColor },
+//                     ]}
+//                   >
+//                     {' '}Sign Up
+//                   </Text>
+//                 </TouchableOpacity>
+//               </View>
+
+//               <View style={styles.legalContainer}>
+//                 <LegalLinksPopup
+//                   staticContent="<p>Your legal content goes here. Replace this with actual content.</p>"
+//                   themeStyles={{
+//                     cardBackground: currentTheme.cardBackground,
+//                     textColor: currentTheme.textColor,
+//                     primaryColor: currentTheme.primaryColor,
+//                   }}
+//                   headerBackground={[currentTheme.primaryColor, currentTheme.secondaryColor]}
+//                   textStyle={{ color: currentTheme.secondaryColor }}
+//                 />
+//               </View>
+
+//               <CustomAlert
+//                 visible={alertVisible}
+//                 title={alertTitle}
+//                 message={alertMessage}
+//                 onClose={handleCloseAlert}
+//                 icon={
+//                   alertTitle === 'Validation Error'
+//                     ? 'alert-circle'
+//                     : 'close-circle'
+//                 }
+//               />
+//             </View>
+//           </ScrollView>
+//         </KeyboardAvoidingView>
+//       </SafeAreaView>
+//     </LinearGradient>
+//   );
+// };
+
+// export default LoginScreen;
+
+// const styles = StyleSheet.create({
+//   background: {
+//     flex: 1,
+//   },
+//   scrollContainer: {
+//     flexGrow: 1,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//     paddingHorizontal: 10,
+//   },
+//   container: {
+//     width: '90%',
+//     alignItems: 'center',
+//     paddingHorizontal: 10,
+//   },
+//   subtitle: {
+//     fontSize: scaleFont(18),
+//     marginTop: 10,
+//     fontWeight: '600',
+//   },
+//   inputContainer: {
+//     width: '100%',
+//     marginTop: 20,
+//   },
+//   inputWrapper: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     marginVertical: 8,
+//     borderRadius: 15,
+//     borderWidth: 1,
+//     paddingHorizontal: 15,
+//     height: 50,
+//   },
+//   inputIcon: {
+//     marginRight: 10,
+//   },
+//   input: {
+//     flex: 1,
+//     height: 50,
+//     fontSize: 16,
+//   },
+//   forgotPasswordButton: {
+//     alignSelf: 'flex-end',
+//     marginTop: 5,
+//   },
+//   forgotPasswordText: {
+//     fontWeight: 'bold',
+//     fontSize: scaleFont(14),
+//     // textDecorationLine: 'underline',
+//   },
+//   button: {
+//     width: '100%',
+//     paddingVertical: 15,
+//     borderRadius: 30,
+//     alignItems: 'center',
+//     elevation: 3,
+//     marginTop: 10,
+//   },
+//   buttonText: {
+//     // color: '#FFFFFF',
+//     fontSize: scaleFont(16),
+//     fontWeight: 'bold',
+//     letterSpacing: 1.1,
+//   },
+//   registerContainer: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     marginTop: 20,
+//   },
+//   accountText: {
+//     fontSize: scaleFont(16),
+//   },
+//   registerText: {
+//     fontSize: scaleFont(16),
+//     fontWeight: 'bold',
+//   },
+//   legalContainer: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     marginTop: 20,
+//   },
+// });
 
 
 

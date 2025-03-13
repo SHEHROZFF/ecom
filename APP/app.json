@@ -1,35 +1,39 @@
 {
   "expo": {
-    "name": "HOC",
-    "slug": "HOC",
+    "name": "AI-Nsider",
+    "slug": "AI-Nsider",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.jpg",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.jpg",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FFFFFF"
+      "backgroundColor": "#8E44AD"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yourcompany.taskmaster"
+      "bundleIdentifier": "com.goldenbee.AiNsider",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "This app may use the camera for profile picture selection."
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.jpg",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#004242",
         "softwareKeyboardLayoutMode": "pan"
       },
-      "package": "com.yourcompany.taskmaster",
-      "versionCode": 2
+      "package": "com.goldenbee.AiNsider",
+      "versionCode": 3
     },
     "web": {
-      "favicon": "./assets/favicon.jpg"
+      "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "699fd26b-ac3c-4d4e-91bb-31a09f851209"
+        "projectId": "b1760a34-89b7-44b7-9d77-4a841423d197"
       }
     }
   }

@@ -28,7 +28,7 @@ export const fetchMyOrders = createAsyncThunk(
       if (!response.success) {
         return rejectWithValue(response.message);
       }
-      console.log('responseorder', response);
+      // console.log('responseorder', response);
       
       return response; // e.g. { orders: [...] }
     } catch (error) {

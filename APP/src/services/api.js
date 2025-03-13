@@ -710,6 +710,18 @@ export const fetchPolicy = async (type) => {
   }
 };
 
+export const configStripeKey = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/config/stripe`);
+    // console.log("response",response.data);
+    
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Config Stripe Key error:', error.response?.data?.message || error.message);
+    return { success: false, message: error.response?.data?.message || 'Failed to fetch Stripe key.' };
+  }
+};
+
 
 
 // ----------------------- Export All Functions ----------------------- //
@@ -777,6 +789,9 @@ export default {
     updateLessonProgressAPI,
 
     // Fetch Policy
-    fetchPolicy
+    fetchPolicy,
+
+    //stripe
+    configStripeKey
 
 };

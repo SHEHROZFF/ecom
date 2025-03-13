@@ -1,6 +1,5 @@
 // src/components/EditProfilePopup.js
-
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,32 +11,34 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeContext } from '../../ThemeContext';
 import { lightTheme, darkTheme } from '../../themes';
-import CustomAlert from '../components/CustomAlert';
-
-const { width, height } = Dimensions.get('window');
+import CustomAlert from './CustomAlert';
 
 const EditProfilePopup = ({ visible, onClose, userData, onSave }) => {
-  const [name, setName] = useState(userData.name || '');
-  const [email, setEmail] = useState(userData.email || '');
-  const [phone, setPhone] = useState(userData.phone || '');
-  const [address, setAddress] = useState(userData.address || '');
-
-  // State variables for image URLs
-  const [profileImageUrl, setProfileImageUrl] = useState(userData.profileImage || '');
-  const [coverImageUrl, setCoverImageUrl] = useState(userData.coverImage || '');
-
-  // State variables for image load errors
-  const [profileImageError, setProfileImageError] = useState(false);
-  const [coverImageError, setCoverImageError] = useState(false);
-
-  // Access the current theme
+  const { width } = useWindowDimensions();
   const { theme } = useContext(ThemeContext);
   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
+
+  // Calculate a scale factor based on a base width.
+  const baseWidth = width > 375 ? 460 : 500;
+  const scaleFactor = width / baseWidth;
+  const scale = (size) => size * scaleFactor;
+
+  // State initialization
+  const [name, setName] = useState(userData?.name || '');
+  const [email, setEmail] = useState(userData?.email || '');
+  const [phone, setPhone] = useState(userData?.phone || '');
+  const [address, setAddress] = useState(userData?.address || '');
+  const [profileImageUrl, setProfileImageUrl] = useState(userData?.profileImage || '');
+  const [coverImageUrl, setCoverImageUrl] = useState(userData?.coverImage || '');
+
+  // State for image load errors
+  const [profileImageError, setProfileImageError] = useState(false);
+  const [coverImageError, setCoverImageError] = useState(false);
 
   // State for controlling the CustomAlert
   const [alertVisible, setAlertVisible] = useState(false);
@@ -47,12 +48,12 @@ const EditProfilePopup = ({ visible, onClose, userData, onSave }) => {
   const [alertButtons, setAlertButtons] = useState([]);
 
   useEffect(() => {
-    setName(userData.name || '');
-    setEmail(userData.email || '');
-    setPhone(userData.phone || '');
-    setAddress(userData.address || '');
-    setProfileImageUrl(userData.profileImage || '');
-    setCoverImageUrl(userData.coverImage || '');
+    setName(userData?.name || '');
+    setEmail(userData?.email || '');
+    setPhone(userData?.phone || '');
+    setAddress(userData?.address || '');
+    setProfileImageUrl(userData?.profileImage || '');
+    setCoverImageUrl(userData?.coverImage || '');
   }, [userData]);
 
   // Validate image URLs
@@ -131,6 +132,137 @@ const EditProfilePopup = ({ visible, onClose, userData, onSave }) => {
     onClose();
   };
 
+  // Memoized responsive styles
+  const responsiveStyles = useMemo(
+    () =>
+      StyleSheet.create({
+        modalContainer: {
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.5)', // Semi-transparent overlay
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+        modalInnerContainer: {
+          borderRadius: scale(10),
+          padding: scale(20),
+          elevation: 5,
+          width: '90%',
+          maxHeight: '90%',
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: scale(2) },
+          shadowOpacity: 0.25,
+          shadowRadius: scale(3.84),
+          backgroundColor: currentTheme.cardBackground,
+        },
+        modalContent: {
+          flexGrow: 1,
+          paddingBottom: scale(20),
+        },
+        modalHeader: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        },
+        modalTitle: {
+          fontSize: scale(20),
+          fontWeight: '600',
+          color: currentTheme.cardTextColor,
+        },
+        closeButton: {
+          padding: scale(5),
+        },
+        sectionTitle: {
+          fontSize: scale(16),
+          fontWeight: '600',
+          marginTop: scale(20),
+          marginBottom: scale(10),
+          color: currentTheme.textColor,
+        },
+        imageSection: {
+          marginBottom: scale(20),
+        },
+        profileImagePreview: {
+          width: width * 0.3,
+          height: width * 0.3,
+          borderRadius: (width * 0.3) / 2,
+          alignSelf: 'center',
+          marginBottom: scale(10),
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: scale(1) },
+          shadowOpacity: 0.2,
+          shadowRadius: scale(2),
+        },
+        coverImagePreview: {
+          width: '100%',
+          height: scale(150),
+          borderRadius: scale(10),
+          alignSelf: 'center',
+          marginBottom: scale(10),
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: scale(1) },
+          shadowOpacity: 0.2,
+          shadowRadius: scale(2),
+        },
+        placeholderImage: {
+          width: width * 0.3,
+          height: width * 0.3,
+          borderRadius: (width * 0.3) / 2,
+          justifyContent: 'center',
+          alignItems: 'center',
+          alignSelf: 'center',
+          marginBottom: scale(10),
+        },
+        placeholderCoverImage: {
+          width: '100%',
+          height: scale(150),
+          borderRadius: scale(10),
+          justifyContent: 'center',
+          alignItems: 'center',
+          alignSelf: 'center',
+          marginBottom: scale(10),
+        },
+        inputContainer: {
+          marginTop: scale(10),
+        },
+        label: {
+          fontSize: scale(14),
+          marginBottom: scale(5),
+          fontWeight: '500',
+          color: currentTheme.textColor,
+        },
+        input: {
+          borderWidth: scale(1),
+          borderRadius: scale(8),
+          paddingHorizontal: scale(10),
+          paddingVertical: Platform.OS === 'ios' ? scale(12) : scale(8),
+          fontSize: scale(14),
+          marginBottom: scale(5),
+          backgroundColor: currentTheme.backgroundColor,
+          color: currentTheme.textColor,
+          borderColor: currentTheme.borderColor,
+        },
+        saveButton: {
+          paddingVertical: scale(12),
+          borderRadius: scale(8),
+          marginTop: scale(15),
+          alignItems: 'center',
+          backgroundColor: currentTheme.primaryColor,
+        },
+        saveButtonText: {
+          fontSize: scale(16),
+          fontWeight: '600',
+          color: currentTheme.buttonTextColor,
+        },
+        errorText: {
+          fontSize: scale(12),
+          textAlign: 'center',
+          marginBottom: scale(5),
+          color: currentTheme.errorTextColor || 'red',
+        },
+      }),
+    [width, currentTheme, scale]
+  );
+
   return (
     <Modal
       visible={visible}
@@ -139,63 +271,47 @@ const EditProfilePopup = ({ visible, onClose, userData, onSave }) => {
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView
-        style={styles.modalContainer}
+        style={responsiveStyles.modalContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View
-          style={[
-            styles.modalInnerContainer,
-            { backgroundColor: currentTheme.cardBackground },
-          ]}
-        >
+        <View style={responsiveStyles.modalInnerContainer}>
           <ScrollView
-            contentContainerStyle={styles.modalContent}
+            contentContainerStyle={responsiveStyles.modalContent}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
             {/* Header */}
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: currentTheme.cardTextColor }]}>
-                Edit Profile
-              </Text>
-              <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                <Ionicons name="close" size={24} color={currentTheme.textColor} />
+            <View style={responsiveStyles.modalHeader}>
+              <Text style={responsiveStyles.modalTitle}>Edit Profile</Text>
+              <TouchableOpacity onPress={onClose} style={responsiveStyles.closeButton}>
+                <Ionicons name="close" size={scale(24)} color={currentTheme.textColor} />
               </TouchableOpacity>
             </View>
 
             {/* Profile Image Section */}
-            <Text style={[styles.sectionTitle, { color: currentTheme.textColor }]}>
-              Profile Photo
-            </Text>
-            <View style={styles.imageSection}>
+            <Text style={responsiveStyles.sectionTitle}>Profile Photo</Text>
+            <View style={responsiveStyles.imageSection}>
               {profileImageUrl ? (
                 <Image
                   source={{ uri: profileImageUrl }}
-                  style={styles.profileImagePreview}
+                  style={responsiveStyles.profileImagePreview}
                   onError={() => setProfileImageError(true)}
                 />
               ) : (
                 <View
                   style={[
-                    styles.placeholderImage,
+                    responsiveStyles.placeholderImage,
                     { backgroundColor: currentTheme.backgroundColor },
                   ]}
                 >
-                  <Ionicons name="person-outline" size={50} color={currentTheme.placeholderTextColor} />
+                  <Ionicons name="person-outline" size={scale(50)} color={currentTheme.placeholderTextColor} />
                 </View>
               )}
               {profileImageError && (
-                <Text style={styles.errorText}>Failed to load profile image.</Text>
+                <Text style={responsiveStyles.errorText}>Failed to load profile image.</Text>
               )}
               <TextInput
-                style={[
-                  styles.input,
-                  {
-                    backgroundColor: currentTheme.backgroundColor,
-                    color: currentTheme.textColor,
-                    borderColor: currentTheme.borderColor,
-                  },
-                ]}
+                style={responsiveStyles.input}
                 value={profileImageUrl}
                 onChangeText={(text) => {
                   setProfileImageUrl(text);
@@ -211,38 +327,31 @@ const EditProfilePopup = ({ visible, onClose, userData, onSave }) => {
             </View>
 
             {/* Cover Image Section */}
-            <Text style={[styles.sectionTitle, { color: currentTheme.textColor }]}>
-              Cover Photo
-            </Text>
-            <View style={styles.imageSection}>
+            <Text style={responsiveStyles.sectionTitle}>Cover Photo</Text>
+            <View style={responsiveStyles.imageSection}>
               {coverImageUrl ? (
                 <Image
                   source={{ uri: coverImageUrl }}
-                  style={styles.coverImagePreview}
+                  style={responsiveStyles.coverImagePreview}
                   onError={() => setCoverImageError(true)}
                 />
               ) : (
                 <View
                   style={[
-                    styles.placeholderCoverImage,
+                    responsiveStyles.placeholderCoverImage,
                     { backgroundColor: currentTheme.backgroundColor },
                   ]}
                 >
-                  <Ionicons name="image-outline" size={50} color={currentTheme.placeholderTextColor} />
+                  <Ionicons name="image-outline" size={scale(50)} color={currentTheme.placeholderTextColor} />
                 </View>
               )}
               {coverImageError && (
-                <Text style={styles.errorText}>Failed to load cover image.</Text>
+                <Text style={[responsiveStyles.errorText, { color: currentTheme.errorTextColor }]}>
+                  Failed to load cover image.
+                </Text>
               )}
               <TextInput
-                style={[
-                  styles.input,
-                  {
-                    backgroundColor: currentTheme.backgroundColor,
-                    color: currentTheme.textColor,
-                    borderColor: currentTheme.borderColor,
-                  },
-                ]}
+                style={responsiveStyles.input}
                 value={coverImageUrl}
                 onChangeText={(text) => {
                   setCoverImageUrl(text);
@@ -258,20 +367,11 @@ const EditProfilePopup = ({ visible, onClose, userData, onSave }) => {
             </View>
 
             {/* Other Profile Fields */}
-            <Text style={[styles.sectionTitle, { color: currentTheme.textColor }]}>
-              Personal Details
-            </Text>
-            <View style={styles.inputContainer}>
-              <Text style={[styles.label, { color: currentTheme.textColor }]}>Name</Text>
+            <Text style={responsiveStyles.sectionTitle}>Personal Details</Text>
+            <View style={responsiveStyles.inputContainer}>
+              <Text style={responsiveStyles.label}>Name</Text>
               <TextInput
-                style={[
-                  styles.input,
-                  {
-                    backgroundColor: currentTheme.backgroundColor,
-                    color: currentTheme.textColor,
-                    borderColor: currentTheme.borderColor,
-                  },
-                ]}
+                style={responsiveStyles.input}
                 value={name}
                 onChangeText={setName}
                 placeholder="Enter your name"
@@ -280,17 +380,10 @@ const EditProfilePopup = ({ visible, onClose, userData, onSave }) => {
               />
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={[styles.label, { color: currentTheme.textColor }]}>Email</Text>
+            <View style={responsiveStyles.inputContainer}>
+              <Text style={responsiveStyles.label}>Email</Text>
               <TextInput
-                style={[
-                  styles.input,
-                  {
-                    backgroundColor: currentTheme.backgroundColor,
-                    color: currentTheme.textColor,
-                    borderColor: currentTheme.borderColor,
-                  },
-                ]}
+                style={responsiveStyles.input}
                 value={email}
                 onChangeText={setEmail}
                 placeholder="Enter your email"
@@ -301,17 +394,10 @@ const EditProfilePopup = ({ visible, onClose, userData, onSave }) => {
               />
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={[styles.label, { color: currentTheme.textColor }]}>Phone Number</Text>
+            <View style={responsiveStyles.inputContainer}>
+              <Text style={responsiveStyles.label}>Phone Number</Text>
               <TextInput
-                style={[
-                  styles.input,
-                  {
-                    backgroundColor: currentTheme.backgroundColor,
-                    color: currentTheme.textColor,
-                    borderColor: currentTheme.borderColor,
-                  },
-                ]}
+                style={responsiveStyles.input}
                 value={phone}
                 onChangeText={setPhone}
                 placeholder="Enter your phone number"
@@ -321,18 +407,10 @@ const EditProfilePopup = ({ visible, onClose, userData, onSave }) => {
               />
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={[styles.label, { color: currentTheme.textColor }]}>Address</Text>
+            <View style={responsiveStyles.inputContainer}>
+              <Text style={responsiveStyles.label}>Address</Text>
               <TextInput
-                style={[
-                  styles.input,
-                  {
-                    height: 80,
-                    backgroundColor: currentTheme.backgroundColor,
-                    color: currentTheme.textColor,
-                    borderColor: currentTheme.borderColor,
-                  },
-                ]}
+                style={[responsiveStyles.input, { height: scale(80) }]}
                 value={address}
                 onChangeText={setAddress}
                 placeholder="Enter your address"
@@ -345,12 +423,12 @@ const EditProfilePopup = ({ visible, onClose, userData, onSave }) => {
 
             {/* Save Button */}
             <TouchableOpacity
-              style={[styles.saveButton, { backgroundColor: currentTheme.primaryColor }]}
+              style={responsiveStyles.saveButton}
               onPress={handleSave}
               accessibilityLabel="Save Profile"
               accessibilityRole="button"
             >
-              <Text style={styles.saveButtonText}>Save</Text>
+              <Text style={responsiveStyles.saveButtonText}>Save</Text>
             </TouchableOpacity>
           </ScrollView>
 
@@ -371,127 +449,509 @@ const EditProfilePopup = ({ visible, onClose, userData, onSave }) => {
 
 export default EditProfilePopup;
 
-/* ------------------- Enhanced Styles ------------------- */
-const styles = StyleSheet.create({
-  modalContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)', // Semi-transparent overlay
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalInnerContainer: {
-    borderRadius: 10,
-    padding: 20,
-    elevation: 5,
-    width: '90%',
-    maxHeight: '90%',
-    // iOS Shadow
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  modalContent: {
-    flexGrow: 1,
-    paddingBottom: 20,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  closeButton: {
-    padding: 5,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  imageSection: {
-    marginBottom: 20,
-  },
-  profileImagePreview: {
-    width: width * 0.3,
-    height: width * 0.3,
-    borderRadius: (width * 0.3) / 2,
-    alignSelf: 'center',
-    marginBottom: 10,
-    // Optional Shadow
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-  },
-  coverImagePreview: {
-    width: '100%',
-    height: 150,
-    borderRadius: 10,
-    alignSelf: 'center',
-    marginBottom: 10,
-    // Optional Shadow
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-  },
-  placeholderImage: {
-    width: width * 0.3,
-    height: width * 0.3,
-    borderRadius: (width * 0.3) / 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
-    marginBottom: 10,
-  },
-  placeholderCoverImage: {
-    width: '100%',
-    height: 150,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
-    marginBottom: 10,
-  },
-  inputContainer: {
-    marginTop: 10,
-  },
-  label: {
-    fontSize: 14,
-    marginBottom: 5,
-    fontWeight: '500',
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: Platform.OS === 'ios' ? 12 : 8,
-    fontSize: 14,
-    marginBottom: 5,
-  },
-  saveButton: {
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginTop: 15,
-    alignItems: 'center',
-  },
-  saveButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 12,
-    textAlign: 'center',
-    marginBottom: 5,
-  },
-});
+
+
+
+
+
+
+
+
+
+// // src/components/EditProfilePopup.js
+
+// import React, { useState, useContext, useEffect } from 'react';
+// import {
+//   View,
+//   Text,
+//   Modal,
+//   TouchableOpacity,
+//   TextInput,
+//   StyleSheet,
+//   ScrollView,
+//   KeyboardAvoidingView,
+//   Platform,
+//   Image,
+//   Dimensions,
+// } from 'react-native';
+// import { Ionicons } from '@expo/vector-icons';
+// import { ThemeContext } from '../../ThemeContext';
+// import { lightTheme, darkTheme } from '../../themes';
+// import CustomAlert from '../components/CustomAlert';
+
+// const { width, height } = Dimensions.get('window');
+
+// const EditProfilePopup = ({ visible, onClose, userData, onSave }) => {
+// // State initialization (updated)
+// const [name, setName] = useState(userData?.name || '');
+// const [email, setEmail] = useState(userData?.email || '');
+// const [phone, setPhone] = useState(userData?.phone || '');
+// const [address, setAddress] = useState(userData?.address || '');
+// const [profileImageUrl, setProfileImageUrl] = useState(userData?.profileImage || '');
+// const [coverImageUrl, setCoverImageUrl] = useState(userData?.coverImage || '');
+
+
+//   // State variables for image load errors
+//   const [profileImageError, setProfileImageError] = useState(false);
+//   const [coverImageError, setCoverImageError] = useState(false);
+
+//   // Access the current theme
+//   const { theme } = useContext(ThemeContext);
+//   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
+
+//   // State for controlling the CustomAlert
+//   const [alertVisible, setAlertVisible] = useState(false);
+//   const [alertTitle, setAlertTitle] = useState('');
+//   const [alertMessage, setAlertMessage] = useState('');
+//   const [alertIcon, setAlertIcon] = useState('');
+//   const [alertButtons, setAlertButtons] = useState([]);
+
+//   useEffect(() => {
+//     setName(userData?.name || '');
+//     setEmail(userData?.email || '');
+//     setPhone(userData?.phone || '');
+//     setAddress(userData?.address || '');
+//     setProfileImageUrl(userData?.profileImage || '');
+//     setCoverImageUrl(userData?.coverImage || '');
+//   }, [userData]);
+  
+//   // Validate image URLs
+//   const isValidImageUrl = (url) => {
+//     const regex = /(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png|jpeg)$/i;
+//     return regex.test(url);
+//   };
+
+//   // Email validation
+//   const isValidEmail = (email) => {
+//     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+//     return regex.test(email);
+//   };
+
+//   // Phone number validation
+//   const isValidPhoneNumber = (phone) => {
+//     const regex = /^\+?[0-9]{7,15}$/;
+//     return regex.test(phone);
+//   };
+
+//   const showAlert = (title, message, icon) => {
+//     setAlertTitle(title);
+//     setAlertMessage(message);
+//     setAlertIcon(icon);
+//     setAlertButtons([
+//       {
+//         text: 'OK',
+//         onPress: () => setAlertVisible(false),
+//       },
+//     ]);
+//     setAlertVisible(true);
+//   };
+
+//   const handleSave = () => {
+//     // Perform validation
+//     if (!name || !email) {
+//       showAlert('Validation Error', 'Name and email are required.', 'alert-circle');
+//       return;
+//     }
+//     if (email && !isValidEmail(email)) {
+//       showAlert('Invalid Email', 'Please enter a valid email address.', 'alert-circle');
+//       return;
+//     }
+//     if (phone && !isValidPhoneNumber(phone)) {
+//       showAlert('Invalid Phone Number', 'Please enter a valid phone number.', 'alert-circle');
+//       return;
+//     }
+//     if (profileImageUrl && !isValidImageUrl(profileImageUrl)) {
+//       showAlert(
+//         'Invalid URL',
+//         'Please enter a valid image URL for the profile image.',
+//         'alert-circle'
+//       );
+//       return;
+//     }
+//     if (coverImageUrl && !isValidImageUrl(coverImageUrl)) {
+//       showAlert(
+//         'Invalid URL',
+//         'Please enter a valid image URL for the cover image.',
+//         'alert-circle'
+//       );
+//       return;
+//     }
+
+//     const updatedData = {
+//       ...userData,
+//       name: name.trim(),
+//       email: email.trim(),
+//       phone: phone.trim(),
+//       address: address.trim(),
+//       profileImage: profileImageUrl.trim(),
+//       coverImage: coverImageUrl.trim(),
+//     };
+
+//     onSave(updatedData);
+//     onClose();
+//   };
+
+//   return (
+//     <Modal
+//       visible={visible}
+//       animationType="slide"
+//       transparent={true}
+//       onRequestClose={onClose}
+//     >
+//       <KeyboardAvoidingView
+//         style={styles.modalContainer}
+//         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+//       >
+//         <View
+//           style={[
+//             styles.modalInnerContainer,
+//             { backgroundColor: currentTheme.cardBackground },
+//           ]}
+//         >
+//           <ScrollView
+//             contentContainerStyle={styles.modalContent}
+//             keyboardShouldPersistTaps="handled"
+//             showsVerticalScrollIndicator={false}
+//           >
+//             {/* Header */}
+//             <View style={styles.modalHeader}>
+//               <Text style={[styles.modalTitle, { color: currentTheme.cardTextColor }]}>
+//                 Edit Profile
+//               </Text>
+//               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+//                 <Ionicons name="close" size={24} color={currentTheme.textColor} />
+//               </TouchableOpacity>
+//             </View>
+
+//             {/* Profile Image Section */}
+//             <Text style={[styles.sectionTitle, { color: currentTheme.textColor }]}>
+//               Profile Photo
+//             </Text>
+//             <View style={styles.imageSection}>
+//               {profileImageUrl ? (
+//                 <Image
+//                   source={{ uri: profileImageUrl }}
+//                   style={styles.profileImagePreview}
+//                   onError={() => setProfileImageError(true)}
+//                 />
+//               ) : (
+//                 <View
+//                   style={[
+//                     styles.placeholderImage,
+//                     { backgroundColor: currentTheme.backgroundColor },
+//                   ]}
+//                 >
+//                   <Ionicons name="person-outline" size={50} color={currentTheme.placeholderTextColor} />
+//                 </View>
+//               )}
+//               {profileImageError && (
+//                 <Text style={styles.errorText}>Failed to load profile image.</Text>
+//               )}
+//               <TextInput
+//                 style={[
+//                   styles.input,
+//                   {
+//                     backgroundColor: currentTheme.backgroundColor,
+//                     color: currentTheme.textColor,
+//                     borderColor: currentTheme.borderColor,
+//                   },
+//                 ]}
+//                 value={profileImageUrl}
+//                 onChangeText={(text) => {
+//                   setProfileImageUrl(text);
+//                   if (isValidImageUrl(text)) {
+//                     setProfileImageError(false);
+//                   }
+//                 }}
+//                 placeholder="Enter profile image URL"
+//                 placeholderTextColor={currentTheme.placeholderTextColor}
+//                 autoCapitalize="none"
+//                 accessibilityLabel="Profile Image URL Input"
+//               />
+//             </View>
+
+//             {/* Cover Image Section */}
+//             <Text style={[styles.sectionTitle, { color: currentTheme.textColor }]}>
+//               Cover Photo
+//             </Text>
+//             <View style={styles.imageSection}>
+//               {coverImageUrl ? (
+//                 <Image
+//                   source={{ uri: coverImageUrl }}
+//                   style={styles.coverImagePreview}
+//                   onError={() => setCoverImageError(true)}
+//                 />
+//               ) : (
+//                 <View
+//                   style={[
+//                     styles.placeholderCoverImage,
+//                     { backgroundColor: currentTheme.backgroundColor },
+//                   ]}
+//                 >
+//                   <Ionicons name="image-outline" size={50} color={currentTheme.placeholderTextColor} />
+//                 </View>
+//               )}
+//               {coverImageError && (
+//                 <Text style={[styles.errorText,{color: currentTheme.errorTextColor}]}>Failed to load cover image.</Text>
+//               )}
+//               <TextInput
+//                 style={[
+//                   styles.input,
+//                   {
+//                     backgroundColor: currentTheme.backgroundColor,
+//                     color: currentTheme.textColor,
+//                     borderColor: currentTheme.borderColor,
+//                   },
+//                 ]}
+//                 value={coverImageUrl}
+//                 onChangeText={(text) => {
+//                   setCoverImageUrl(text);
+//                   if (isValidImageUrl(text)) {
+//                     setCoverImageError(false);
+//                   }
+//                 }}
+//                 placeholder="Enter cover image URL"
+//                 placeholderTextColor={currentTheme.placeholderTextColor}
+//                 autoCapitalize="none"
+//                 accessibilityLabel="Cover Image URL Input"
+//               />
+//             </View>
+
+//             {/* Other Profile Fields */}
+//             <Text style={[styles.sectionTitle, { color: currentTheme.textColor }]}>
+//               Personal Details
+//             </Text>
+//             <View style={styles.inputContainer}>
+//               <Text style={[styles.label, { color: currentTheme.textColor }]}>Name</Text>
+//               <TextInput
+//                 style={[
+//                   styles.input,
+//                   {
+//                     backgroundColor: currentTheme.backgroundColor,
+//                     color: currentTheme.textColor,
+//                     borderColor: currentTheme.borderColor,
+//                   },
+//                 ]}
+//                 value={name}
+//                 onChangeText={setName}
+//                 placeholder="Enter your name"
+//                 placeholderTextColor={currentTheme.placeholderTextColor}
+//                 accessibilityLabel="Name Input"
+//               />
+//             </View>
+
+//             <View style={styles.inputContainer}>
+//               <Text style={[styles.label, { color: currentTheme.textColor }]}>Email</Text>
+//               <TextInput
+//                 style={[
+//                   styles.input,
+//                   {
+//                     backgroundColor: currentTheme.backgroundColor,
+//                     color: currentTheme.textColor,
+//                     borderColor: currentTheme.borderColor,
+//                   },
+//                 ]}
+//                 value={email}
+//                 onChangeText={setEmail}
+//                 placeholder="Enter your email"
+//                 keyboardType="email-address"
+//                 autoCapitalize="none"
+//                 placeholderTextColor={currentTheme.placeholderTextColor}
+//                 accessibilityLabel="Email Input"
+//               />
+//             </View>
+
+//             <View style={styles.inputContainer}>
+//               <Text style={[styles.label, { color: currentTheme.textColor }]}>Phone Number</Text>
+//               <TextInput
+//                 style={[
+//                   styles.input,
+//                   {
+//                     backgroundColor: currentTheme.backgroundColor,
+//                     color: currentTheme.textColor,
+//                     borderColor: currentTheme.borderColor,
+//                   },
+//                 ]}
+//                 value={phone}
+//                 onChangeText={setPhone}
+//                 placeholder="Enter your phone number"
+//                 keyboardType="phone-pad"
+//                 placeholderTextColor={currentTheme.placeholderTextColor}
+//                 accessibilityLabel="Phone Number Input"
+//               />
+//             </View>
+
+//             <View style={styles.inputContainer}>
+//               <Text style={[styles.label, { color: currentTheme.textColor }]}>Address</Text>
+//               <TextInput
+//                 style={[
+//                   styles.input,
+//                   {
+//                     height: 80,
+//                     backgroundColor: currentTheme.backgroundColor,
+//                     color: currentTheme.textColor,
+//                     borderColor: currentTheme.borderColor,
+//                   },
+//                 ]}
+//                 value={address}
+//                 onChangeText={setAddress}
+//                 placeholder="Enter your address"
+//                 multiline
+//                 numberOfLines={3}
+//                 placeholderTextColor={currentTheme.placeholderTextColor}
+//                 accessibilityLabel="Address Input"
+//               />
+//             </View>
+
+//             {/* Save Button */}
+//             <TouchableOpacity
+//               style={[styles.saveButton, { backgroundColor: currentTheme.primaryColor }]}
+//               onPress={handleSave}
+//               accessibilityLabel="Save Profile"
+//               accessibilityRole="button"
+//             >
+//               <Text style={[styles.saveButtonText, { color: currentTheme.buttonTextColor }]}>Save</Text>
+//             </TouchableOpacity>
+//           </ScrollView>
+
+//           {/* CustomAlert Component */}
+//           <CustomAlert
+//             visible={alertVisible}
+//             title={alertTitle}
+//             message={alertMessage}
+//             icon={alertIcon}
+//             onClose={() => setAlertVisible(false)}
+//             buttons={alertButtons}
+//           />
+//         </View>
+//       </KeyboardAvoidingView>
+//     </Modal>
+//   );
+// };
+
+// export default EditProfilePopup;
+
+// /* ------------------- Enhanced Styles ------------------- */
+// const styles = StyleSheet.create({
+//   modalContainer: {
+//     flex: 1,
+//     backgroundColor: 'rgba(0,0,0,0.5)', // Semi-transparent overlay
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//   },
+//   modalInnerContainer: {
+//     borderRadius: 10,
+//     padding: 20,
+//     elevation: 5,
+//     width: '90%',
+//     maxHeight: '90%',
+//     // iOS Shadow
+//     shadowColor: '#000',
+//     shadowOffset: { width: 0, height: 2 },
+//     shadowOpacity: 0.25,
+//     shadowRadius: 3.84,
+//   },
+//   modalContent: {
+//     flexGrow: 1,
+//     paddingBottom: 20,
+//   },
+//   modalHeader: {
+//     flexDirection: 'row',
+//     justifyContent: 'space-between',
+//     alignItems: 'center',
+//   },
+//   modalTitle: {
+//     fontSize: 20,
+//     fontWeight: '600',
+//   },
+//   closeButton: {
+//     padding: 5,
+//   },
+//   sectionTitle: {
+//     fontSize: 16,
+//     fontWeight: '600',
+//     marginTop: 20,
+//     marginBottom: 10,
+//   },
+//   imageSection: {
+//     marginBottom: 20,
+//   },
+//   profileImagePreview: {
+//     width: width * 0.3,
+//     height: width * 0.3,
+//     borderRadius: (width * 0.3) / 2,
+//     alignSelf: 'center',
+//     marginBottom: 10,
+//     // Optional Shadow
+//     shadowColor: '#000',
+//     shadowOffset: { width: 0, height: 1 },
+//     shadowOpacity: 0.2,
+//     shadowRadius: 2,
+//   },
+//   coverImagePreview: {
+//     width: '100%',
+//     height: 150,
+//     borderRadius: 10,
+//     alignSelf: 'center',
+//     marginBottom: 10,
+//     // Optional Shadow
+//     shadowColor: '#000',
+//     shadowOffset: { width: 0, height: 1 },
+//     shadowOpacity: 0.2,
+//     shadowRadius: 2,
+//   },
+//   placeholderImage: {
+//     width: width * 0.3,
+//     height: width * 0.3,
+//     borderRadius: (width * 0.3) / 2,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//     alignSelf: 'center',
+//     marginBottom: 10,
+//   },
+//   placeholderCoverImage: {
+//     width: '100%',
+//     height: 150,
+//     borderRadius: 10,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//     alignSelf: 'center',
+//     marginBottom: 10,
+//   },
+//   inputContainer: {
+//     marginTop: 10,
+//   },
+//   label: {
+//     fontSize: 14,
+//     marginBottom: 5,
+//     fontWeight: '500',
+//   },
+//   input: {
+//     borderWidth: 1,
+//     borderRadius: 8,
+//     paddingHorizontal: 10,
+//     paddingVertical: Platform.OS === 'ios' ? 12 : 8,
+//     fontSize: 14,
+//     marginBottom: 5,
+//   },
+//   saveButton: {
+//     paddingVertical: 12,
+//     borderRadius: 8,
+//     marginTop: 15,
+//     alignItems: 'center',
+//   },
+//   saveButtonText: {
+//     // color: '#FFFFFF',
+//     fontSize: 16,
+//     fontWeight: '600',
+//   },
+//   errorText: {
+//     // color: 'red',
+//     fontSize: 12,
+//     textAlign: 'center',
+//     marginBottom: 5,
+//   },
+// });
 
 
 

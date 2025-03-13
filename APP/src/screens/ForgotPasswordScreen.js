@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext } from 'react';
+import React, { useState, useRef, useContext, useMemo } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -26,9 +26,14 @@ import AppBrandName from '../components/AppBrandName';
 import { useDispatch } from 'react-redux';
 import { forgotPwd } from '../store/slices/authSlice';
 
+
 const ForgotPasswordScreen = () => {
   const [email, setEmail] = useState('');
   const navigation = useNavigation();
+  const { width, height } = useWindowDimensions();
+  const baseWidth = width > 375 ? 460 : 500;
+  const scaleFactor = width / baseWidth;
+  const scale = (size) => size * scaleFactor;
 
   const [loading, setLoading] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
@@ -40,11 +45,10 @@ const ForgotPasswordScreen = () => {
   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
 
   const iconOpacity = useRef(new Animated.Value(0)).current;
-  const iconTranslateY = useRef(new Animated.Value(-50)).current;
+  const iconTranslateY = useRef(new Animated.Value(-scale(50))).current;
   const buttonScale = useRef(new Animated.Value(1)).current;
 
   const dispatch = useDispatch();
-  const { width, height } = useWindowDimensions();
 
   const handleResetPassword = async () => {
     if (!email) {
@@ -54,7 +58,6 @@ const ForgotPasswordScreen = () => {
       setAlertVisible(true);
       return;
     }
-
     const emailRegex = /\S+@\S+\.\S+/;
     if (!emailRegex.test(email)) {
       setAlertTitle('Validation Error');
@@ -63,7 +66,6 @@ const ForgotPasswordScreen = () => {
       setAlertVisible(true);
       return;
     }
-
     setLoading(true);
     try {
       const response = await dispatch(forgotPwd(email)).unwrap();
@@ -95,14 +97,83 @@ const ForgotPasswordScreen = () => {
     }
   };
 
+  // Responsive styles computed with useMemo
+  const styles = useMemo(() => StyleSheet.create({
+    safeArea: {
+      flex: 1,
+    },
+    background: {
+      flex: 1,
+    },
+    keyboardView: {
+      flex: 1,
+    },
+    scrollContainer: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: scale(20),
+    },
+    container: {
+      width: '90%',
+      alignItems: 'center',
+    },
+    subtitle: {
+      fontSize: scale(18),
+      marginTop: scale(5),
+      fontWeight: '600',
+    },
+    inputContainer: {
+      width: '100%',
+      marginTop: scale(20),
+    },
+    inputWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: scale(10),
+      borderRadius: scale(15),
+      borderWidth: 1,
+      paddingHorizontal: scale(15),
+    },
+    inputIcon: {
+      marginRight: scale(10),
+    },
+    input: {
+      flex: 1,
+      height: scale(50),
+      fontSize: scale(16),
+    },
+    button: {
+      width: '100%',
+      paddingVertical: scale(15),
+      borderRadius: scale(30),
+      alignItems: 'center',
+      elevation: 3,
+      marginTop: scale(10),
+    },
+    buttonText: {
+      fontSize: scale(16),
+      fontWeight: 'bold',
+      letterSpacing: 1.1,
+    },
+    backToLoginButton: {
+      marginTop: scale(20),
+    },
+    backToLoginText: {
+      fontSize: scale(16),
+      fontWeight: 'bold',
+    },
+    legalContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: scale(20),
+    },
+  }), [scaleFactor]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <LinearGradient
-        colors={
-          theme === 'light'
-            ? currentTheme.authBackground
-            : currentTheme.authBackground
-        }
+        colors={currentTheme.authBackground}
         style={[styles.background, { width, height }]}
       >
         <KeyboardAvoidingView
@@ -122,17 +193,17 @@ const ForgotPasswordScreen = () => {
               <Text style={[styles.subtitle, { color: currentTheme.textColor }]}>
                 Forgot Your Password?
               </Text>
-
               <View style={styles.inputContainer}>
-                <View
-                  style={[
-                    styles.inputWrapper,
-                    { backgroundColor: currentTheme.inputBackgroundColor,borderColor: currentTheme.inputBorderColor, },
-                  ]}
-                >
+                <View style={[
+                  styles.inputWrapper,
+                  { 
+                    backgroundColor: currentTheme.inputBackgroundColor,
+                    borderColor: currentTheme.inputBorderColor,
+                  },
+                ]}>
                   <Icon
                     name="email"
-                    size={24}
+                    size={scale(24)}
                     color={currentTheme.placeholderTextColor}
                     style={styles.inputIcon}
                   />
@@ -148,7 +219,6 @@ const ForgotPasswordScreen = () => {
                   />
                 </View>
               </View>
-
               <Animated.View
                 style={{
                   transform: [{ scale: buttonScale }],
@@ -163,13 +233,14 @@ const ForgotPasswordScreen = () => {
                   disabled={loading}
                 >
                   {loading ? (
-                    <ActivityIndicator size="small" color='#FFFFFF'/>
+                    <ActivityIndicator size="small" color="#FFFFFF" />
                   ) : (
-                    <Text style={[styles.buttonText, { color: currentTheme.buttonTextColor }]}>SEND RESET LINK</Text>
+                    <Text style={[styles.buttonText, { color: currentTheme.buttonTextColor }]}>
+                      SEND RESET LINK
+                    </Text>
                   )}
                 </TouchableOpacity>
               </Animated.View>
-
               <TouchableOpacity
                 onPress={() => navigation.navigate('Login')}
                 style={styles.backToLoginButton}
@@ -178,7 +249,6 @@ const ForgotPasswordScreen = () => {
                   Back to Login
                 </Text>
               </TouchableOpacity>
-
               <View style={styles.legalContainer}>
                 <LegalLinksPopup
                   staticContent="<p>Your legal content goes here. Replace this with actual content.</p>"
@@ -188,10 +258,9 @@ const ForgotPasswordScreen = () => {
                     primaryColor: currentTheme.primaryColor,
                   }}
                   headerBackground={[currentTheme.primaryColor, currentTheme.secondaryColor]}
-                  textStyle={{ color: currentTheme.secondaryColor }}
+                  textStyle={{ color: currentTheme.secondaryColor, fontSize: scale(12) }}
                 />
               </View>
-
               <CustomAlert
                 visible={alertVisible}
                 title={alertTitle}
@@ -209,80 +278,297 @@ const ForgotPasswordScreen = () => {
 
 export default ForgotPasswordScreen;
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  background: {
-    flex: 1,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  container: {
-    width: '90%',
-    alignItems: 'center',
-  },
-  subtitle: {
-    fontSize: 18,
-    marginTop: 5,
-    fontWeight: '600',
-  },
-  inputContainer: {
-    width: '100%',
-    marginTop: 20,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 10,
-    borderRadius: 15,
-    borderWidth: 1,
-    // borderColor: 'rgba(255,255,255,0.4)',
-    paddingHorizontal: 15,
-  },
-  inputIcon: {
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    height: 50,
-    fontSize: 16,
-  },
-  button: {
-    width: '100%',
-    paddingVertical: 15,
-    borderRadius: 30,
-    alignItems: 'center',
-    elevation: 3,
-    marginTop: 10,
-  },
-  buttonText: {
-    // color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-    letterSpacing: 1.1,
-  },
-  backToLoginButton: {
-    marginTop: 20,
-  },
-  backToLoginText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    // textDecorationLine: 'underline',
-  },
-  legalContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 20,
-  },
-});
+
+
+
+
+
+
+// import React, { useState, useRef, useContext } from 'react';
+// import {
+//   SafeAreaView,
+//   ScrollView,
+//   View,
+//   Text,
+//   TextInput,
+//   TouchableOpacity,
+//   StyleSheet,
+//   Animated,
+//   KeyboardAvoidingView,
+//   Platform,
+//   ActivityIndicator,
+//   useWindowDimensions,
+// } from 'react-native';
+// import { useNavigation } from '@react-navigation/native';
+// import Icon from 'react-native-vector-icons/MaterialIcons';
+// import { LinearGradient } from 'expo-linear-gradient';
+
+// import { ThemeContext } from '../../ThemeContext';
+// import { lightTheme, darkTheme } from '../../themes';
+// import CustomAlert from '../components/CustomAlert';
+// import LegalLinksPopup from '../components/LegalLinksPopup';
+// import AppBrandName from '../components/AppBrandName';
+
+// import { useDispatch } from 'react-redux';
+// import { forgotPwd } from '../store/slices/authSlice';
+
+// const ForgotPasswordScreen = () => {
+//   const [email, setEmail] = useState('');
+//   const navigation = useNavigation();
+
+//   const [loading, setLoading] = useState(false);
+//   const [alertVisible, setAlertVisible] = useState(false);
+//   const [alertTitle, setAlertTitle] = useState('');
+//   const [alertMessage, setAlertMessage] = useState('');
+//   const [alertIcon, setAlertIcon] = useState('');
+
+//   const { theme } = useContext(ThemeContext);
+//   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
+
+//   const iconOpacity = useRef(new Animated.Value(0)).current;
+//   const iconTranslateY = useRef(new Animated.Value(-50)).current;
+//   const buttonScale = useRef(new Animated.Value(1)).current;
+
+//   const dispatch = useDispatch();
+//   const { width, height } = useWindowDimensions();
+
+//   const handleResetPassword = async () => {
+//     if (!email) {
+//       setAlertTitle('Validation Error');
+//       setAlertMessage('Please enter your email.');
+//       setAlertIcon('alert-circle');
+//       setAlertVisible(true);
+//       return;
+//     }
+
+//     const emailRegex = /\S+@\S+\.\S+/;
+//     if (!emailRegex.test(email)) {
+//       setAlertTitle('Validation Error');
+//       setAlertMessage('Please enter a valid email address.');
+//       setAlertIcon('alert-circle');
+//       setAlertVisible(true);
+//       return;
+//     }
+
+//     setLoading(true);
+//     try {
+//       const response = await dispatch(forgotPwd(email)).unwrap();
+//       setLoading(false);
+//       if (response.success) {
+//         setAlertTitle('Success');
+//         setAlertMessage('A reset link has been sent to your email.');
+//         setAlertIcon('checkmark-circle');
+//         setAlertVisible(true);
+//       } else {
+//         setAlertTitle('Error');
+//         setAlertMessage(response.message);
+//         setAlertIcon('close-circle');
+//         setAlertVisible(true);
+//       }
+//     } catch (err) {
+//       setLoading(false);
+//       setAlertTitle('Error');
+//       setAlertMessage(err.message || 'Failed to send reset link.');
+//       setAlertIcon('close-circle');
+//       setAlertVisible(true);
+//     }
+//   };
+
+//   const handleCloseAlert = () => {
+//     setAlertVisible(false);
+//     if (alertTitle === 'Success') {
+//       navigation.navigate('Otp', { email });
+//     }
+//   };
+
+//   return (
+//     <SafeAreaView style={styles.safeArea}>
+//       <LinearGradient
+//         colors={
+//           theme === 'light'
+//             ? currentTheme.authBackground
+//             : currentTheme.authBackground
+//         }
+//         style={[styles.background, { width, height }]}
+//       >
+//         <KeyboardAvoidingView
+//           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+//           style={styles.keyboardView}
+//         >
+//           <ScrollView
+//             contentContainerStyle={styles.scrollContainer}
+//             keyboardShouldPersistTaps="handled"
+//           >
+//             <View style={styles.container}>
+//               <AppBrandName
+//                 brandName="Ai-Nsider"
+//                 primaryColor={currentTheme.primaryColor}
+//                 textColor={currentTheme.textColor}
+//               />
+//               <Text style={[styles.subtitle, { color: currentTheme.textColor }]}>
+//                 Forgot Your Password?
+//               </Text>
+
+//               <View style={styles.inputContainer}>
+//                 <View
+//                   style={[
+//                     styles.inputWrapper,
+//                     { backgroundColor: currentTheme.inputBackgroundColor,borderColor: currentTheme.inputBorderColor, },
+//                   ]}
+//                 >
+//                   <Icon
+//                     name="email"
+//                     size={24}
+//                     color={currentTheme.placeholderTextColor}
+//                     style={styles.inputIcon}
+//                   />
+//                   <TextInput
+//                     placeholder="Email"
+//                     placeholderTextColor={currentTheme.placeholderTextColor}
+//                     style={[styles.input, { color: currentTheme.textColor }]}
+//                     onChangeText={setEmail}
+//                     autoCapitalize="none"
+//                     keyboardType="email-address"
+//                     returnKeyType="done"
+//                     onSubmitEditing={handleResetPassword}
+//                   />
+//                 </View>
+//               </View>
+
+//               <Animated.View
+//                 style={{
+//                   transform: [{ scale: buttonScale }],
+//                   width: '100%',
+//                   alignItems: 'center',
+//                 }}
+//               >
+//                 <TouchableOpacity
+//                   style={[styles.button, { backgroundColor: currentTheme.primaryColor }]}
+//                   onPress={handleResetPassword}
+//                   activeOpacity={0.8}
+//                   disabled={loading}
+//                 >
+//                   {loading ? (
+//                     <ActivityIndicator size="small" color='#FFFFFF'/>
+//                   ) : (
+//                     <Text style={[styles.buttonText, { color: currentTheme.buttonTextColor }]}>SEND RESET LINK</Text>
+//                   )}
+//                 </TouchableOpacity>
+//               </Animated.View>
+
+//               <TouchableOpacity
+//                 onPress={() => navigation.navigate('Login')}
+//                 style={styles.backToLoginButton}
+//               >
+//                 <Text style={[styles.backToLoginText, { color: currentTheme.secondaryColor }]}>
+//                   Back to Login
+//                 </Text>
+//               </TouchableOpacity>
+
+//               <View style={styles.legalContainer}>
+//                 <LegalLinksPopup
+//                   staticContent="<p>Your legal content goes here. Replace this with actual content.</p>"
+//                   themeStyles={{
+//                     cardBackground: currentTheme.cardBackground,
+//                     textColor: currentTheme.textColor,
+//                     primaryColor: currentTheme.primaryColor,
+//                   }}
+//                   headerBackground={[currentTheme.primaryColor, currentTheme.secondaryColor]}
+//                   textStyle={{ color: currentTheme.secondaryColor }}
+//                 />
+//               </View>
+
+//               <CustomAlert
+//                 visible={alertVisible}
+//                 title={alertTitle}
+//                 message={alertMessage}
+//                 onClose={handleCloseAlert}
+//                 icon={alertIcon}
+//               />
+//             </View>
+//           </ScrollView>
+//         </KeyboardAvoidingView>
+//       </LinearGradient>
+//     </SafeAreaView>
+//   );
+// };
+
+// export default ForgotPasswordScreen;
+
+// const styles = StyleSheet.create({
+//   safeArea: {
+//     flex: 1,
+//   },
+//   background: {
+//     flex: 1,
+//   },
+//   keyboardView: {
+//     flex: 1,
+//   },
+//   scrollContainer: {
+//     flexGrow: 1,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//     paddingHorizontal: 20,
+//   },
+//   container: {
+//     width: '90%',
+//     alignItems: 'center',
+//   },
+//   subtitle: {
+//     fontSize: 18,
+//     marginTop: 5,
+//     fontWeight: '600',
+//   },
+//   inputContainer: {
+//     width: '100%',
+//     marginTop: 20,
+//   },
+//   inputWrapper: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     marginVertical: 10,
+//     borderRadius: 15,
+//     borderWidth: 1,
+//     // borderColor: 'rgba(255,255,255,0.4)',
+//     paddingHorizontal: 15,
+//   },
+//   inputIcon: {
+//     marginRight: 10,
+//   },
+//   input: {
+//     flex: 1,
+//     height: 50,
+//     fontSize: 16,
+//   },
+//   button: {
+//     width: '100%',
+//     paddingVertical: 15,
+//     borderRadius: 30,
+//     alignItems: 'center',
+//     elevation: 3,
+//     marginTop: 10,
+//   },
+//   buttonText: {
+//     // color: '#FFFFFF',
+//     fontSize: 16,
+//     fontWeight: 'bold',
+//     letterSpacing: 1.1,
+//   },
+//   backToLoginButton: {
+//     marginTop: 20,
+//   },
+//   backToLoginText: {
+//     fontSize: 16,
+//     fontWeight: 'bold',
+//     // textDecorationLine: 'underline',
+//   },
+//   legalContainer: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     marginTop: 20,
+//   },
+// });
 
 
 

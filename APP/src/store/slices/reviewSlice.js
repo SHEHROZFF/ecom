@@ -12,6 +12,8 @@ export const addOrUpdateReviewThunk = createAsyncThunk(
     try {
       const response = await addOrUpdateReview(reviewableId, reviewableType, rating, comment);
       if (!response.success) {
+        console.log(response.message);
+        
         return rejectWithValue(response.message);
       }
       return response.data; // e.g. updated review info

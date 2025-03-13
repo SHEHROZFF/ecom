@@ -52,29 +52,39 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-// ThemeContext.js
-
-import React, { createContext, useState } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  // Default theme is light
   const [theme, setTheme] = useState('light');
+  const THEME_STORAGE_KEY = 'appTheme';
 
-  const toggleTheme = () => {
-    // Toggle between 'light' and 'dark'
-    setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
+  // Load the saved theme on app start
+  useEffect(() => {
+    const loadTheme = async () => {
+      try {
+        const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+        if (savedTheme !== null) {
+          setTheme(savedTheme);
+        }
+      } catch (error) {
+        console.error('Error loading theme:', error);
+      }
+    };
+
+    loadTheme();
+  }, []);
+
+  const toggleTheme = async () => {
+    try {
+      const newTheme = theme === 'light' ? 'dark' : 'light';
+      setTheme(newTheme);
+      await AsyncStorage.setItem(THEME_STORAGE_KEY, newTheme);
+    } catch (error) {
+      console.error('Error saving theme:', error);
+    }
   };
 
   return (
@@ -83,3 +93,4 @@ export const ThemeProvider = ({ children }) => {
     </ThemeContext.Provider>
   );
 };
+

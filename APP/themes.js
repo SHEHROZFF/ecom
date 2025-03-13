@@ -1,5 +1,3 @@
-// themes.js
-
 export const lightTheme = {
   backgroundHeaderColor: '#9C67B0', // Soft Lavender Purple for Header
   backgroundColor: '#F7F3FC', // Light Purple-Gray for Soft Background
@@ -19,7 +17,7 @@ export const lightTheme = {
   switchThumbColor: '#FFFFFF', // White Thumb for Clean Contrast
   switchIosBackgroundColor: '#E0E0E0', // Neutral Gray for iOS Switch Background
   borderColor: '#D8A9E2', // Light Lilac for Inputs and Borders
-  priceColor: '#FF6F61', // Coral Pink for Price Tags for Visibility
+  priceColor: '#FF3B30', // Coral Pink for Price Tags for Visibility (consistent)
   headerTextColor: '#FFFFFF', // Crisp White Text for the Header
   arrowColor: '#FFFFFF', // White Arrows for Standout Contrast
   aiheader: ['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.5)'],
@@ -35,9 +33,8 @@ export const lightTheme = {
   passwordStrengthTooShortColor: '#9E9E9E',
   passwordMismatchTextColor: '#FF6F61',
   buttonTextColor: '#FFFFFF', // White Text for Buttons
-  errorTextColor: '#FF6F61',
+  errorTextColor: '#FF3B30',
   searchIconColor: '#8E44AD',
-  placeholderTextColor: '#B9B9B9',
   textShadowColor:'rgba(0, 0, 0, 0.9)',
   inputSearchBackgroundColor:'rgba(255,255,255,0.95)',
   badgeTextColor: '#8E44AD',
@@ -47,31 +44,32 @@ export const lightTheme = {
   reelTitleColor: '#ffffff',
   verticalreelsBgColor: '#000000',
   ratingColor: '#FFD700',
+  saleTagBackgroundColor: '#d00',
 };
 
 export const darkTheme = {
   backgroundHeaderColor: '#5D3F7E', // Deep Lavender Purple for Header
-  backgroundColor: '#121212', // Deep Charcoal for Dark Mode Background
+  backgroundColor: '#201C36', // Deep Charcoal for Dark Mode Background
   primaryColor: '#8E44AD', // Consistent Rich Purple for Branding
-  secondaryColor: '#6C3483', // Darker Purple for Buttons and Links
+  secondaryColor: '#C39ACD', // Darker Purple for Buttons and Links
   textColor: '#E5E5E5', // Light Gray for Text Readability
   headerBackground: ['#5D3F7E', '#8E44AD'], // Gradient from Deep Lavender to Purple
-  placeholderTextColor: '#6C6C6C', // Gray for Placeholder Text
+  placeholderTextColor: '#FFFFFF', // Gray for Placeholder Text
   cardBackground: '#1E1E1E', // Dark Gray for Card Background in Dark Mode
   cardTextColor: '#8E44AD', // Rich Purple Text for Cards to Stand Out
-  overlayColor: 'rgba(142, 68, 173, 0.75)', // Soft Purple Overlay for Focused Areas
+  overlayColor: 'rgba(142, 68, 173, 0.6)', // Darkened Purple Overlay for Focused Areas
   tabBarActiveTintColor: '#8E44AD', // Active Tab Color in Rich Purple
-  tabBarInactiveTintColor: '#757575', // Muted Gray for Inactive Tabs
+  tabBarInactiveTintColor: '#A0A0A0', // Soft Gray for Inactive Tabs
   statusBarStyle: 'light-content', // Light Text for Dark Backgrounds
   switchTrackColorFalse: '#3C3C3C', // Subtle Gray for Off State of Switch
-  switchTrackColorTrue: '#D9A0FF', // Soft Lavender for On Switches
+  switchTrackColorTrue: '#9A6BBA', // Deeper Purple for On Switches (better contrast)
   switchThumbColor: '#FFFFFF', // White Thumb for High Contrast
   switchIosBackgroundColor: '#424242', // Darker Gray for iOS Switch Background
   borderColor: '#D8A9E2', // Light Lilac Borders for Clean Lines
-  priceColor: '#FF6F61', // Coral Pink for Price Tags
+  priceColor: '#FF3B30', // Consistent Coral Pink for Price Tags
   headerTextColor: '#E5E5E5', // Subtle Gray Text for the Header
   arrowColor: '#8E44AD', // Rich Purple for Arrows
-  aiheader: ['rgba(102, 126, 234, 0.6)', 'rgba(100, 182, 255, 0.6)'],
+  aiheader: ['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.5)'],
   marketheader: ['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.5)'],
   inputBackgroundColor: 'rgba(255,255,255,0.3)',
   authBackground:['#0f0c29', '#302b63'],
@@ -84,18 +82,130 @@ export const darkTheme = {
   passwordStrengthTooShortColor: '#9E9E9E',
   passwordMismatchTextColor: '#FF6F61',
   buttonTextColor: '#FFFFFF', // White Text for Buttons
-  errorTextColor: '#FF6F61',
+  errorTextColor: '#FF3B30',
   searchIconColor: '#8E44AD',
-  placeholderTextColor: '#6C6C6C',
   textShadowColor:'rgba(0, 0, 0, 0.9)',
   inputSearchBackgroundColor:'rgba(255,255,255,0.95)',
   badgeTextColor: '#8E44AD',
   badgeBackgroundColor: '#FFD700',
   verticalreelsButtonColor: ['#8E44AD', '#D8A9E2'],
   reelTitleColor: '#ffffff',
-  verticalreelsBgColor: '#ffffff',
+  verticalreelsBgColor: '#000000',
   ratingColor: '#FFD700',
+  saleTagBackgroundColor: '#d00',
 };
+
+
+
+
+
+
+
+
+
+// // themes.js
+
+// export const lightTheme = {
+//   backgroundHeaderColor: '#9C67B0', // Soft Lavender Purple for Header
+//   backgroundColor: '#F7F3FC', // Light Purple-Gray for Soft Background
+//   primaryColor: '#8E44AD', // Rich Purple for Branding
+//   secondaryColor: '#6C3483', // Deeper Purple for Buttons and Links
+//   textColor: '#2A2A2A', // Charcoal Black for Text Readability
+//   headerBackground: ['#9C67B0', '#D8A9E2'], // Gradient from Lavender Purple to Light Lilac
+//   placeholderTextColor: '#B9B9B9', // Light Gray for Neutral Feel
+//   cardBackground: '#FFFFFF', // White Cards for Clean Look
+//   cardTextColor: '#8E44AD', // Matching Primary Purple for Card Text
+//   overlayColor: 'rgba(142, 68, 173, 0.8)', // Semi-transparent Purple for Focus
+//   tabBarActiveTintColor: '#8E44AD', // Active Tab with Rich Purple
+//   tabBarInactiveTintColor: '#A0A0A0', // Soft Gray for Inactive Tabs
+//   statusBarStyle: 'dark-content', // Dark Text for Light Backgrounds
+//   switchTrackColorFalse: '#E0E0E0', // Off State with Light Gray for Softness
+//   switchTrackColorTrue: '#D9A0FF', // Soft Lavender for On Switches
+//   switchThumbColor: '#FFFFFF', // White Thumb for Clean Contrast
+//   switchIosBackgroundColor: '#E0E0E0', // Neutral Gray for iOS Switch Background
+//   borderColor: '#D8A9E2', // Light Lilac for Inputs and Borders
+//   priceColor: '#FF3B30', // Coral Pink for Price Tags for Visibility
+//   headerTextColor: '#FFFFFF', // Crisp White Text for the Header
+//   arrowColor: '#FFFFFF', // White Arrows for Standout Contrast
+//   aiheader: ['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.5)'],
+//   marketheader: ['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.5)'],
+//   inputBackgroundColor: 'rgba(255,255,255,0.3)',
+//   authBackground:['#f7efff', '#e0c3fc'],
+//   loadingindicatorColor: '#8E44AD',
+//   inputBorderColor:'rgba(255,255,255,0.9)',
+//   passwordStrengthVeryStrongColor: '#4CAF50',
+//   passwordStrengthStrongColor: '#FFC107',
+//   passwordStrengthMediumColor: '#FF9800',
+//   passwordStrengthWeakColor: '#F44336',
+//   passwordStrengthTooShortColor: '#9E9E9E',
+//   passwordMismatchTextColor: '#FF6F61',
+//   buttonTextColor: '#FFFFFF', // White Text for Buttons
+//   errorTextColor: '#FF3B30',
+//   searchIconColor: '#8E44AD',
+//   placeholderTextColor: '#B9B9B9',
+//   textShadowColor:'rgba(0, 0, 0, 0.9)',
+//   inputSearchBackgroundColor:'rgba(255,255,255,0.95)',
+//   badgeTextColor: '#8E44AD',
+//   badgeBackgroundColor: '#FFD700',
+//   reelsCardHorizontalOverlayColor: 'rgba(255, 255, 255, 0.6)',
+//   verticalreelsButtonColor: ['#8E44AD', '#D8A9E2'],
+//   reelTitleColor: '#ffffff',
+//   verticalreelsBgColor: '#000000',
+//   ratingColor: '#FFD700',
+//   saleTagBackgroundColor: '#d00',
+//   placeholderTextColor: '#B9B9B9',
+  
+// };
+
+// export const darkTheme = {
+//   backgroundHeaderColor: '#5D3F7E', // Deep Lavender Purple for Header
+//   backgroundColor: '#201C36', // Deep Charcoal for Dark Mode Background
+//   primaryColor: '#8E44AD', // Consistent Rich Purple for Branding
+//   secondaryColor: '#C39ACD', // Darker Purple for Buttons and Links
+//   textColor: '#E5E5E5', // Light Gray for Text Readability
+//   headerBackground: ['#5D3F7E', '#8E44AD'], // Gradient from Deep Lavender to Purple
+//   placeholderTextColor: '#6C6C6C', // Gray for Placeholder Text
+//   cardBackground: '#1E1E1E', // Dark Gray for Card Background in Dark Mode
+//   cardTextColor: '#8E44AD', // Rich Purple Text for Cards to Stand Out
+//   overlayColor: 'rgba(142, 68, 173, 0.75)', // Soft Purple Overlay for Focused Areas
+//   tabBarActiveTintColor: '#8E44AD', // Active Tab Color in Rich Purple
+//   tabBarInactiveTintColor: '#ffffff', // Muted Gray for Inactive Tabs
+//   statusBarStyle: 'light-content', // Light Text for Dark Backgrounds
+//   switchTrackColorFalse: '#3C3C3C', // Subtle Gray for Off State of Switch
+//   switchTrackColorTrue: '#D9A0FF', // Soft Lavender for On Switches
+//   switchThumbColor: '#FFFFFF', // White Thumb for High Contrast
+//   switchIosBackgroundColor: '#424242', // Darker Gray for iOS Switch Background
+//   borderColor: '#D8A9E2', // Light Lilac Borders for Clean Lines
+//   priceColor: '#FF6F61', // Coral Pink for Price Tags
+//   headerTextColor: '#E5E5E5', // Subtle Gray Text for the Header
+//   arrowColor: '#8E44AD', // Rich Purple for Arrows
+//   aiheader: ['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.5)'],
+//   marketheader: ['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.5)'],
+//   inputBackgroundColor: 'rgba(255,255,255,0.3)',
+//   authBackground:['#0f0c29', '#302b63'],
+//   loadingindicatorColor: '#8E44AD',
+//   inputBorderColor:'rgba(255,255,255,0.9)',
+//   passwordStrengthVeryStrongColor: '#4CAF50',
+//   passwordStrengthStrongColor: '#FFC107',
+//   passwordStrengthMediumColor: '#FF9800',
+//   passwordStrengthWeakColor: '#F44336',
+//   passwordStrengthTooShortColor: '#9E9E9E',
+//   passwordMismatchTextColor: '#FF6F61',
+//   buttonTextColor: '#FFFFFF', // White Text for Buttons
+//   errorTextColor: '#FF3B30',
+//   searchIconColor: '#8E44AD',
+//   placeholderTextColor: '#6C6C6C',
+//   textShadowColor:'rgba(0, 0, 0, 0.9)',
+//   inputSearchBackgroundColor:'rgba(255,255,255,0.95)',
+//   badgeTextColor: '#8E44AD',
+//   badgeBackgroundColor: '#FFD700',
+//   verticalreelsButtonColor: ['#8E44AD', '#D8A9E2'],
+//   reelTitleColor: '#ffffff',
+//   verticalreelsBgColor: '#000000',
+//   ratingColor: '#FFD700',
+//   saleTagBackgroundColor: '#d00',
+//   placeholderTextColor: '#fff',
+// };
 
 // export const darkTheme = {
 //   backgroundHeaderColor: '#1A3D71', // Rich Dark Blue for Header

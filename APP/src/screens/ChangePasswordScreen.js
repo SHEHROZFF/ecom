@@ -1,5 +1,5 @@
 // src/screens/ChangePasswordScreen.js
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useMemo } from 'react';
 import {
   View,
   Text,
@@ -16,26 +16,25 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemeContext } from '../../ThemeContext';
 import { lightTheme, darkTheme } from '../../themes';
 import CustomAlert from '../components/CustomAlert';
 import { changePassword } from '../store/slices/authSlice';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const ChangePasswordScreen = () => {
-  const [oldPassword, setOldPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-
+  const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions(); // Responsive hook!
-
   const navigation = useNavigation();
   const { theme } = useContext(ThemeContext);
   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
   const dispatch = useDispatch();
+
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertTitle, setAlertTitle] = useState('');
@@ -43,6 +42,11 @@ const ChangePasswordScreen = () => {
   const [alertIcon, setAlertIcon] = useState('');
   const [alertButtons, setAlertButtons] = useState([]);
 
+  // Helper scaling function: baseline width is 375px
+  const baseWidth = width > 375 ? 460 : 500;
+  const scale = (size) => (size * width) / baseWidth;
+
+  // Helper to show alert
   const showAlert = (title, message, icon, buttons) => {
     setAlertTitle(title);
     setAlertMessage(message);
@@ -70,11 +74,9 @@ const ChangePasswordScreen = () => {
       );
       return;
     }
-
     setLoading(true);
     try {
       await dispatch(changePassword({ oldPassword, newPassword })).unwrap();
-
       showAlert(
         'Success',
         'Your password has been changed successfully.',
@@ -101,49 +103,139 @@ const ChangePasswordScreen = () => {
     }
   };
 
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        safeArea: {
+          flex: 1,
+          backgroundColor: currentTheme.backgroundColor,
+        },
+        header: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingVertical: scale(12),
+          paddingHorizontal: scale(20),
+          justifyContent: 'center',
+          borderBottomLeftRadius: scale(30),
+          borderBottomRightRadius: scale(30),
+          elevation: 6,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: scale(3) },
+          shadowOpacity: 0.3,
+          shadowRadius: scale(4),
+          marginBottom: scale(20),
+        },
+        backButton: {
+          position: 'absolute',
+          left: scale(20),
+          paddingTop: Platform.OS === 'ios' ? scale(50) : scale(10),
+          padding: scale(10),
+          borderRadius: scale(20),
+        },
+        headerTitle: {
+          fontWeight: '800',
+          fontSize: width < 360 ? scale(20) : scale(24),
+          color: currentTheme.headerTextColor,
+        },
+        container: {
+          paddingVertical: scale(20),
+          paddingHorizontal: width < 375 ? scale(10) : scale(20),
+        },
+        subheading: {
+          fontSize: width < 375 ? scale(14) : scale(15),
+          textAlign: 'center',
+          marginBottom: scale(25),
+          lineHeight: scale(20),
+          color: currentTheme.textColor,
+        },
+        inputCard: {
+          borderRadius: scale(14),
+          paddingVertical: scale(15),
+          paddingHorizontal: scale(15),
+          marginBottom: scale(20),
+          elevation: 2,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: scale(1) },
+          shadowOpacity: 0.08,
+          shadowRadius: scale(2),
+          backgroundColor: currentTheme.cardBackground,
+        },
+        inputLabel: {
+          fontSize: scale(14),
+          marginBottom: scale(5),
+          fontWeight: '600',
+          color: currentTheme.textColor,
+        },
+        inputContainer: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          borderWidth: 1.2,
+          borderRadius: scale(8),
+          borderColor: currentTheme.borderColor,
+        },
+        icon: {
+          position: 'absolute',
+          left: scale(10),
+          zIndex: 10,
+        },
+        input: {
+          flex: 1,
+          height: scale(48),
+          paddingLeft: scale(40),
+          paddingRight: scale(10),
+          fontSize: scale(15),
+          color: currentTheme.textColor,
+        },
+        button: {
+          marginTop: scale(10),
+          paddingVertical: scale(14),
+          borderRadius: scale(10),
+          alignItems: 'center',
+          elevation: 3,
+          backgroundColor: currentTheme.primaryColor,
+        },
+        buttonText: {
+          fontSize: scale(16),
+          fontWeight: '600',
+          color: currentTheme.buttonTextColor,
+        },
+      }),
+    [width, currentTheme]
+  );
+
   return (
-    <View style={[styles.safeArea, { backgroundColor: currentTheme.backgroundColor }]}>
+    <View style={styles.safeArea}>
       <StatusBar
         backgroundColor={currentTheme.headerBackground[0]}
         barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
       />
       <LinearGradient
         colors={currentTheme.headerBackground}
-        style={[styles.header, { paddingTop: insets.top + 10 }]}
+        style={[styles.header, { paddingTop: insets.top + scale(10) }]}
         start={[0, 0]}
         end={[0, 1]}
       >
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Settings')}>
-          <Ionicons name="arrow-back" size={24} color={currentTheme.headerTextColor} />
+          <Ionicons name="arrow-back" size={scale(24)} color={currentTheme.headerTextColor} />
         </TouchableOpacity>
-        <Text
-          style={[
-            styles.headerTitle,
-            {
-              color: currentTheme.headerTextColor,
-              fontSize: width < 360 ? 20 : 24, // responsive header title font size
-            },
-          ]}
-        >
-          Change Password
-        </Text>
+        <Text style={styles.headerTitle}>Change Password</Text>
       </LinearGradient>
-      <ScrollView contentContainerStyle={[styles.container, { paddingHorizontal: width < 375 ? 10 : 20 }]}>
-        <Text style={[styles.subheading, { color: currentTheme.textColor }]}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.subheading}>
           Please fill in the details below to update your password.
         </Text>
 
-        <View style={[styles.inputCard, { backgroundColor: currentTheme.cardBackground }]}>
-          <Text style={[styles.inputLabel, { color: currentTheme.textColor }]}>Current Password</Text>
-          <View style={[styles.inputContainer, { borderColor: currentTheme.borderColor }]}>
+        <View style={styles.inputCard}>
+          <Text style={styles.inputLabel}>Current Password</Text>
+          <View style={styles.inputContainer}>
             <Ionicons
               name="lock-closed"
-              size={20}
+              size={scale(20)}
               color={currentTheme.placeholderTextColor}
               style={styles.icon}
             />
             <TextInput
-              style={[styles.input, { color: currentTheme.textColor }]}
+              style={styles.input}
               placeholder="Enter your current password"
               placeholderTextColor={currentTheme.placeholderTextColor}
               secureTextEntry
@@ -153,17 +245,17 @@ const ChangePasswordScreen = () => {
           </View>
         </View>
 
-        <View style={[styles.inputCard, { backgroundColor: currentTheme.cardBackground }]}>
-          <Text style={[styles.inputLabel, { color: currentTheme.textColor }]}>New Password</Text>
-          <View style={[styles.inputContainer, { borderColor: currentTheme.borderColor }]}>
+        <View style={styles.inputCard}>
+          <Text style={styles.inputLabel}>New Password</Text>
+          <View style={styles.inputContainer}>
             <Ionicons
               name="lock-closed"
-              size={20}
+              size={scale(20)}
               color={currentTheme.placeholderTextColor}
               style={styles.icon}
             />
             <TextInput
-              style={[styles.input, { color: currentTheme.textColor }]}
+              style={styles.input}
               placeholder="Enter a new password"
               placeholderTextColor={currentTheme.placeholderTextColor}
               secureTextEntry
@@ -173,19 +265,17 @@ const ChangePasswordScreen = () => {
           </View>
         </View>
 
-        <View style={[styles.inputCard, { backgroundColor: currentTheme.cardBackground }]}>
-          <Text style={[styles.inputLabel, { color: currentTheme.textColor }]}>
-            Confirm New Password
-          </Text>
-          <View style={[styles.inputContainer, { borderColor: currentTheme.borderColor }]}>
+        <View style={styles.inputCard}>
+          <Text style={styles.inputLabel}>Confirm New Password</Text>
+          <View style={styles.inputContainer}>
             <Ionicons
               name="lock-closed"
-              size={20}
+              size={scale(20)}
               color={currentTheme.placeholderTextColor}
               style={styles.icon}
             />
             <TextInput
-              style={[styles.input, { color: currentTheme.textColor }]}
+              style={styles.input}
               placeholder="Re-enter your new password"
               placeholderTextColor={currentTheme.placeholderTextColor}
               secureTextEntry
@@ -195,15 +285,11 @@ const ChangePasswordScreen = () => {
           </View>
         </View>
 
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: currentTheme.primaryColor }]}
-          onPress={handleChangePassword}
-          disabled={loading}
-        >
+        <TouchableOpacity style={styles.button} onPress={handleChangePassword} disabled={loading}>
           {loading ? (
             <ActivityIndicator size="small" color="#FFFFFF" />
           ) : (
-            <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>Update Password</Text>
+            <Text style={styles.buttonText}>Update Password</Text>
           )}
         </TouchableOpacity>
       </ScrollView>
@@ -221,90 +307,320 @@ const ChangePasswordScreen = () => {
 
 export default ChangePasswordScreen;
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    justifyContent: 'center',
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    marginBottom: 20,
-  },
-  backButton: {
-    position: 'absolute',
-    left: 20,
-    paddingTop: Platform.OS === 'ios' ? 50 : 10,
-    padding: Platform.OS === 'ios' ? 10 : 10,
-    borderRadius: 20,
-  },
-  headerTitle: {
-    fontWeight: '800',
-  },
-  container: {
-    paddingVertical: 20,
-  },
-  subheading: {
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 25,
-    lineHeight: 20,
-  },
-  inputCard: {
-    borderRadius: 14,
-    paddingVertical: 15,
-    paddingHorizontal: 15,
-    marginBottom: 20,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-  },
-  inputLabel: {
-    fontSize: 14,
-    marginBottom: 5,
-    fontWeight: '600',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1.2,
-    borderRadius: 8,
-  },
-  icon: {
-    position: 'absolute',
-    left: 10,
-    zIndex: 10,
-  },
-  input: {
-    flex: 1,
-    height: 48,
-    paddingLeft: 40,
-    paddingRight: 10,
-    fontSize: 15,
-  },
-  button: {
-    marginTop: 10,
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-    elevation: 3,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
+
+
+
+
+
+
+
+// // src/screens/ChangePasswordScreen.js
+// import React, { useState, useContext } from 'react';
+// import {
+//   View,
+//   Text,
+//   TextInput,
+//   TouchableOpacity,
+//   StyleSheet,
+//   ScrollView,
+//   ActivityIndicator,
+//   StatusBar,
+//   useWindowDimensions,
+//   Platform,
+// } from 'react-native';
+// import { Ionicons } from '@expo/vector-icons';
+// import { LinearGradient } from 'expo-linear-gradient';
+// import { useNavigation } from '@react-navigation/native';
+// import { useDispatch } from 'react-redux';
+
+// import { ThemeContext } from '../../ThemeContext';
+// import { lightTheme, darkTheme } from '../../themes';
+// import CustomAlert from '../components/CustomAlert';
+// import { changePassword } from '../store/slices/authSlice';
+// import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+// const ChangePasswordScreen = () => {
+//   const [oldPassword, setOldPassword] = useState('');
+//   const [newPassword, setNewPassword] = useState('');
+//   const [confirmNewPassword, setConfirmNewPassword] = useState('');
+//   const [loading, setLoading] = useState(false);
+
+//   const insets = useSafeAreaInsets();
+//   const { width } = useWindowDimensions(); // Responsive hook!
+
+//   const navigation = useNavigation();
+//   const { theme } = useContext(ThemeContext);
+//   const currentTheme = theme === 'light' ? lightTheme : darkTheme;
+//   const dispatch = useDispatch();
+
+//   const [alertVisible, setAlertVisible] = useState(false);
+//   const [alertTitle, setAlertTitle] = useState('');
+//   const [alertMessage, setAlertMessage] = useState('');
+//   const [alertIcon, setAlertIcon] = useState('');
+//   const [alertButtons, setAlertButtons] = useState([]);
+
+//   const showAlert = (title, message, icon, buttons) => {
+//     setAlertTitle(title);
+//     setAlertMessage(message);
+//     setAlertIcon(icon);
+//     setAlertButtons(buttons);
+//     setAlertVisible(true);
+//   };
+
+//   const handleChangePassword = async () => {
+//     if (!oldPassword || !newPassword || !confirmNewPassword) {
+//       showAlert(
+//         'Error',
+//         'All fields are required.',
+//         'alert-circle',
+//         [{ text: 'OK', onPress: () => setAlertVisible(false) }]
+//       );
+//       return;
+//     }
+//     if (newPassword !== confirmNewPassword) {
+//       showAlert(
+//         'Error',
+//         'New password and confirm password do not match.',
+//         'alert-circle',
+//         [{ text: 'OK', onPress: () => setAlertVisible(false) }]
+//       );
+//       return;
+//     }
+
+//     setLoading(true);
+//     try {
+//       await dispatch(changePassword({ oldPassword, newPassword })).unwrap();
+
+//       showAlert(
+//         'Success',
+//         'Your password has been changed successfully.',
+//         'checkmark-circle',
+//         [
+//           {
+//             text: 'OK',
+//             onPress: () => {
+//               setAlertVisible(false);
+//               navigation.navigate('Settings');
+//             },
+//           },
+//         ]
+//       );
+//     } catch (error) {
+//       showAlert(
+//         'Error',
+//         error || 'Failed to change password.',
+//         'close-circle',
+//         [{ text: 'OK', onPress: () => setAlertVisible(false) }]
+//       );
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <View style={[styles.safeArea, { backgroundColor: currentTheme.backgroundColor }]}>
+//       <StatusBar
+//         backgroundColor={currentTheme.headerBackground[0]}
+//         barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
+//       />
+//       <LinearGradient
+//         colors={currentTheme.headerBackground}
+//         style={[styles.header, { paddingTop: insets.top + 10 }]}
+//         start={[0, 0]}
+//         end={[0, 1]}
+//       >
+//         <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Settings')}>
+//           <Ionicons name="arrow-back" size={24} color={currentTheme.headerTextColor} />
+//         </TouchableOpacity>
+//         <Text
+//           style={[
+//             styles.headerTitle,
+//             {
+//               color: currentTheme.headerTextColor,
+//               fontSize: width < 360 ? 20 : 24, // responsive header title font size
+//             },
+//           ]}
+//         >
+//           Change Password
+//         </Text>
+//       </LinearGradient>
+//       <ScrollView contentContainerStyle={[styles.container, { paddingHorizontal: width < 375 ? 10 : 20 }]}>
+//         <Text style={[styles.subheading, { color: currentTheme.textColor }]}>
+//           Please fill in the details below to update your password.
+//         </Text>
+
+//         <View style={[styles.inputCard, { backgroundColor: currentTheme.cardBackground }]}>
+//           <Text style={[styles.inputLabel, { color: currentTheme.textColor }]}>Current Password</Text>
+//           <View style={[styles.inputContainer, { borderColor: currentTheme.borderColor }]}>
+//             <Ionicons
+//               name="lock-closed"
+//               size={20}
+//               color={currentTheme.placeholderTextColor}
+//               style={styles.icon}
+//             />
+//             <TextInput
+//               style={[styles.input, { color: currentTheme.textColor }]}
+//               placeholder="Enter your current password"
+//               placeholderTextColor={currentTheme.placeholderTextColor}
+//               secureTextEntry
+//               value={oldPassword}
+//               onChangeText={setOldPassword}
+//             />
+//           </View>
+//         </View>
+
+//         <View style={[styles.inputCard, { backgroundColor: currentTheme.cardBackground }]}>
+//           <Text style={[styles.inputLabel, { color: currentTheme.textColor }]}>New Password</Text>
+//           <View style={[styles.inputContainer, { borderColor: currentTheme.borderColor }]}>
+//             <Ionicons
+//               name="lock-closed"
+//               size={20}
+//               color={currentTheme.placeholderTextColor}
+//               style={styles.icon}
+//             />
+//             <TextInput
+//               style={[styles.input, { color: currentTheme.textColor }]}
+//               placeholder="Enter a new password"
+//               placeholderTextColor={currentTheme.placeholderTextColor}
+//               secureTextEntry
+//               value={newPassword}
+//               onChangeText={setNewPassword}
+//             />
+//           </View>
+//         </View>
+
+//         <View style={[styles.inputCard, { backgroundColor: currentTheme.cardBackground }]}>
+//           <Text style={[styles.inputLabel, { color: currentTheme.textColor }]}>
+//             Confirm New Password
+//           </Text>
+//           <View style={[styles.inputContainer, { borderColor: currentTheme.borderColor }]}>
+//             <Ionicons
+//               name="lock-closed"
+//               size={20}
+//               color={currentTheme.placeholderTextColor}
+//               style={styles.icon}
+//             />
+//             <TextInput
+//               style={[styles.input, { color: currentTheme.textColor }]}
+//               placeholder="Re-enter your new password"
+//               placeholderTextColor={currentTheme.placeholderTextColor}
+//               secureTextEntry
+//               value={confirmNewPassword}
+//               onChangeText={setConfirmNewPassword}
+//             />
+//           </View>
+//         </View>
+
+//         <TouchableOpacity
+//           style={[styles.button, { backgroundColor: currentTheme.primaryColor }]}
+//           onPress={handleChangePassword}
+//           disabled={loading}
+//         >
+//           {loading ? (
+//             <ActivityIndicator size="small" color="#FFFFFF" />
+//           ) : (
+//             <Text style={[styles.buttonText, { color: currentTheme.buttonTextColor }]}>Update Password</Text>
+//           )}
+//         </TouchableOpacity>
+//       </ScrollView>
+//       <CustomAlert
+//         visible={alertVisible}
+//         title={alertTitle}
+//         message={alertMessage}
+//         icon={alertIcon}
+//         buttons={alertButtons}
+//         onClose={() => setAlertVisible(false)}
+//       />
+//     </View>
+//   );
+// };
+
+// export default ChangePasswordScreen;
+
+// const styles = StyleSheet.create({
+//   safeArea: {
+//     flex: 1,
+//   },
+//   header: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     paddingVertical: 12,
+//     paddingHorizontal: 20,
+//     justifyContent: 'center',
+//     borderBottomLeftRadius: 30,
+//     borderBottomRightRadius: 30,
+//     elevation: 6,
+//     shadowColor: '#000',
+//     shadowOffset: { width: 0, height: 3 },
+//     shadowOpacity: 0.3,
+//     shadowRadius: 4,
+//     marginBottom: 20,
+//   },
+//   backButton: {
+//     position: 'absolute',
+//     left: 20,
+//     paddingTop: Platform.OS === 'ios' ? 50 : 10,
+//     padding: Platform.OS === 'ios' ? 10 : 10,
+//     borderRadius: 20,
+//   },
+//   headerTitle: {
+//     fontWeight: '800',
+//   },
+//   container: {
+//     paddingVertical: 20,
+//   },
+//   subheading: {
+//     fontSize: 14,
+//     textAlign: 'center',
+//     marginBottom: 25,
+//     lineHeight: 20,
+//   },
+//   inputCard: {
+//     borderRadius: 14,
+//     paddingVertical: 15,
+//     paddingHorizontal: 15,
+//     marginBottom: 20,
+//     elevation: 2,
+//     shadowColor: '#000',
+//     shadowOffset: { width: 0, height: 1 },
+//     shadowOpacity: 0.08,
+//     shadowRadius: 2,
+//   },
+//   inputLabel: {
+//     fontSize: 14,
+//     marginBottom: 5,
+//     fontWeight: '600',
+//   },
+//   inputContainer: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     borderWidth: 1.2,
+//     borderRadius: 8,
+//   },
+//   icon: {
+//     position: 'absolute',
+//     left: 10,
+//     zIndex: 10,
+//   },
+//   input: {
+//     flex: 1,
+//     height: 48,
+//     paddingLeft: 40,
+//     paddingRight: 10,
+//     fontSize: 15,
+//   },
+//   button: {
+//     marginTop: 10,
+//     paddingVertical: 14,
+//     borderRadius: 10,
+//     alignItems: 'center',
+//     elevation: 3,
+//   },
+//   buttonText: {
+//     fontSize: 16,
+//     fontWeight: '600',
+//   },
+// });
 
 
 

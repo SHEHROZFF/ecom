@@ -43,7 +43,7 @@ export const UserProvider = ({ children }) => {
           if (verifyToken.fulfilled.match(result)) {
             // If the token is valid, fetch the user profile
             const fetchResult = await dispatch(fetchProfile());
-            console.log("fetchResult",fetchResult);
+            // console.log("fetchResult",fetchResult);
             
             if (fetchProfile.fulfilled.match(fetchResult)) {
               setIsAuthenticated(true);

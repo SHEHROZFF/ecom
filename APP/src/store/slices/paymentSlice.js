@@ -10,6 +10,8 @@ export const fetchPaymentIntentThunk = createAsyncThunk(
       if (!clientSecret) {
         return rejectWithValue('Failed to create payment intent');
       }
+      // console.log(clientSecret);
+      
       return clientSecret;
     } catch (error) {
       return rejectWithValue(error.message);
