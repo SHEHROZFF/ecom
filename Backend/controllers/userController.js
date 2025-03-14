@@ -189,87 +189,161 @@ const getMe = asyncHandler(async (req, res) => {
 
 
 // updateMe for authenticated user
+// const updateMe = asyncHandler(async (req, res) => {
+//   // The rest of the fields from form-data or JSON body
+//   const { name, email, phone, address } = req.body;
+
+//   // The Multer-parsed files:
+//   const files = req.files; // e.g. { profileImage: [...], coverImage: [...] }
+
+//   const user = await User.findById(req.user._id);
+//   if (!user) {
+//     res.status(404);
+//     throw new Error('User not found');
+//   }
+
+//   // If user wants to update name, email, phone, address, do so:
+//   if (name) user.name = name;
+//   if (email) user.email = email;
+//   if (phone) user.phone = phone;
+//   if (address) user.address = address;
+
+//   // Check if user uploaded a new profile image
+//   if (files.profileImage && files.profileImage.length > 0) {
+//     // 1) If user has an old profileImage publicId, remove it from Cloudinary
+//     if (user.profileImagePublicId) {
+//       await cloudinary.uploader.destroy(user.profileImagePublicId);
+//     }
+
+//     // 2) Upload the new file
+//     const uploaded = await cloudinary.uploader.upload_stream(
+//       { folder: 'profile_images' }, 
+//       async (error, result) => {
+//         if (error) {
+//           console.error('Cloudinary Error:', error);
+//           throw new Error('Failed to upload new profile image');
+//         }
+
+//         console.log('New profile image uploaded:', result);
+        
+
+//         // Save the new URL & public_id
+//         user.profileImage = result.secure_url;
+//         user.profileImagePublicId = result.public_id;
+//         await user.save(); // We might do final save below, but this is fine
+//       }
+//     );
+
+//     // Actually pipe the buffer from Multer to the upload_stream
+//     let buffer = files.profileImage[0].buffer; // The file data in memory
+//     require('stream').Readable.from(buffer).pipe(uploaded);
+//   }
+
+//   // Check if user uploaded a new cover image
+//   if (files.coverImage && files.coverImage.length > 0) {
+//     // 1) If user has an old coverImagePublicId, remove from Cloudinary
+//     if (user.coverImagePublicId) {
+//       await cloudinary.uploader.destroy(user.coverImagePublicId);
+//     }
+
+//     // 2) Upload the new file
+//     const uploaded = await cloudinary.uploader.upload_stream(
+//       { folder: 'cover_images' }, 
+//       async (error, result) => {
+//         if (error) {
+//           console.error('Cloudinary Error:', error);
+//           throw new Error('Failed to upload new cover image');
+//         }
+
+//         // Save the new URL & public_id
+//         user.coverImage = result.secure_url;
+//         user.coverImagePublicId = result.public_id;
+//         await user.save();
+//       }
+//     );
+
+//     // Pipe the buffer
+//     let buffer = files.coverImage[0].buffer;
+//     require('stream').Readable.from(buffer).pipe(uploaded);
+//   }
+
+//   // For any other fields updated, do one final .save() at the end if not already saved
+//   // (We must handle the case that we do the actual .save() in the Cloudinary callback)
+//   // Let's just do a final save to ensure changes to name/email/phone got stored:
+//   await user.save();
+
+//   res.status(200).json({
+//     success: true,
+//     data: {
+//       _id: user._id,
+//       name: user.name,
+//       email: user.email,
+//       profileImage: user.profileImage,
+//       profileImagePublicId: user.profileImagePublicId,
+//       coverImage: user.coverImage,
+//       coverImagePublicId: user.coverImagePublicId,
+//       phone: user.phone,
+//       address: user.address,
+//       role: user.role,
+//       createdAt: user.createdAt,
+//     },
+//   });
+// });
+
 const updateMe = asyncHandler(async (req, res) => {
-  // The rest of the fields from form-data or JSON body
   const { name, email, phone, address } = req.body;
-
-  // The Multer-parsed files:
-  const files = req.files; // e.g. { profileImage: [...], coverImage: [...] }
-
+  const files = req.files;
   const user = await User.findById(req.user._id);
   if (!user) {
     res.status(404);
     throw new Error('User not found');
   }
 
-  // If user wants to update name, email, phone, address, do so:
   if (name) user.name = name;
   if (email) user.email = email;
   if (phone) user.phone = phone;
   if (address) user.address = address;
 
-  // Check if user uploaded a new profile image
+  // Helper function to wrap Cloudinary upload_stream in a Promise
+  const uploadToCloudinary = (buffer, folder) => {
+    return new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder },
+        (error, result) => {
+          if (error) {
+            console.error(`Cloudinary Error for ${folder}:`, error);
+            return reject(new Error(`Failed to upload image to ${folder}`));
+          }
+          resolve(result);
+        }
+      );
+      require('stream').Readable.from(buffer).pipe(uploadStream);
+    });
+  };
+
+  // Process profile image if exists
   if (files.profileImage && files.profileImage.length > 0) {
-    // 1) If user has an old profileImage publicId, remove it from Cloudinary
     if (user.profileImagePublicId) {
       await cloudinary.uploader.destroy(user.profileImagePublicId);
     }
-
-    // 2) Upload the new file
-    const uploaded = await cloudinary.uploader.upload_stream(
-      { folder: 'profile_images' }, 
-      async (error, result) => {
-        if (error) {
-          console.error('Cloudinary Error:', error);
-          throw new Error('Failed to upload new profile image');
-        }
-
-        console.log('New profile image uploaded:', result);
-        
-
-        // Save the new URL & public_id
-        user.profileImage = result.secure_url;
-        user.profileImagePublicId = result.public_id;
-        await user.save(); // We might do final save below, but this is fine
-      }
-    );
-
-    // Actually pipe the buffer from Multer to the upload_stream
-    let buffer = files.profileImage[0].buffer; // The file data in memory
-    require('stream').Readable.from(buffer).pipe(uploaded);
+    const profileBuffer = files.profileImage[0].buffer;
+    const profileResult = await uploadToCloudinary(profileBuffer, 'profile_images');
+    user.profileImage = profileResult.secure_url;
+    user.profileImagePublicId = profileResult.public_id;
   }
 
-  // Check if user uploaded a new cover image
+  // Process cover image if exists
   if (files.coverImage && files.coverImage.length > 0) {
-    // 1) If user has an old coverImagePublicId, remove from Cloudinary
     if (user.coverImagePublicId) {
       await cloudinary.uploader.destroy(user.coverImagePublicId);
     }
-
-    // 2) Upload the new file
-    const uploaded = await cloudinary.uploader.upload_stream(
-      { folder: 'cover_images' }, 
-      async (error, result) => {
-        if (error) {
-          console.error('Cloudinary Error:', error);
-          throw new Error('Failed to upload new cover image');
-        }
-
-        // Save the new URL & public_id
-        user.coverImage = result.secure_url;
-        user.coverImagePublicId = result.public_id;
-        await user.save();
-      }
-    );
-
-    // Pipe the buffer
-    let buffer = files.coverImage[0].buffer;
-    require('stream').Readable.from(buffer).pipe(uploaded);
+    const coverBuffer = files.coverImage[0].buffer;
+    const coverResult = await uploadToCloudinary(coverBuffer, 'cover_images');
+    user.coverImage = coverResult.secure_url;
+    user.coverImagePublicId = coverResult.public_id;
   }
 
-  // For any other fields updated, do one final .save() at the end if not already saved
-  // (We must handle the case that we do the actual .save() in the Cloudinary callback)
-  // Let's just do a final save to ensure changes to name/email/phone got stored:
+  // Final save after processing all updates
   await user.save();
 
   res.status(200).json({
@@ -289,6 +363,7 @@ const updateMe = asyncHandler(async (req, res) => {
     },
   });
 });
+
 
 /**
  * @desc    Change user password
