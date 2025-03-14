@@ -324,7 +324,7 @@ const updateMe = asyncHandler(async (req, res) => {
   // Process profile image if exists
   if (files.profileImage && files.profileImage.length > 0) {
     if (user.profileImagePublicId) {
-      await cloudinary.uploader.destroy(user.profileImagePublicId);
+      await cloudinary.uploader.destroy(user.profileImagePublicId, { invalidate: true }); // Invalidate cache
     }
     const profileBuffer = files.profileImage[0].buffer;
     const profileResult = await uploadToCloudinary(profileBuffer, 'profile_images');
@@ -335,7 +335,7 @@ const updateMe = asyncHandler(async (req, res) => {
   // Process cover image if exists
   if (files.coverImage && files.coverImage.length > 0) {
     if (user.coverImagePublicId) {
-      await cloudinary.uploader.destroy(user.coverImagePublicId);
+      await cloudinary.uploader.destroy(user.coverImagePublicId, { invalidate: true }); // Invalidate cache
     }
     const coverBuffer = files.coverImage[0].buffer;
     const coverResult = await uploadToCloudinary(coverBuffer, 'cover_images');
