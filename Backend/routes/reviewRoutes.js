@@ -7,6 +7,7 @@ const {
   getReviewsForItem,
   updateReview,
   deleteReview,
+  getMyReviews
 } = require('../controllers/reviewController');
 
 // Create a new review (for either Product or Course)
@@ -17,6 +18,10 @@ router.get('/', getAllReviews);
 
 // Get reviews for a specific item by type and ID
 router.get('/:reviewableType/:reviewableId', getReviewsForItem);
+
+// New route: GET /api/reviews/my
+router.get('/my', protect, getMyReviews);
+
 
 // Update a review
 router.put('/:id', protect, updateReview);

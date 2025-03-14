@@ -1,6 +1,6 @@
 // File: src/components/AdsSection.js
 import React, { useEffect, useCallback } from 'react';
-import { View, ActivityIndicator, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, useWindowDimensions, Text } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAdsThunk } from '../store/slices/adsSlice';
 import AdsList from './AdsList';
@@ -12,6 +12,9 @@ const AdsSection = ({
   categoryFilter,
   templateFilter = 'all',
   marginV = 0,
+  headingText = 'Latest Ads',
+  headingShow = true,
+  headingStyle = {}
 }) => {
   const dispatch = useDispatch();
   const adsData = useSelector((state) => state.ads.data);
@@ -24,7 +27,7 @@ const AdsSection = ({
 
   const styles = StyleSheet.create({
     sectionWrapper: {
-      marginVertical: scale(marginV),
+      // marginVertical: scale(marginV),
       borderRadius: scale(20),
     },
     loadingContainer: {
@@ -32,6 +35,15 @@ const AdsSection = ({
       alignItems: 'center',
     },
     templateGroup: {},
+    adsHeading: {
+      fontSize: scale(28),
+      fontWeight: '800',
+      textAlign: 'center',
+      marginBottom: scale(10),
+      marginTop: scale(20),
+      fontFamily: 'AvenirNext-Regular' ,
+      textDecorationLine: 'underline'
+    },
   });
 
   const getAds = useCallback(() => {
@@ -80,6 +92,7 @@ const AdsSection = ({
     <View style={styles.sectionWrapper}>
       {Object.keys(groupedAds).map((templateKey) => (
         <View key={templateKey} style={styles.templateGroup}>
+          {headingShow && <Text style={headingStyle}>{headingText}</Text>}
           <AdsList
             ads={groupedAds[templateKey]}
             onAdPress={onAdPress}

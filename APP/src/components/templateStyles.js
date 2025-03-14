@@ -14,8 +14,8 @@ export const useResponsiveTemplateStyles = () => {
 
   return {
     promo: {
-      cardHeight: 245 * scale,
-      cardWidth: 300 * scale,
+      cardHeight: 265 * scale,
+      cardWidth: 350 * scale,
       gradientColors: ['#FF416C', '#FF4B2B'],
       badgeColor: '#FF4B2B',
       defaultImage: `https://via.placeholder.com/${Math.round(360 * scale)}x${Math.round(
@@ -60,8 +60,8 @@ export const useResponsiveTemplateStyles = () => {
       },
     },
     sale: {
-      cardHeight: 250 * scale,
-      cardWidth: 330 * scale,
+      cardHeight: 220 * scale,
+      cardWidth: 400 * scale,
       gradientColors: ['#F7971E', '#FFD200'],
       badgeColor: '#F7971E',
       defaultImage: `https://via.placeholder.com/${Math.round(350 * scale)}x${Math.round(

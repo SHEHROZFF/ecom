@@ -243,8 +243,8 @@ function CourseCard({ course, cardWidth, currentTheme }) {
         {/* Duration Badge */}
         {course.totalDuration && (
           <View style={styles.durationBadge}>
-            <Ionicons name="time-outline" size={scale(12)} color="#fff" />
-            <Text style={styles.durationText}>
+            <Ionicons name="time-outline" size={scale(12)} color={currentTheme.buttonTextColor} />
+            <Text style={[styles.durationText, { color: currentTheme.buttonTextColor }]}>
               {formatDuration(course.totalDuration)}
             </Text>
           </View>

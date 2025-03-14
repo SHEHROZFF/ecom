@@ -636,6 +636,7 @@ const MarketPage = () => {
           refreshSignal={adsRefresh}
           templateFilter="sale"
           marginV={-25}
+          headingShow={false}
         />
       </>
     );

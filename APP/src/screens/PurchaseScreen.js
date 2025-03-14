@@ -404,7 +404,7 @@ const PurchaseScreen = () => {
         >
           <Ionicons
             name="arrow-back"
-            size={scale(24)}
+            size={scale(28)}
             color={currentTheme.headerTextColor}
             style={styles.backIcon}
           />
@@ -421,7 +421,7 @@ const PurchaseScreen = () => {
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={currentTheme.primaryColor} />
         }
       >
         {/* Main Card container with elevated style */}
@@ -526,35 +526,41 @@ const PurchaseScreen = () => {
         </View>
 
         {/* Ads or Additional Info */}
-        <View style={styles.adsSection}>
+        {/* <View style={styles.adsSection}>
           <Text
             style={[styles.adsHeading, { color: currentTheme.textColor }]}
           >
             Explore Similar Courses
-          </Text>
+          </Text> */}
           <AdsSection
             currentTheme={currentTheme}
             onAdPress={handleAdPress}
             refreshSignal={0}
-            templateFilter="promo"
-            marginV={20}
+            templateFilter="newCourse"
+            marginV={0}
+            headingShow={true}
+            headingText='Explore Similar Courses'
+            headingStyle={styles.adsHeading}
           />
-        </View>
+        {/* </View> */}
 
-        <View style={styles.adsSection}>
+        {/* <View style={styles.adsSection}>
           <Text
             style={[styles.adsHeading, { color: currentTheme.textColor }]}
           >
             Ongoing Sales
-          </Text>
+          </Text> */}
           <AdsSection
             currentTheme={currentTheme}
             onAdPress={handleAdPress}
             refreshSignal={0}
             templateFilter="sale"
-            marginV={20}
+            marginV={0}
+            headingStyle={styles.adsHeading}
+            headingText='Check Our Ongoing Sales'
+            headingShow={true}
           />
-        </View>
+        {/* </View> */}
       </ScrollView>
 
       {/* Custom Alert */}
@@ -621,17 +627,24 @@ const createStyles = (scale, width) =>
     },
     heroBackButton: {
       position: 'absolute',
-      top: scale(10),
+      top: scale(50),
       left: scale(20),
-      zIndex: 2,
+      zIndex: 10,
       padding: scale(8),
     },
     backIcon: {
       // optional margin
     },
     heroTitle: {
-      fontSize: scale(22),
+      fontSize: scale(28),
       fontWeight: '800',
+      top: scale(50),
+      color: '#fff',
+      position: 'absolute',
+      zIndex: 2,
+      textAlign: 'center',
+      width: '100%',
+      paddingHorizontal: scale(20),
     },
     heroWaveShape: {
       position: 'absolute',
@@ -729,15 +742,16 @@ const createStyles = (scale, width) =>
       fontSize: scale(16),
       fontWeight: '600',
     },
-    adsSection: {
-      marginTop: scale(20),
-      marginBottom: scale(35),
-    },
+    // adsSection: {
+    //   marginTop: scale(20),
+    //   marginBottom: scale(35),
+    // },
     adsHeading: {
-      fontSize: scale(18),
+      fontSize: scale(22),
       fontWeight: '800',
       textAlign: 'center',
       marginBottom: scale(10),
+      marginTop: scale(20)
     },
   });
 

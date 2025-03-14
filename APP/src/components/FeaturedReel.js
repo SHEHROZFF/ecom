@@ -52,7 +52,7 @@ function FeaturedReel({ currentTheme }) {
           marginBottom: scale(10),
         },
         featuredHeading: {
-          marginTop: scale(10),
+          // marginTop: scale(10),
           fontSize: scale(22),
           fontWeight: '700',
         },
@@ -66,8 +66,8 @@ function FeaturedReel({ currentTheme }) {
           borderRadius: scale(15),
           overflow: 'hidden',
           marginRight: scale(15),
-          width: scale(145),
-          height: scale(220),
+          width: scale(147),
+          height: scale(240),
           backgroundColor: '#000',
           elevation: 6,
           position: 'relative',
@@ -228,7 +228,8 @@ function FeaturedReel({ currentTheme }) {
         },
         // Enroll Button Footer
         enrollButton: {
-          marginTop: scale(10),
+          // marginTop: scale(10),
+          marginBottom: scale(30),
           borderRadius: scale(8),
           overflow: 'hidden',
         },

@@ -162,6 +162,44 @@ const AICoursesHeader = memo(function AICoursesHeader({
           padding: scale(10),
           zIndex: 1,
         },
+        adsHeading1: {
+          fontSize: scale(18),
+          fontWeight: '900',
+          textAlign: 'center',
+          marginBottom: scale(10),
+          marginTop: scale(20),
+          borderWidth: scale(2),
+          borderRadius: scale(30),
+          padding: scale(10),
+          width: '60%',
+          alignSelf:'center',
+          borderColor: currentTheme.borderColor, 
+          backgroundColor: currentTheme.cardBackground,
+          fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace' ,
+          // textDecorationLine: 'underline',
+          textShadowColor: 'rgba(0, 0, 0, 0.9)',
+          textShadowOffset: { width: 0, height: scale(1) },
+          color: currentTheme.secondaryColor,
+        },
+        adsHeading2 : {
+          fontSize: scale(22),
+          fontWeight: '900',
+          textAlign: 'center',
+          marginBottom: scale(10),
+          marginTop: scale(20),
+          borderWidth: scale(5),
+          borderRadius: scale(30),
+          paddingHorizontal: scale(10),
+          borderColor: currentTheme.textColor, 
+          backgroundColor: currentTheme.backgroundColor,
+          fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace' ,
+          width:'70%',
+          alignSelf: 'center',
+          // textDecorationLine: 'underline',
+          textShadowColor: 'rgba(0, 0, 0, 0.9)',
+          textShadowOffset: { width: 0, height: scale(1) },
+          color: currentTheme.secondaryColor,
+        },
         suggestionItem: {
           flexDirection: 'row',
           alignItems: 'center',
@@ -465,6 +503,9 @@ const AICoursesHeader = memo(function AICoursesHeader({
         refreshSignal={adsRefresh}
         templateFilter="promo"
         marginV={-5}
+        headingShow={true}
+        headingText='Promtions for you'
+        headingStyle={stylesHeader.adsHeading1}
       />
 
       {/* Featured Courses */}
@@ -477,6 +518,9 @@ const AICoursesHeader = memo(function AICoursesHeader({
         refreshSignal={adsRefresh}
         templateFilter="newCourse"
         marginV={20}
+        headingShow={true}
+        headingText='New Courses On Board'
+        headingStyle={stylesHeader.adsHeading2}
       />
 
       {/* "All Courses" section title */}

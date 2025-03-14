@@ -155,6 +155,21 @@ const deleteReview = asyncHandler(async (req, res) => {
   await review.deleteOne();
   res.json({ message: 'Review deleted successfully.' });
 });
+/**
+ * @desc    Get all reviews by the logged-in user
+ * @route   GET /api/reviews/my
+ * @access  Private
+ */
+const getMyReviews = asyncHandler(async (req, res) => {
+  const reviews = await Review.find({ user: req.user._id })
+    .populate('reviewable', 'title name price image') // or whichever fields you want
+    .populate('user', 'name email profileImage'); // yourself for completeness
+
+  res.json({
+    success: true,
+    data: reviews
+  });
+});
 
 module.exports = {
   createReview,
@@ -162,6 +177,7 @@ module.exports = {
   getReviewsForItem,
   updateReview,
   deleteReview,
+  getMyReviews
 };
 
 
