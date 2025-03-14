@@ -40,6 +40,7 @@ import CourseDetailScreen from '../screens/CourseDetailScreen';
 import MyEnrollmentsScreen from '../screens/MyEnrollmentsScreen';
 import PurchaseScreen from '../screens/PurchaseScreen';
 import EnrolledCourseScreen from '../screens/EnrolledCourseScreen';
+import MyReviewsScreen from '../screens/MyReviewsScreen';
 
 // Context
 import { ThemeProvider, ThemeContext } from '../../ThemeContext';
@@ -95,6 +96,8 @@ const CombinedStackScreen = ({ route }) => {
       <CombinedStack.Screen name="PurchaseScreen" component={PurchaseScreen} />
       <CombinedStack.Screen name="MyEnrollmentsScreen" component={MyEnrollmentsScreen} />
       <CombinedStack.Screen name="EnrolledCourseScreen" component={EnrolledCourseScreen} />
+      {<CombinedStack.Screen name="MyReviewsScreen" component={MyReviewsScreen} />}
+        
     </CombinedStack.Navigator>
   );
 };

@@ -316,6 +316,32 @@ const UserProfileScreen = () => {
 
       {/* Statistics Section */}
       <View style={styles.statsContainer}>
+        <TouchableOpacity
+          style={styles.statItem}
+          onPress={() => navigation.navigate('Favourites')}
+        >
+          <Text style={styles.statNumber}>{favouriteItems.length || 0}</Text>
+          <Text style={styles.statLabel}>Favourites</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.statItem}
+          onPress={() => navigation.navigate('PurchaseHistory')}
+        >
+          <Text style={styles.statNumber}>{user?.purchasesCount || 0}</Text>
+          <Text style={styles.statLabel}>Purchases</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.statItem}
+          onPress={() => navigation.navigate('MyReviewsScreen')}
+        >
+          <Text style={styles.statNumber}>{user?.reviewsCount || 0}</Text>
+          <Text style={styles.statLabel}>Reviews</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* <View style={styles.statsContainer}>
         <View style={styles.statItem}>
           <Text style={styles.statNumber}>{user?.purchasesCount || 0}</Text>
           <Text style={styles.statLabel}>Purchases</Text>
@@ -328,7 +354,7 @@ const UserProfileScreen = () => {
           <Text style={styles.statNumber}>{user?.reviewsCount || 0}</Text>
           <Text style={styles.statLabel}>Reviews</Text>
         </View>
-      </View>
+      </View> */}
 
       {/* Personal Information Section */}
       <View style={styles.section}>

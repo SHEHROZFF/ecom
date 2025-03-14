@@ -3,6 +3,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import mime from 'mime';
+import { get } from 'lodash';
 
 
 // Replace with your actual API URL
@@ -392,6 +393,56 @@ export const deleteReviewAPI = async (reviewId) => {
   } catch (error) {
     console.error('Delete Review error:', error.response?.data?.message || error.message);
     return { success: false, message: error.response?.data?.message || 'Failed to delete review.' };
+  }
+};
+
+export const getMyReviewsAPI = async () => {
+  try {
+    const token = await getAuthToken();
+    if (!token) {
+      throw new Error('No authentication token found.');
+    }
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const response = await axios.get(`${API_URL}/reviews/my`, config);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Get My Reviews error:', error.response?.data?.message || error.message);
+    return {
+      success: false,
+      message: error.response?.data?.message || 'Failed to get reviews.',
+    };
+  }
+};
+
+export const updateReviewAPI = async (reviewId, rating, comment) => {
+  try {
+    const token = await getAuthToken();
+    if (!token) {
+      throw new Error('No authentication token found.');
+    }
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const response = await axios.put(
+      `${API_URL}/reviews/${reviewId}`,
+      { rating, comment },
+      config
+    );
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Update Review error:', error.response?.data?.message || error.message);
+    return {
+      success: false,
+      message: error.response?.data?.message || 'Failed to update review.',
+    };
   }
 };
 
@@ -815,6 +866,8 @@ export default {
   addOrUpdateReview,
   getProductReviewsAPI,
   deleteReviewAPI,
+  updateReviewAPI,
+  getMyReviewsAPI,
 
   // Orders
   createOrder,

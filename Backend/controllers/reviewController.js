@@ -16,6 +16,11 @@ const createReview = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error('Reviewable ID, reviewable type, rating, and comment are required.');
   }
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found.');
+  }
 
   // Validate reviewableType and check that the item exists
   let reviewableItem;
@@ -53,7 +58,8 @@ const createReview = asyncHandler(async (req, res) => {
   });
 
   await review.save();
-  // The post-save hook recalculates ratings
+  // Increment the user's review count using your built-in model function
+  await user.incrementReviews();
   res.status(201).json(review);
 });
 
@@ -143,16 +149,19 @@ const deleteReview = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Review not found.');
   }
-  // Check if user is owner or admin
-  if (
-    review.user.toString() !== req.user._id.toString() &&
-    req.user.role !== 'admin'
-  ) {
-    res.status(401);
-    throw new Error('Not authorized to delete this review.');
-  }
+
+  const user = await User.findById(req.user._id);
+  // // Check if user is owner or admin
+  // if (
+  //   review.user.toString() !== req.user._id.toString() &&
+  //   req.user.role !== 'admin'
+  // ) {
+  //   res.status(401);
+  //   throw new Error('Not authorized to delete this review.');
+  // }
 
   await review.deleteOne();
+  await user.decrementReviews();
   res.json({ message: 'Review deleted successfully.' });
 });
 /**
