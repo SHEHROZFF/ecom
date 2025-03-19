@@ -133,6 +133,8 @@ const deleteUser = asyncHandler(async (req, res) => {
 
 
 
+
+
 // @desc    Get current logged in user
 // @route   GET /api/users/me
 // @access  Private
@@ -423,6 +425,28 @@ const changePassword = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Delete current user's account
+ * @route   DELETE /api/users/me
+ * @access  Private
+ */
+const deleteMe = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  // Delete the user (this triggers any pre('deleteOne') middleware if defined)
+  await user.deleteOne();
+
+  res.status(200).json({
+    success: true,
+    message: 'Your account has been deleted successfully.',
+    data: { _id: req.user._id },
+  });
+});
+
 module.exports = {
   getUsers,
   getUser,
@@ -431,7 +455,8 @@ module.exports = {
   deleteUser,
   getMe,
   updateMe,
-  changePassword
+  changePassword,
+  deleteMe
 };
 
 
