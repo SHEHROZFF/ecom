@@ -89,6 +89,7 @@ userSchema.pre(
     console.log(`Cascade delete: Removing reviews for user ${this._id}`);
     await this.model('Review').deleteMany({ user: this._id });
     await this.model('Order').deleteMany({ user: this._id });
+    await this.model('Enrollment').deleteMany({user:this._id})
     next();
   }
 );

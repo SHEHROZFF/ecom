@@ -5,7 +5,7 @@ import {
   fetchFeaturedReels,
   fetchAds,
   searchCoursesAPI,
-  fetchCourseById
+  fetchCourseById,
 } from '../../services/api';
 
 export const fetchCoursesThunk = createAsyncThunk(
@@ -16,24 +16,34 @@ export const fetchCoursesThunk = createAsyncThunk(
       if (!response.success) {
         return rejectWithValue(response.message);
       }
-      // console.log('responsecourse',response);
-      
-      return response; // e.g. { courses: [...], pagination: {...} }
+      return response;
     } catch (error) {
       return rejectWithValue(error.message);
     }
   }
 );
 
+/**
+ * Add a "loadMore" flag in the payload so we can differentiate between
+ * an initial fetch and pagination loading. We'll store page, hasMore,
+ * etc. in Redux state, so the component doesn't have to hold them.
+ */
 export const fetchFeaturedReelsThunk = createAsyncThunk(
   'courses/fetchFeaturedReels',
-  async ({ page = 1, limit = 5 } = {}, { rejectWithValue }) => {
+  async ({ page = 1, limit = 5, loadMore = false } = {}, { rejectWithValue }) => {
     try {
       const response = await fetchFeaturedReels(page, limit);
       if (!response.success) {
         return rejectWithValue(response.message);
       }
-      return response; // e.g. { reels: [...] }
+      // We'll return the reels data plus the original args so we know
+      // the page/limit/loadMore on the fulfillment side.
+      return {
+        data: response.data,
+        page,
+        limit,
+        loadMore,
+      };
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -48,9 +58,7 @@ export const fetchAdsThunk = createAsyncThunk(
       if (!response.success) {
         return rejectWithValue(response.message);
       }
-      // console.log('responseads', response);
-      
-      return response.data; // e.g. { ads: [...] }
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -65,7 +73,7 @@ export const searchCoursesThunk = createAsyncThunk(
       if (!response.success) {
         return rejectWithValue(response.message);
       }
-      return response; // e.g. { courses: [...] }
+      return response;
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -77,12 +85,10 @@ export const fetchCourseByIdThunk = createAsyncThunk(
   async (courseId, { rejectWithValue }) => {
     try {
       const response = await fetchCourseById(courseId);
-      // console.log('byidthunk',response);
-      
       if (!response.success) {
         return rejectWithValue(response.message);
       }
-      return response; // e.g. { course: {...} }
+      return response;
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -93,10 +99,20 @@ const initialState = {
   loading: false,
   error: null,
   courses: [],
-  featuredReels: [],
+  // Ads
   ads: [],
+  // Searching
   searchedCourses: [],
-  selectedCourse: null
+  // Single course
+  selectedCourse: null,
+
+  // Featured Reels
+  featuredReels: [],
+  featuredReelsError: null,
+  featuredReelsLoading: false,
+  // Additional pagination logic
+  featuredReelsPage: 1,
+  featuredReelsHasMore: true,
 };
 
 const courseSlice = createSlice({
@@ -105,17 +121,18 @@ const courseSlice = createSlice({
   reducers: {
     clearCoursesError(state) {
       state.error = null;
-    }
+    },
   },
   extraReducers: (builder) => {
     builder
+      // ------------------- fetchCoursesThunk ------------------- //
       .addCase(fetchCoursesThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchCoursesThunk.fulfilled, (state, action) => {
         state.loading = false;
-        // If your API returns { courses: [...] }
+        // If your API returns { data: [...] }
         state.courses = action.payload.data || [];
       })
       .addCase(fetchCoursesThunk.rejected, (state, action) => {
@@ -123,19 +140,38 @@ const courseSlice = createSlice({
         state.error = action.payload;
       })
 
+      // ------------------- fetchFeaturedReelsThunk ------------------- //
       .addCase(fetchFeaturedReelsThunk.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+        // Distinguish between "initial fetch" and "load more" if desired.
+        // For simplicity, we'll just store a single loading flag here:
+        state.featuredReelsLoading = true;
+        state.featuredReelsError = null;
       })
       .addCase(fetchFeaturedReelsThunk.fulfilled, (state, action) => {
-        state.loading = false;
-        state.featuredReels = action.payload.data || [];
+        state.featuredReelsLoading = false;
+        const { data, page, limit, loadMore } = action.payload;
+
+        if (loadMore) {
+          // Append new reels
+          state.featuredReels = [...state.featuredReels, ...data];
+        } else {
+          // Initial fetch / refresh
+          state.featuredReels = data;
+        }
+
+        // If we fetched fewer than 'limit' reels, no more remain.
+        state.featuredReelsHasMore = data.length >= limit;
+
+        // Update current page for potential next load
+        state.featuredReelsPage = loadMore ? page + 1 : 2;
       })
       .addCase(fetchFeaturedReelsThunk.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
+        state.featuredReelsLoading = false;
+        state.featuredReelsError = action.payload;
+        state.featuredReelsHasMore = false;
       })
 
+      // ------------------- fetchAdsThunk ------------------- //
       .addCase(fetchAdsThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -149,6 +185,7 @@ const courseSlice = createSlice({
         state.error = action.payload;
       })
 
+      // ------------------- searchCoursesThunk ------------------- //
       .addCase(searchCoursesThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -162,6 +199,7 @@ const courseSlice = createSlice({
         state.error = action.payload;
       })
 
+      // ------------------- fetchCourseByIdThunk ------------------- //
       .addCase(fetchCourseByIdThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -174,7 +212,7 @@ const courseSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       });
-  }
+  },
 });
 
 export const { clearCoursesError } = courseSlice.actions;

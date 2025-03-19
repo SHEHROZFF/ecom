@@ -314,6 +314,7 @@ const EditProfilePopup = ({ visible, onClose, userData, onSave }) => {
                 onChangeText={setName}
                 placeholder="Enter your name"
                 placeholderTextColor={currentTheme.placeholderTextColor}
+                maxLength={20}
               />
             </View>
 

@@ -3,7 +3,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import mime from 'mime';
-import { get } from 'lodash';
+
 
 
 // Replace with your actual API URL
@@ -50,6 +50,18 @@ export const logoutUser = async () => {
     console.error('Logout error:', error);
   }
 };
+
+const deleteUserAccount = async () => {
+  try {
+    const token = await getAuthToken();
+    const headers = { Authorization: `Bearer ${token}` };
+    const response = await axios.delete(`${API_URL}/users/me`, { headers });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting user account:', error);
+    return { success: false, message: 'Failed to delete user account.' };
+  }
+}
 
 // ----------------------- Authentication Functions ----------------------- //
 
@@ -855,6 +867,7 @@ export default {
   getUserProfile,
   updateUserProfile,
   logoutUser,
+  deleteUserAccount,
 
   // Products
   fetchProducts,

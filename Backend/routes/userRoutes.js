@@ -8,7 +8,8 @@ const {
   deleteUser,
   getMe,
   updateMe,
-  changePassword
+  changePassword,
+  deleteMe
 } = require('../controllers/userController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
@@ -27,7 +28,7 @@ router
       { name: 'coverImage', maxCount: 1 },
     ]),
     updateMe
-  );
+  ).delete(protect, deleteMe);
 
 // Admin routes
 router

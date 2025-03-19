@@ -12,6 +12,7 @@
       "backgroundColor": "#8E44AD"
     },
     "ios": {
+      "buildNumber": "2",
       "supportsTablet": true,
       "bundleIdentifier": "com.goldenbee.AiNsider",
       "infoPlist": {
@@ -22,11 +23,10 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#004242",
-        "softwareKeyboardLayoutMode": "pan"
+        "backgroundColor": "#004242"
       },
       "package": "com.goldenbee.AiNsider",
-      "versionCode": 3
+      "versionCode": 4
     },
     "web": {
       "favicon": "./assets/favicon.png"

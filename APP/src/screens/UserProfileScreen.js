@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   ActivityIndicator,
   RefreshControl,
   useWindowDimensions,
@@ -22,10 +21,10 @@ import EditProfilePopup from '../components/EditProfilePopup';
 import CustomAlert from '../components/CustomAlert';
 
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchProfile } from '../store/slices/authSlice'; // We'll remove direct updateProfile usage
+import { fetchProfile } from '../store/slices/authSlice';
 import { FavouritesContext } from '../contexts/FavouritesContext';
 
-import { updateUserProfileMultipart } from '../services/api'; // The new function
+import { updateUserProfileMultipart, deleteUserAccount } from '../services/api'; // Added deleteUserAccount
 
 // Static fallback images
 const STATIC_PROFILE_IMAGE = 'https://w7.pngwing.com/pngs/684/806/png-transparent-user-avatar-enter-photo-placeholder.png';
@@ -171,6 +170,19 @@ const UserProfileScreen = () => {
           textAlign: 'center',
           color: currentTheme.textColor,
         },
+        deleteButton: {
+          backgroundColor: 'red',
+          paddingVertical: scale(12),
+          paddingHorizontal: scale(20),
+          borderRadius: scale(20),
+          alignItems: 'center',
+          marginTop: scale(10),
+        },
+        deleteButtonText: {
+          fontSize: scale(16),
+          fontWeight: '600',
+          color: '#FFFFFF',
+        },
       }),
     [width, currentTheme, headerHeight, scale]
   );
@@ -207,9 +219,9 @@ const UserProfileScreen = () => {
   };
 
   /**
-   *  Save profile with images
-   *  `updatedData` = { name, email, phone, address }
-   *  `profileUri` and `coverUri` are local image URIs from EditProfilePopup
+   * Save profile with images
+   * `updatedData` = { name, email, phone, address }
+   * `profileUri` and `coverUri` are local image URIs from EditProfilePopup
    */
   const handleSaveProfile = async (updatedData, profileUri, coverUri) => {
     try {
@@ -240,6 +252,43 @@ const UserProfileScreen = () => {
       setLoading(false);
       setEditProfileVisible(false);
     }
+  };
+
+  // Function to handle account deletion after confirmation
+  const handleDeleteAccount = async () => {
+    try {
+      setLoading(true);
+      // Call API to delete the account
+      const result = await deleteUserAccount();
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+      // Account deleted successfully. Hide alert and navigate to Login.
+      setAlertVisible(false);
+      // Optionally, dispatch a logout action here if needed.
+      navigation.replace('Login'); // Replace with your login route name.
+    } catch (error) {
+      console.error('Delete Account Error:', error);
+      setAlertTitle('Error');
+      setAlertMessage(error.message || 'Failed to delete account.');
+      setAlertIcon('close-circle');
+      setAlertButtons([{ text: 'OK', onPress: () => setAlertVisible(false) }]);
+      setAlertVisible(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Function to confirm account deletion using the CustomAlert
+  const confirmDeleteAccount = () => {
+    setAlertTitle('Confirm Account Deletion');
+    setAlertMessage('Are you sure you want to delete your account? This action cannot be undone.');
+    setAlertIcon('warning');
+    setAlertButtons([
+      { text: 'Cancel', onPress: () => setAlertVisible(false) },
+      { text: 'Delete', onPress: () => handleDeleteAccount() },
+    ]);
+    setAlertVisible(true);
   };
 
   const renderInfoItem = (iconName, text) => (
@@ -341,26 +390,23 @@ const UserProfileScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* <View style={styles.statsContainer}>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{user?.purchasesCount || 0}</Text>
-          <Text style={styles.statLabel}>Purchases</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{favouriteItems.length || 0}</Text>
-          <Text style={styles.statLabel}>Favorites</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{user?.reviewsCount || 0}</Text>
-          <Text style={styles.statLabel}>Reviews</Text>
-        </View>
-      </View> */}
-
       {/* Personal Information Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Personal Information</Text>
         {renderInfoItem('call', user?.phone || 'N/A')}
         {renderInfoItem('location', user?.address || 'N/A')}
+      </View>
+
+      {/* Delete Account Button */}
+      <View style={styles.section}>
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={confirmDeleteAccount}
+          accessibilityLabel="Delete Account"
+          accessibilityRole="button"
+        >
+          <Text style={styles.deleteButtonText}>Delete Account</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Edit Profile Popup */}
@@ -395,6 +441,8 @@ export default UserProfileScreen;
 
 
 
+
+
 // // src/screens/UserProfileScreen.js
 // import React, { useEffect, useState, useContext, useMemo } from 'react';
 // import {
@@ -419,14 +467,14 @@ export default UserProfileScreen;
 // import CustomAlert from '../components/CustomAlert';
 
 // import { useDispatch, useSelector } from 'react-redux';
-// import { fetchProfile, updateProfile } from '../store/slices/authSlice';
+// import { fetchProfile } from '../store/slices/authSlice'; // We'll remove direct updateProfile usage
 // import { FavouritesContext } from '../contexts/FavouritesContext';
 
-// // Static image URLs for fallback
-// const STATIC_PROFILE_IMAGE =
-//   'https://w7.pngwing.com/pngs/684/806/png-transparent-user-avatar-enter-photo-placeholder.png';
-// const STATIC_COVER_IMAGE =
-//   'https://t3.ftcdn.net/jpg/04/25/64/80/240_F_425648048_vJdR1FZINXrMjExnnmk8zUGOrdPf6JTr.jpg';
+// import { updateUserProfileMultipart } from '../services/api'; // The new function
+
+// // Static fallback images
+// const STATIC_PROFILE_IMAGE = 'https://w7.pngwing.com/pngs/684/806/png-transparent-user-avatar-enter-photo-placeholder.png';
+// const STATIC_COVER_IMAGE = 'https://t3.ftcdn.net/jpg/04/25/64/80/240_F_425648048_vJdR1FZINXrMjExnnmk8zUGOrdPf6JTr.jpg';
 
 // const UserProfileScreen = () => {
 //   const navigation = useNavigation();
@@ -435,27 +483,26 @@ export default UserProfileScreen;
 //   const dispatch = useDispatch();
 //   const user = useSelector((state) => state.auth.user);
 //   const { favouriteItems } = useContext(FavouritesContext);
-//   const { width } = useWindowDimensions();
 
-//   // Calculate scale factor based on a base width
+//   const { width } = useWindowDimensions();
 //   const baseWidth = width > 375 ? 460 : 500;
 //   const scaleFactor = width / baseWidth;
 //   const scale = (size) => size * scaleFactor;
-
-//   // Dynamic header height based on width (responsive selfie!)
 //   const headerHeight = width * 0.5;
 
+//   // Local state
 //   const [loading, setLoading] = useState(true);
 //   const [refreshing, setRefreshing] = useState(false);
 //   const [isEditProfileVisible, setEditProfileVisible] = useState(false);
 
+//   // Custom alert states
 //   const [alertVisible, setAlertVisible] = useState(false);
 //   const [alertTitle, setAlertTitle] = useState('');
 //   const [alertMessage, setAlertMessage] = useState('');
 //   const [alertIcon, setAlertIcon] = useState('');
 //   const [alertButtons, setAlertButtons] = useState([]);
 
-//   // Memoized responsive styles
+//   // Styles
 //   const styles = useMemo(
 //     () =>
 //       StyleSheet.create({
@@ -573,7 +620,7 @@ export default UserProfileScreen;
 //     [width, currentTheme, headerHeight, scale]
 //   );
 
-//   // Fetch user profile using Redux thunk
+//   // Fetch user profile from the server
 //   const fetchUserProfile = async () => {
 //     try {
 //       setLoading(true);
@@ -604,11 +651,24 @@ export default UserProfileScreen;
 //     fetchUserProfile();
 //   };
 
-//   // Update profile using Redux thunk
-//   const handleSaveProfile = async (updatedData) => {
+//   /**
+//    *  Save profile with images
+//    *  `updatedData` = { name, email, phone, address }
+//    *  `profileUri` and `coverUri` are local image URIs from EditProfilePopup
+//    */
+//   const handleSaveProfile = async (updatedData, profileUri, coverUri) => {
 //     try {
 //       setLoading(true);
-//       await dispatch(updateProfile(updatedData)).unwrap();
+//       // Call the new function with FormData
+//       const result = await updateUserProfileMultipart(updatedData, profileUri, coverUri);
+//       if (!result.success) {
+//         throw new Error(result.message);
+//       }
+
+//       // Optionally, refresh the user data from the server
+//       await fetchUserProfile();
+
+//       // Show success alert
 //       setAlertTitle('Success');
 //       setAlertMessage('Your profile has been updated successfully.');
 //       setAlertIcon('checkmark-circle');
@@ -627,7 +687,6 @@ export default UserProfileScreen;
 //     }
 //   };
 
-//   // Helper to render an information row
 //   const renderInfoItem = (iconName, text) => (
 //     <View style={styles.infoItem}>
 //       <Ionicons
@@ -702,6 +761,32 @@ export default UserProfileScreen;
 
 //       {/* Statistics Section */}
 //       <View style={styles.statsContainer}>
+//         <TouchableOpacity
+//           style={styles.statItem}
+//           onPress={() => navigation.navigate('Favourites')}
+//         >
+//           <Text style={styles.statNumber}>{favouriteItems.length || 0}</Text>
+//           <Text style={styles.statLabel}>Favourites</Text>
+//         </TouchableOpacity>
+
+//         <TouchableOpacity
+//           style={styles.statItem}
+//           onPress={() => navigation.navigate('PurchaseHistory')}
+//         >
+//           <Text style={styles.statNumber}>{user?.purchasesCount || 0}</Text>
+//           <Text style={styles.statLabel}>Purchases</Text>
+//         </TouchableOpacity>
+
+//         <TouchableOpacity
+//           style={styles.statItem}
+//           onPress={() => navigation.navigate('MyReviewsScreen')}
+//         >
+//           <Text style={styles.statNumber}>{user?.reviewsCount || 0}</Text>
+//           <Text style={styles.statLabel}>Reviews</Text>
+//         </TouchableOpacity>
+//       </View>
+
+//       {/* <View style={styles.statsContainer}>
 //         <View style={styles.statItem}>
 //           <Text style={styles.statNumber}>{user?.purchasesCount || 0}</Text>
 //           <Text style={styles.statLabel}>Purchases</Text>
@@ -714,7 +799,7 @@ export default UserProfileScreen;
 //           <Text style={styles.statNumber}>{user?.reviewsCount || 0}</Text>
 //           <Text style={styles.statLabel}>Reviews</Text>
 //         </View>
-//       </View>
+//       </View> */}
 
 //       {/* Personal Information Section */}
 //       <View style={styles.section}>
